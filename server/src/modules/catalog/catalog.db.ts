@@ -1,0 +1,186 @@
+import { tenantQuery, withTenant } from '@/shared/db';
+import {
+  DemoProducts,
+  DemoSizes,
+  ICategoryRow,
+  IProductRow,
+  IProductSearchParams,
+  ProductSortSql,
+  SearchLanguage,
+} from '@/modules/catalog/types';
+
+const PRODUCT_SELECT = `
+  SELECT p.id, p.slug, p.name, p.description, p.brand, p.category_id, p.product_type, p.unit,
+         p.base_price, p.old_price, p.currency, p.attributes, p.rating, p.reviews_count,
+         COALESCE(m.media, ARRAY[]::text[]) AS media,
+         COALESCE(v.variants, '[]'::json) AS variants,
+         v.min_price,
+         COALESCE(v.in_stock, false) AS in_stock
+  FROM products p
+  LEFT JOIN LATERAL (
+    SELECT json_agg(json_build_object(
+             'id', pv.id, 'sku', pv.sku, 'options', pv.options, 'price', pv.price,
+             'old_price', pv.old_price, 'stock', pv.stock, 'is_active', pv.is_active
+           ) ORDER BY pv.sku) AS variants,
+           MIN(pv.price) AS min_price,
+           BOOL_OR(pv.stock > pv.reserved) AS in_stock
+    FROM product_variants pv
+    WHERE pv.product_id = p.id AND pv.is_active
+  ) v ON true
+  LEFT JOIN LATERAL (
+    SELECT array_agg(pm.url ORDER BY pm.position) AS media
+    FROM product_media pm
+    WHERE pm.product_id = p.id
+  ) m ON true
+`;
+
+export const selectCategories = async (tenantId: string): Promise<ICategoryRow[]> => tenantQuery<ICategoryRow>(
+  tenantId,
+  `SELECT id, parent_id, slug, name, image_url, position
+   FROM categories
+   WHERE tenant_id = $1 AND is_active
+   ORDER BY position, name`,
+  [tenantId],
+);
+
+const buildFilters = (tenantId: string, params: IProductSearchParams) => {
+  const values: unknown[] = [tenantId];
+  const conditions: string[] = ['p.tenant_id = $1', 'p.is_active'];
+
+  if (params.query) {
+    values.push(params.query);
+    conditions.push(`to_tsvector('${SearchLanguage}', p.name || ' ' || COALESCE(p.description, ''))
+      @@ plainto_tsquery('${SearchLanguage}', $${values.length})`);
+  }
+
+  if (params.categoryId) {
+    values.push(params.categoryId);
+    conditions.push(`p.category_id = $${values.length}`);
+  }
+
+  if (params.minPrice !== null) {
+    values.push(params.minPrice);
+    conditions.push(`p.base_price >= $${values.length}`);
+  }
+
+  if (params.maxPrice !== null) {
+    values.push(params.maxPrice);
+    conditions.push(`p.base_price <= $${values.length}`);
+  }
+
+  Object.entries(params.options).forEach(([code, optionValues]) => {
+    values.push(JSON.stringify(optionValues.map((value) => ({ [code]: value }))));
+    conditions.push(`EXISTS (
+      SELECT 1 FROM product_variants pvf
+      WHERE pvf.product_id = p.id AND pvf.is_active
+        AND pvf.options @> ANY (SELECT jsonb_array_elements($${values.length}::jsonb))
+    )`);
+  });
+
+  return { where: conditions.join(' AND '), values };
+};
+
+export const selectProducts = async (
+  tenantId: string,
+  params: IProductSearchParams,
+): Promise<{ items: IProductRow[]; total: number }> => {
+  const { where, values } = buildFilters(tenantId, params);
+  const order = ProductSortSql[params.sort] ?? ProductSortSql.popular;
+
+  return withTenant(tenantId, async (client) => {
+    const items = await client.query<IProductRow>(
+      `${PRODUCT_SELECT} WHERE ${where} ORDER BY ${order} NULLS LAST LIMIT $${values.length + 1} OFFSET $${values.length + 2}`,
+      [...values, params.limit, params.offset],
+    );
+    const counted = await client.query<{ total: string }>(
+      `SELECT COUNT(*)::text AS total FROM products p WHERE ${where}`,
+      values,
+    );
+
+    return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
+  });
+};
+
+export const selectProductById = async (tenantId: string, id: string): Promise<IProductRow | null> => {
+  const rows = await tenantQuery<IProductRow>(
+    tenantId,
+    `${PRODUCT_SELECT} WHERE p.tenant_id = $1 AND p.id = $2 AND p.is_active LIMIT 1`,
+    [tenantId, id],
+  );
+
+  return rows[0] ?? null;
+};
+
+export const selectOptionFacets = async (
+  tenantId: string,
+  categoryId: string | null,
+): Promise<{ code: string; value: string; total: string }[]> => tenantQuery(
+  tenantId,
+  `SELECT option_pair.key AS code, option_pair.value AS value, COUNT(DISTINCT p.id)::text AS total
+   FROM products p
+   JOIN product_variants pv ON pv.product_id = p.id AND pv.is_active
+   JOIN LATERAL jsonb_each_text(pv.options) AS option_pair(key, value) ON true
+   WHERE p.tenant_id = $1 AND p.is_active AND ($2::uuid IS NULL OR p.category_id = $2)
+   GROUP BY option_pair.key, option_pair.value
+   ORDER BY option_pair.key, option_pair.value`,
+  [tenantId, categoryId],
+);
+
+export const seedDemoCatalog = async (tenantId: string): Promise<void> => {
+  await withTenant(tenantId, async (client) => {
+    for (const demo of DemoProducts) {
+      const product = await client.query<{ id: string }>(
+        `INSERT INTO products (tenant_id, category_id, slug, name, description, brand, base_price, old_price, attributes)
+         SELECT $1, c.id, $2, $3, $4, $5, $6, $7, $8::jsonb
+         FROM categories c WHERE c.tenant_id = $1 AND c.slug = $9
+         ON CONFLICT (tenant_id, slug) DO UPDATE SET updated_at = now()
+         RETURNING id`,
+        [
+          tenantId,
+          demo.slug,
+          demo.name,
+          `${demo.name}. ${Object.values(demo.attributes).join(', ')}.`,
+          demo.brand,
+          demo.price,
+          demo.oldPrice,
+          JSON.stringify(demo.attributes),
+          demo.category,
+        ],
+      );
+
+      const productId = product.rows[0]?.id;
+
+      if (!productId) {
+        continue;
+      }
+
+      await client.query(
+        `INSERT INTO product_media (tenant_id, product_id, url, position)
+         SELECT $1, $2, $3, 0
+         WHERE NOT EXISTS (
+           SELECT 1 FROM product_media WHERE tenant_id = $1 AND product_id = $2
+         )`,
+        [tenantId, productId, `https://placehold.co/600x800/f6f6f7/111827?text=${encodeURIComponent(demo.name)}`],
+      );
+
+      for (const color of demo.colors) {
+        for (const size of DemoSizes) {
+          await client.query(
+            `INSERT INTO product_variants (tenant_id, product_id, sku, options, price, old_price, stock)
+             VALUES ($1, $2, $3, $4::jsonb, $5, $6, $7)
+             ON CONFLICT (tenant_id, sku) DO NOTHING`,
+            [
+              tenantId,
+              productId,
+              `${demo.slug}-${color}-${size}`.toUpperCase(),
+              JSON.stringify({ size, color }),
+              demo.price,
+              demo.oldPrice,
+              10,
+            ],
+          );
+        }
+      }
+    }
+  });
+};

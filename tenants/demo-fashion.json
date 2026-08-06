@@ -1,0 +1,18 @@
+{
+  "key": "demo-fashion",
+  "name": "PHENOMEN Fashion",
+  "vertical": "fashion",
+  "plan": "pro",
+  "bundleId": "store.phenomen.fashion",
+  "brandColor": "#111827",
+  "assets": {
+    "icon": "./tenants/assets/demo-fashion/icon.png",
+    "splash": "./tenants/assets/demo-fashion/splash.png"
+  },
+  "env": {
+    "EXPO_PUBLIC_TENANT_KEY": "demo-fashion",
+    "EXPO_PUBLIC_APP_NAME": "PHENOMEN Fashion",
+    "EXPO_PUBLIC_BUNDLE_ID": "store.phenomen.fashion",
+    "EXPO_PUBLIC_BRAND_COLOR": "#111827"
+  }
+}
