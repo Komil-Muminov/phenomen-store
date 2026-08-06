@@ -1,38 +1,70 @@
-import { Router } from 'express';
+import { NextFunction, Response, Router } from 'express';
+import { ErrorMessages, HttpStatus } from '@/shared/config';
+import { authMiddleware } from '@/shared/middlewares';
+import { IAppRequest } from '@/shared/types';
+import { AppError, pickString, requireUuid, sendOk } from '@/shared/utils';
 import { addProductReview, getProductReviews } from '@/modules/reviews/reviews.service';
-import { authMiddleware } from '@/modules/auth';
+
+const GET_ACTION = '/get';
+
+const ADD_ACTION = '/add';
+
+const RATING_MIN = 1;
+
+const RATING_MAX = 5;
+
+const requireTenantId = (req: IAppRequest): string => {
+  if (!req.tenant) {
+    throw new AppError(ErrorMessages.tenantRequired, HttpStatus.badRequest);
+  }
+
+  return req.tenant.id;
+};
+
+const requireRating = (value: unknown): number => {
+  const rating = Number(value);
+
+  if (!Number.isInteger(rating) || rating < RATING_MIN || rating > RATING_MAX) {
+    throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
+  }
+
+  return rating;
+};
 
 export const reviewsRouter = Router();
 
-reviewsRouter.get('/get', async (req, res, next) => {
+reviewsRouter.get(GET_ACTION, async (req: IAppRequest, res: Response, next: NextFunction) => {
   try {
-    const tenantId = (req as any).tenantId;
-    const productId = req.query.productId as string;
+    const tenantId = requireTenantId(req);
+    const productId = requireUuid(req.query.productId, 'productId');
 
-    if (!productId) {
-      return res.status(400).json({ success: false, error: 'productId required' });
-    }
-
-    const summary = await getProductReviews(tenantId, productId);
-    res.json({ success: true, data: summary });
+    sendOk(res, await getProductReviews(tenantId, productId));
   } catch (error) {
     next(error);
   }
 });
 
-reviewsRouter.post('/add', authMiddleware, async (req, res, next) => {
-  try {
-    const tenantId = (req as any).tenantId;
-    const userId = (req as any).user?.id;
-    const { productId, rating, text } = req.body;
+reviewsRouter.post(
+  ADD_ACTION,
+  authMiddleware,
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const tenantId = requireTenantId(req);
+      const body = (req.body ?? {}) as Record<string, unknown>;
 
-    if (!userId || !productId || !rating) {
-      return res.status(400).json({ success: false, error: 'productId, rating required' });
+      if (!req.user) {
+        throw new AppError(ErrorMessages.unauthorized, HttpStatus.unauthorized);
+      }
+
+      sendOk(res, await addProductReview(
+        tenantId,
+        req.user.id,
+        requireUuid(body.productId, 'productId'),
+        requireRating(body.rating),
+        pickString(body.text),
+      ));
+    } catch (error) {
+      next(error);
     }
-
-    const review = await addProductReview(tenantId, userId, productId, Number(rating), text ?? '');
-    res.json({ success: true, data: review });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
