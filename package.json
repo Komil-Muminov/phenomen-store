@@ -3,12 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "server",
-    "mobile"
+    "server"
   ],
   "scripts": {
+    "dev": "concurrently -k -n server,mobile -c blue,magenta \"npm:dev:server\" \"npm:dev:mobile\"",
     "dev:server": "npm run dev --workspace server",
-    "dev:mobile": "npm run start --workspace mobile",
+    "dev:mobile": "npm run dev --prefix client",
     "db:init": "npm run db:init --workspace server"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.4"
   }
 }
