@@ -5,9 +5,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CartItemRow, ICart, ICartItem } from '@/entities/cart';
 import { ITenantConfig } from '@/entities/tenant';
 import { CartSummary } from '@/features/cart-summary';
-import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs, UiMessages } from '@/shared/config';
+import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { If, StateView } from '@/shared/ui';
+import { Button, If, StateView } from '@/shared/ui';
 
 export const CartPage = () => {
   const router = useRouter();
@@ -62,6 +62,9 @@ export const CartPage = () => {
           <Text className="text-lg text-content">←</Text>
         </Pressable>
         <Text className="flex-1 text-lg font-semibold text-content">Корзина</Text>
+        <If condition={(cart?.items.length ?? 0) > 0}>
+          <Text className="text-xs text-muted">{`${cart?.items.length ?? 0} тов.`}</Text>
+        </If>
       </View>
 
       <If
@@ -70,7 +73,25 @@ export const CartPage = () => {
       >
         <If
           condition={(cart?.items.length ?? 0) > 0}
-          fallback={<Text className="px-4 py-10 text-center text-sm text-muted">{UiMessages.emptyList}</Text>}
+          fallback={(
+            <View className="flex-1 items-center justify-center gap-4 px-6 py-12">
+              <View className="h-20 w-20 items-center justify-center rounded-full border border-line bg-surface">
+                <Text className="text-3xl">🛒</Text>
+              </View>
+              <View className="gap-1 items-center">
+                <Text className="text-lg font-bold text-content">Ваша корзина пуста</Text>
+                <Text className="text-center text-sm text-muted">
+                  Выберите интересные товары из каталога, чтобы сделать свой первый заказ
+                </Text>
+              </View>
+              <View className="w-full max-w-xs pt-2">
+                <Button
+                  title="Перейти к покупкам"
+                  onPress={() => router.push(AppRoutes.catalog)}
+                />
+              </View>
+            </View>
+          )}
         >
           <ScrollView className="flex-1" contentContainerClassName="gap-4 px-4 pb-8" showsVerticalScrollIndicator={false}>
             <View className="gap-3">

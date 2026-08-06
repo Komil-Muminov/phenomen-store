@@ -38,6 +38,8 @@ export const ProductPage = () => {
     { invalidate: [[QueryKeys.cart]] },
   );
 
+  const [showAddedToast, setShowAddedToast] = useState(false);
+
   const selectedVariant = product ? findVariant(product, selected) : null;
   const canAdd = Boolean(selectedVariant && selected.size && selected.color && selectedVariant.stock > 0);
 
@@ -48,9 +50,9 @@ export const ProductPage = () => {
 
     addToCart.mutate(
       { variantId: selectedVariant.id, quantity: 1 },
-      { onSuccess: () => router.push(AppRoutes.cart) },
+      { onSuccess: () => setShowAddedToast(true) },
     );
-  }, [addToCart, router, selectedVariant]);
+  }, [addToCart, selectedVariant]);
 
   const handleSelect = useCallback((code: keyof ISelectedOptions, value: string) => {
     setSelected((current) => ({ ...current, [code]: current[code] === value ? null : value }));
@@ -89,6 +91,20 @@ export const ProductPage = () => {
             onSelect={handleSelect}
           />
         </ScrollView>
+      </If>
+
+      <If condition={showAddedToast}>
+        <View className="mx-4 my-2 flex-row items-center gap-2 rounded-brandSm border border-emerald-500/30 bg-emerald-500/10 p-3">
+          <Text className="flex-1 text-xs font-semibold text-emerald-700">
+            ✓ Товар успешно добавлен в корзину
+          </Text>
+          <Pressable
+            onPress={() => router.push(AppRoutes.cart)}
+            className="rounded-brandSm bg-emerald-600 px-3 py-1.5"
+          >
+            <Text className="text-xs font-bold text-white">Перейти</Text>
+          </Pressable>
+        </View>
       </If>
 
       <If condition={Boolean(product)}>

@@ -62,6 +62,10 @@ export const Home = () => {
     }
   }, [router]);
 
+  const handleSearchPress = useCallback(() => {
+    router.push(AppRoutes.catalog);
+  }, [router]);
+
   const handleRefresh = useCallback(() => {
     refetch();
   }, [refetch]);
@@ -74,6 +78,7 @@ export const Home = () => {
           cartCount={countCartItems(cart)}
           onCartPress={handleCartPress}
           onProfilePress={handleProfilePress}
+          onSearchPress={handleSearchPress}
         />
       </If>
       <If

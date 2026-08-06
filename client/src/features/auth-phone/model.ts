@@ -18,6 +18,10 @@ export const AuthLabels = {
   sec: 'сек',
   devCodeHint: 'Код для теста',
   enterCodeSubtitle: 'Код отправлен на номер',
+  smsSentNotice: 'SMS с кодом подтверждения отправлено',
+  termsNotice: 'Нажимая «Получить код», вы соглашаетесь с',
+  termsLink: 'Условиями использования',
+  privacyLink: 'Политикой конфиденциальности',
 } as const;
 
 export const PHONE_MIN_DIGITS = 10;

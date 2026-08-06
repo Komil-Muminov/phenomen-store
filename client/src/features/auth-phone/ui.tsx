@@ -53,6 +53,12 @@ export const AuthPhone = ({
       condition={step === AuthSteps.phone}
       fallback={(
         <View className="gap-4">
+          <View className="rounded-brandSm border border-emerald-500/30 bg-emerald-500/10 p-3">
+            <Text className="text-center text-xs font-medium text-emerald-700">
+              {AuthLabels.smsSentNotice}
+            </Text>
+          </View>
+
           <View className="relative min-h-[60px] justify-center">
             <View className="flex-row justify-center gap-3">
               {[0, 1, 2, 3].map((index) => {
@@ -132,21 +138,38 @@ export const AuthPhone = ({
       )}
     >
       <View className="gap-3">
-        <TextInput
-          value={phone}
-          onChangeText={(val) => onPhoneChange(formatPhoneMask(val))}
-          placeholder={AuthLabels.phonePlaceholder}
-          keyboardType="phone-pad"
-          editable={!busy}
-          maxLength={18}
-          className="h-12 rounded-brandSm border border-line bg-background px-3 text-content"
-        />
+        <View className="relative justify-center">
+          <TextInput
+            value={phone}
+            onChangeText={(val) => onPhoneChange(formatPhoneMask(val))}
+            placeholder={AuthLabels.phonePlaceholder}
+            keyboardType="phone-pad"
+            editable={!busy}
+            maxLength={18}
+            className="h-12 rounded-brandSm border border-line bg-background pl-3 pr-10 text-content"
+          />
+          <If condition={phone.length > 0 && !busy}>
+            <Pressable
+              onPress={() => onPhoneChange('')}
+              className="absolute right-3 h-6 w-6 items-center justify-center rounded-full bg-line"
+            >
+              <Text className="text-xs text-muted font-bold">✕</Text>
+            </Pressable>
+          </If>
+        </View>
+
         <Button
           title={AuthLabels.sendCode}
           disabled={!isPhoneValid(phone) || busy}
           loading={busy}
           onPress={onRequestCode}
         />
+
+        <Text className="px-1 text-center text-xs leading-5 text-muted">
+          {AuthLabels.termsNotice}{' '}
+          <Text className="text-primary font-medium">{AuthLabels.termsLink}</Text> и{' '}
+          <Text className="text-primary font-medium">{AuthLabels.privacyLink}</Text>
+        </Text>
       </View>
     </If>
 
