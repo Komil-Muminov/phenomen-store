@@ -1,6 +1,6 @@
 import { Image, Pressable, Text, View } from 'react-native';
 import { ITenantConfig } from '@/entities/tenant';
-import { If } from '@/shared/ui';
+import { Icon, If } from '@/shared/ui';
 
 interface IProps {
   config: ITenantConfig;
@@ -17,17 +17,17 @@ export const StoreIntro = ({
   onProfilePress,
   onSearchPress,
 }: IProps) => (
-  <View className="gap-3 px-4 pb-3 pt-1">
+  <View className="gap-3 px-4 pb-3 pt-2">
     <View className="flex-row items-center gap-3">
       <If condition={Boolean(config.brand.logoUrl)}>
         <Image
           source={{ uri: config.brand.logoUrl ?? '' }}
-          className="h-10 w-10 rounded-brandSm"
+          className="h-10 w-10 rounded-xl"
           resizeMode="contain"
         />
       </If>
-      <View className="flex-1">
-        <Text numberOfLines={1} className="text-2xl font-bold text-content">
+      <View className="flex-1 shrink">
+        <Text numberOfLines={1} className="text-xl font-extrabold tracking-tight text-content">
           {config.brand.title}
         </Text>
         <If condition={Boolean(config.brand.slogan)}>
@@ -38,18 +38,18 @@ export const StoreIntro = ({
       </View>
       <Pressable
         onPress={onProfilePress}
-        className="h-10 w-10 items-center justify-center rounded-brandSm border border-line bg-background active:border-primary active:bg-surface"
+        className="h-10 w-10 items-center justify-center rounded-xl border border-line bg-background active:border-primary active:bg-surface"
       >
-        <Text className="text-base text-content">👤</Text>
+        <Icon name="user" size={18} />
       </Pressable>
       <Pressable
         onPress={onCartPress}
-        className="h-10 flex-row items-center gap-2 rounded-brandSm border border-line bg-background px-3 active:border-primary active:bg-surface"
+        className="relative h-10 flex-row items-center gap-1.5 rounded-xl border border-line bg-background px-3 active:border-primary active:bg-surface"
       >
-        <Text className="text-sm font-medium text-content">🛒</Text>
+        <Icon name="bag" size={18} />
         <If condition={cartCount > 0}>
-          <View className="min-w-5 items-center rounded-full bg-accent px-1.5 py-0.5">
-            <Text className="text-[11px] font-bold text-onPrimary">{cartCount}</Text>
+          <View className="min-w-[18px] h-[18px] items-center justify-center rounded-full bg-accent px-1">
+            <Text className="text-[10px] font-bold text-onPrimary">{cartCount}</Text>
           </View>
         </If>
       </Pressable>
@@ -57,10 +57,10 @@ export const StoreIntro = ({
 
     <Pressable
       onPress={onSearchPress}
-      className="h-11 flex-row items-center gap-2 rounded-brandSm border border-line bg-surface/60 px-3.5 active:border-primary active:bg-surface"
+      className="h-11 flex-row items-center gap-2.5 rounded-xl border border-line bg-surface px-4 active:border-primary"
     >
-      <Text className="text-sm text-muted">🔍</Text>
-      <Text className="flex-1 text-sm text-muted">Поиск товаров...</Text>
+      <Icon name="search" size={18} color="#737373" />
+      <Text className="flex-1 text-sm text-muted">Поиск по каталогу...</Text>
     </Pressable>
   </View>
 );

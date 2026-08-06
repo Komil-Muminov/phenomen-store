@@ -8,7 +8,7 @@ export type TAuthStep = (typeof AuthSteps)[keyof typeof AuthSteps];
 export const AuthLabels = {
   title: 'Вход в профиль',
   subtitle: 'Отправим код подтверждения по SMS',
-  phonePlaceholder: '+7 (900) 000-00-00',
+  phonePlaceholder: '+992 999 99 13 06',
   codePlaceholder: 'Код из SMS',
   sendCode: 'Получить код',
   confirm: 'Подтвердить',
@@ -24,7 +24,7 @@ export const AuthLabels = {
   privacyLink: 'Политикой конфиденциальности',
 } as const;
 
-export const PHONE_MIN_DIGITS = 10;
+export const PHONE_MIN_DIGITS = 9;
 export const CODE_LENGTH = 4;
 export const RESEND_DELAY_SEC = 60;
 
@@ -33,4 +33,3 @@ export const isPhoneValid = (phone: string): boolean => (
 );
 
 export const isCodeValid = (code: string): boolean => code.trim().length === CODE_LENGTH;
-

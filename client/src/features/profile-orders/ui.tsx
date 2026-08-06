@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { IOrder, OrderCard } from '@/entities/order';
-import { Button, ButtonVariants, If } from '@/shared/ui';
+import { Button, ButtonVariants, Icon, If } from '@/shared/ui';
 
 interface IProfileValues {
   name: string;
@@ -24,13 +24,13 @@ const Labels = {
   profile: 'Профиль',
   name: 'Имя',
   email: 'E-mail',
-  save: 'Сохранить',
-  logout: 'Выйти',
+  save: 'Сохранить изменения',
+  logout: 'Выйти из профиля',
   orders: 'Мои заказы',
-  empty: 'Заказов пока нет',
-  statusBadge: 'Покупатель',
+  empty: 'У вас пока нет оформленных заказов',
+  statusBadge: 'Покупатель PHENOMEN',
   logoutConfirmTitle: 'Выход из профиля',
-  logoutConfirmSubtitle: 'Вы действительно хотите выйти из учетной записи?',
+  logoutConfirmSubtitle: 'Вы действительно хотите выйти из своей учетной записи?',
   cancel: 'Отмена',
   confirmLogout: 'Да, выйти',
 } as const;
@@ -55,7 +55,7 @@ const getInitials = (name: string, phone: string | null): string => {
     }
   }
 
-  return '👤';
+  return 'PH';
 };
 
 export const ProfileOrders = ({
@@ -72,45 +72,51 @@ export const ProfileOrders = ({
   const [confirmLogout, setConfirmLogout] = useState(false);
 
   return (
-    <View className="gap-6 px-4 pb-10">
-      <View className="gap-4 rounded-brandLg border border-line bg-surface p-4">
+    <View className="gap-6 px-4 pb-10 pt-2">
+      <View className="gap-4 rounded-2xl border border-line bg-surface/50 p-4">
         <View className="flex-row items-center gap-3">
-          <View className="h-14 w-14 items-center justify-center rounded-full border border-primary/30 bg-primary/10">
-            <Text className="text-lg font-bold text-primary">
+          <View className="h-14 w-14 items-center justify-center rounded-full border border-line bg-background">
+            <Text className="text-lg font-bold text-content">
               {getInitials(values.name, phone)}
             </Text>
           </View>
           <View className="flex-1 gap-0.5">
-            <Text className="text-base font-semibold text-content">
+            <Text className="text-lg font-bold text-content">
               {values.name.trim() || Labels.profile}
             </Text>
             <Text className="text-xs text-muted">{phone ?? ''}</Text>
-            <View className="mt-1 self-start rounded-full bg-primary/10 px-2 py-0.5">
-              <Text className="text-[10px] font-semibold text-primary">{Labels.statusBadge}</Text>
+            <View className="mt-1 self-start rounded-full bg-primary/10 px-2.5 py-0.5">
+              <Text className="text-[10px] font-bold text-primary">{Labels.statusBadge}</Text>
             </View>
           </View>
         </View>
 
         <View className="gap-3 border-t border-line pt-3">
           <View className="gap-1">
-            <Text className="text-xs text-muted">{Labels.name}</Text>
+            <Text className="text-xs font-semibold text-muted">{Labels.name}</Text>
             <TextInput
               value={values.name}
               onChangeText={(value) => onChange('name', value)}
               placeholder="Укажите ваше имя"
-              className="h-12 rounded-brandSm border border-line bg-background px-3 text-content"
+              placeholderTextColor="#a3a3a3"
+              style={{ paddingVertical: 0 }}
+              textAlignVertical="center"
+              className="h-12 rounded-xl border border-line bg-background px-4 text-sm font-medium text-content"
             />
           </View>
 
           <View className="gap-1">
-            <Text className="text-xs text-muted">{Labels.email}</Text>
+            <Text className="text-xs font-semibold text-muted">{Labels.email}</Text>
             <TextInput
               value={values.email}
               onChangeText={(value) => onChange('email', value)}
               placeholder="example@domain.com"
+              placeholderTextColor="#a3a3a3"
               keyboardType="email-address"
               autoCapitalize="none"
-              className="h-12 rounded-brandSm border border-line bg-background px-3 text-content"
+              style={{ paddingVertical: 0 }}
+              textAlignVertical="center"
+              className="h-12 rounded-xl border border-line bg-background px-4 text-sm font-medium text-content"
             />
           </View>
 
@@ -126,8 +132,8 @@ export const ProfileOrders = ({
               />
             }
           >
-            <View className="gap-2 rounded-brandSm border border-danger/30 bg-danger/10 p-3">
-              <Text className="text-sm font-semibold text-danger">
+            <View className="gap-2 rounded-xl border border-danger/30 bg-danger/10 p-3.5">
+              <Text className="text-sm font-bold text-danger">
                 {Labels.logoutConfirmTitle}
               </Text>
               <Text className="text-xs text-muted">{Labels.logoutConfirmSubtitle}</Text>
@@ -153,10 +159,15 @@ export const ProfileOrders = ({
       </View>
 
       <View className="gap-3">
-        <Text className="text-base font-semibold text-content">{Labels.orders}</Text>
+        <Text className="text-lg font-bold text-content">{Labels.orders}</Text>
         <If
           condition={orders.length > 0}
-          fallback={<Text className="py-6 text-center text-sm text-muted">{Labels.empty}</Text>}
+          fallback={
+            <View className="items-center justify-center gap-2 rounded-2xl border border-dashed border-line bg-surface/30 py-8 px-4">
+              <Icon name="bag" size={28} color="#a3a3a3" />
+              <Text className="text-center text-xs font-medium text-muted">{Labels.empty}</Text>
+            </View>
+          }
         >
           {orders.map((order) => (
             <OrderCard

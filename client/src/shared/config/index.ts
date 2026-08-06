@@ -25,6 +25,10 @@ export const ApiRoutes = {
   authVerify: '/auth/verify',
   authProfile: '/auth/profile',
   authUpdate: '/auth/update',
+  reviewsGet: '/reviews/get',
+  reviewsAdd: '/reviews/add',
+  wishlistGet: '/wishlist/get',
+  wishlistToggle: '/wishlist/toggle',
 } as const;
 
 export const AppRoutes = {

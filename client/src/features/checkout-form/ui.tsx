@@ -1,5 +1,5 @@
 import { Text, View } from 'react-native';
-import { DeliveryLabels, DeliveryMethods, ICartTotals, PaymentLabels } from '@/entities/cart';
+import { DEFAULT_CART_TOTALS, DeliveryLabels, DeliveryMethods, ICartTotals, PaymentLabels } from '@/entities/cart';
 import { formatPrice } from '@/shared/lib';
 import { Button, If } from '@/shared/ui';
 import {
@@ -12,7 +12,7 @@ import { FormField, OptionSelector } from '@/features/checkout-form/ui/renderFie
 interface IProps {
   form: ICheckoutForm;
   errors: Partial<Record<TCheckoutField, string>>;
-  totals: ICartTotals;
+  totals?: ICartTotals;
   currencySymbol: string;
   deliveryMethods: string[];
   paymentMethods: string[];
@@ -25,7 +25,7 @@ interface IProps {
 export const CheckoutForm = ({
   form,
   errors,
-  totals,
+  totals = DEFAULT_CART_TOTALS,
   currencySymbol,
   deliveryMethods,
   paymentMethods,
@@ -33,55 +33,65 @@ export const CheckoutForm = ({
   submitError,
   onChange,
   onSubmit,
-}: IProps) => (
-  <View className="gap-6 px-4 pb-10">
-    <View className="gap-3">
-      <Text className="text-base font-semibold text-content">{SectionLabels.contacts}</Text>
-      <FormField field="name" form={form} error={errors.name} onChange={onChange} />
-      <FormField field="phone" form={form} error={errors.phone} keyboardType="phone-pad" onChange={onChange} />
-      <FormField field="email" form={form} error={errors.email} keyboardType="email-address" onChange={onChange} />
-    </View>
+}: IProps) => {
+  const safeTotals = totals ?? DEFAULT_CART_TOTALS;
 
-    <View className="gap-3">
-      <Text className="text-base font-semibold text-content">{SectionLabels.delivery}</Text>
-      <OptionSelector
-        options={deliveryMethods}
-        labels={DeliveryLabels}
-        value={form.deliveryMethod}
-        onSelect={(value) => onChange('deliveryMethod', value)}
-      />
-      <If condition={form.deliveryMethod === DeliveryMethods.courier}>
-        <FormField field="address" form={form} error={errors.address} onChange={onChange} />
+  return (
+    <View className="gap-6 px-4 pb-10 pt-2">
+      <View className="gap-3 rounded-2xl border border-line bg-surface/50 p-4">
+        <Text className="text-base font-extrabold text-content">{SectionLabels.contacts}</Text>
+        <FormField field="name" form={form} error={errors.name} onChange={onChange} />
+        <FormField field="phone" form={form} error={errors.phone} keyboardType="phone-pad" onChange={onChange} />
+        <FormField field="email" form={form} error={errors.email} keyboardType="email-address" onChange={onChange} />
+      </View>
+
+      <View className="gap-3 rounded-2xl border border-line bg-surface/50 p-4">
+        <Text className="text-base font-extrabold text-content">{SectionLabels.delivery}</Text>
+        <OptionSelector
+          options={deliveryMethods}
+          labels={DeliveryLabels}
+          value={form.deliveryMethod}
+          onSelect={(value) => onChange('deliveryMethod', value)}
+        />
+        <If condition={form.deliveryMethod === DeliveryMethods.courier}>
+          <FormField field="address" form={form} error={errors.address} onChange={onChange} />
+        </If>
+        <FormField field="comment" form={form} multiline onChange={onChange} />
+      </View>
+
+      <View className="gap-3 rounded-2xl border border-line bg-surface/50 p-4">
+        <Text className="text-base font-extrabold text-content">{SectionLabels.payment}</Text>
+        <OptionSelector
+          options={paymentMethods}
+          labels={PaymentLabels}
+          value={form.paymentMethod}
+          error={errors.paymentMethod}
+          onSelect={(value) => onChange('paymentMethod', value)}
+        />
+      </View>
+
+      <View className="gap-2 rounded-2xl border border-line bg-surface p-4">
+        <View className="flex-row items-center justify-between">
+          <Text className="text-xs font-medium text-muted">Доставка</Text>
+          <Text className="text-sm font-semibold text-content">
+            {formatPrice(safeTotals.deliveryTotal, currencySymbol)}
+          </Text>
+        </View>
+        <View className="flex-row items-center justify-between border-t border-line pt-2">
+          <Text className="text-base font-bold text-content">К оплате</Text>
+          <Text className="text-2xl font-extrabold text-content">
+            {formatPrice(safeTotals.grandTotal, currencySymbol)}
+          </Text>
+        </View>
+      </View>
+
+      <If condition={Boolean(submitError)}>
+        <View className="rounded-xl border border-danger/30 bg-danger/10 p-3">
+          <Text className="text-sm font-semibold text-danger">{submitError}</Text>
+        </View>
       </If>
-      <FormField field="comment" form={form} multiline onChange={onChange} />
+
+      <Button title={SectionLabels.submit} loading={busy} onPress={onSubmit} />
     </View>
-
-    <View className="gap-3">
-      <Text className="text-base font-semibold text-content">{SectionLabels.payment}</Text>
-      <OptionSelector
-        options={paymentMethods}
-        labels={PaymentLabels}
-        value={form.paymentMethod}
-        error={errors.paymentMethod}
-        onSelect={(value) => onChange('paymentMethod', value)}
-      />
-    </View>
-
-    <View className="gap-2 rounded-brandLg border border-line bg-surface p-4">
-      <View className="flex-row items-center justify-between">
-        <Text className="text-sm text-muted">Доставка</Text>
-        <Text className="text-sm text-content">{formatPrice(totals.deliveryTotal, currencySymbol)}</Text>
-      </View>
-      <View className="flex-row items-center justify-between">
-        <Text className="text-base font-semibold text-content">К оплате</Text>
-        <Text className="text-xl font-bold text-content">{formatPrice(totals.grandTotal, currencySymbol)}</Text>
-      </View>
-    </View>
-
-    <If condition={Boolean(submitError)}>
-      <Text className="text-sm text-danger">{submitError}</Text>
-    </If>
-
-    <Button title={SectionLabels.submit} loading={busy} onPress={onSubmit} />
-  </View>
-);
+  );
+};

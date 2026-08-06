@@ -48,11 +48,15 @@ const renderSection = (section: IStorefrontSection, handlers: ISectionHandlers) 
 };
 
 export const StorefrontSections = ({ sections, ...handlers }: IProps) => (
-  <View className="gap-6 pb-6">
+  <View className="gap-7 pb-8">
     {sections.map((section) => (
-      <View key={section.id} className="gap-3">
+      <View key={section.id} className="gap-3.5">
         <If condition={Boolean(section.title)}>
-          <Text className="px-4 text-xl font-semibold text-content">{section.title}</Text>
+          <View className="flex-row items-baseline justify-between px-4">
+            <Text className="text-xl font-extrabold tracking-tight text-content">
+              {section.title}
+            </Text>
+          </View>
         </If>
         {renderSection(section, handlers)}
       </View>

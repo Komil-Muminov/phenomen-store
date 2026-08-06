@@ -32,6 +32,15 @@ export interface ICart {
   totals: ICartTotals;
 }
 
+export const DEFAULT_CART_TOTALS: ICartTotals = {
+  itemsTotal: 0,
+  discountTotal: 0,
+  deliveryTotal: 0,
+  taxTotal: 0,
+  grandTotal: 0,
+  currency: 'RUB',
+};
+
 export const DeliveryMethods = {
   courier: 'courier',
   pickup: 'pickup',
@@ -53,5 +62,5 @@ export const PaymentLabels: Record<string, string> = {
 };
 
 export const countCartItems = (cart: ICart | undefined): number => (
-  cart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0
+  cart?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0
 );

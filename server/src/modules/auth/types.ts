@@ -40,13 +40,15 @@ export const OtpSettings = {
   saltRounds: 8,
 } as const;
 
-const PHONE_MIN_DIGITS = 10;
+const PHONE_MIN_DIGITS = 9;
 const PHONE_MAX_DIGITS = 15;
 
 export const normalizePhone = (raw: unknown): string | null => {
   let digits = typeof raw === 'string' ? raw.replace(/\D/g, '') : '';
 
-  if (digits.length === 11 && digits.startsWith('8')) {
+  if (digits.length === 9) {
+    digits = `992${digits}`;
+  } else if (digits.length === 11 && digits.startsWith('8')) {
     digits = `7${digits.slice(1)}`;
   } else if (digits.length === 10) {
     digits = `7${digits}`;

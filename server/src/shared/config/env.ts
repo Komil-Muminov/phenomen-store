@@ -50,6 +50,13 @@ export const Env = {
   defaultTenantKey: readString('DEFAULT_TENANT_KEY', 'demo-fashion'),
   jwtSecret: readString('JWT_SECRET', 'dev_secret'),
   jwtExpiresIn: readString('JWT_EXPIRES_IN', '30d'),
+  platform: {
+    jwtSecret: readString('PLATFORM_JWT_SECRET', 'dev_platform_secret'),
+    jwtExpiresIn: readString('PLATFORM_JWT_EXPIRES_IN', '12h'),
+    adminLogin: readString('PLATFORM_ADMIN_LOGIN', ''),
+    adminPassword: readString('PLATFORM_ADMIN_PASSWORD', ''),
+    adminName: readString('PLATFORM_ADMIN_NAME', 'Платформенный администратор'),
+  },
   db: {
     host: readString('PGHOST', 'localhost'),
     port: readNumber('PGPORT', 5432),

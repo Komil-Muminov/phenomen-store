@@ -8,14 +8,10 @@ import { ICart } from '@/entities/cart';
 import { ISelectedOptions, ProductDetails, findVariant } from '@/features/product-details';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { Button, If, StateView } from '@/shared/ui';
+import { formatPrice } from '@/shared/lib';
+import { Button, Icon, If, SkeletonBox, StateView } from '@/shared/ui';
 
 const EMPTY_SELECTION: ISelectedOptions = { size: null, color: null };
-
-const AddToCartLabels = {
-  add: 'Добавить в корзину',
-  select: 'Выберите размер и цвет',
-} as const;
 
 export const ProductPage = () => {
   const router = useRouter();
@@ -41,7 +37,17 @@ export const ProductPage = () => {
   const [showAddedToast, setShowAddedToast] = useState(false);
 
   const selectedVariant = product ? findVariant(product, selected) : null;
+  const price = selectedVariant?.price ?? product?.price ?? 0;
+  const currencySymbol = config?.locale.currencySymbol ?? '';
   const canAdd = Boolean(selectedVariant && selected.size && selected.color && selectedVariant.stock > 0);
+
+  const buttonLabel = canAdd
+    ? 'В корзину'
+    : !selected.size
+      ? 'Выберите размер'
+      : !selected.color
+        ? 'Выберите цвет'
+        : 'Выберите размер';
 
   const handleAddToCart = useCallback(() => {
     if (!selectedVariant) {
@@ -67,51 +73,78 @@ export const ProductPage = () => {
       <View className="flex-row items-center gap-3 px-4 py-2">
         <Pressable
           onPress={() => router.back()}
-          className="h-10 w-10 items-center justify-center rounded-brandSm border border-line bg-background active:border-primary active:bg-surface"
+          className="h-10 w-10 items-center justify-center rounded-xl border border-line bg-background active:border-primary active:bg-surface"
         >
-          <Text className="text-lg text-content">←</Text>
+          <Icon name="arrow-left" size={20} />
         </Pressable>
-        <Text numberOfLines={1} className="flex-1 text-base font-semibold text-content">
+        <Text numberOfLines={1} className="flex-1 text-lg font-bold text-content">
           {product?.name ?? ''}
         </Text>
       </View>
 
+      <If condition={showAddedToast}>
+        <View className="mx-4 my-2 flex-row items-center gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-3.5 shadow-sm">
+          <View className="h-7 w-7 items-center justify-center rounded-full bg-emerald-600">
+            <Icon name="check" size={14} color="#ffffff" />
+          </View>
+          <Text className="flex-1 text-xs font-bold text-emerald-800">
+            Товар добавлен в корзину
+          </Text>
+          <Pressable
+            onPress={() => router.push(AppRoutes.cart)}
+            className="flex-row items-center gap-1 rounded-xl bg-emerald-600 px-3 py-1.5 active:bg-emerald-700"
+          >
+            <Text className="text-xs font-bold text-white">В корзину</Text>
+            <Icon name="chevron-right" size={12} color="#ffffff" />
+          </Pressable>
+        </View>
+      </If>
+
       <If
         condition={Boolean(product)}
-        fallback={<StateView loading={isLoading} errorMessage={error?.message ?? null} onRetry={handleRetry} />}
+        fallback={
+          <StateView
+            loading={isLoading}
+            skeleton={
+              <View className="flex-1 gap-4 px-4 py-2">
+                <SkeletonBox className="h-96 w-full rounded-2xl" />
+                <SkeletonBox className="h-6 w-3/4 rounded-md" />
+                <SkeletonBox className="h-4 w-1/2 rounded-md" />
+              </View>
+            }
+            errorMessage={error?.message ?? null}
+            onRetry={handleRetry}
+          />
+        }
       >
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <ProductDetails
             product={product as IProduct}
-            currencySymbol={config?.locale.currencySymbol ?? ''}
+            currencySymbol={currencySymbol}
             selected={selected}
             onSelect={handleSelect}
           />
         </ScrollView>
       </If>
 
-      <If condition={showAddedToast}>
-        <View className="mx-4 my-2 flex-row items-center gap-2 rounded-brandSm border border-emerald-500/30 bg-emerald-500/10 p-3">
-          <Text className="flex-1 text-xs font-semibold text-emerald-700">
-            ✓ Товар успешно добавлен в корзину
-          </Text>
-          <Pressable
-            onPress={() => router.push(AppRoutes.cart)}
-            className="rounded-brandSm bg-emerald-600 px-3 py-1.5"
-          >
-            <Text className="text-xs font-bold text-white">Перейти</Text>
-          </Pressable>
-        </View>
-      </If>
-
       <If condition={Boolean(product)}>
-        <View className="border-t border-line px-4 py-3">
-          <Button
-            title={canAdd ? AddToCartLabels.add : AddToCartLabels.select}
-            disabled={!canAdd}
-            loading={addToCart.isPending}
-            onPress={handleAddToCart}
-          />
+        <View className="flex-row items-center gap-3 border-t border-line bg-background/95 px-4 py-3 pb-4">
+          <View className="shrink justify-center pr-1">
+            <Text className="text-[10px] font-bold uppercase tracking-wider text-muted">Цена</Text>
+            <Text className="text-lg font-extrabold text-content">
+              {formatPrice(price, currencySymbol)}
+            </Text>
+          </View>
+
+          <View className="flex-1">
+            <Button
+              title={buttonLabel}
+              disabled={!canAdd}
+              loading={addToCart.isPending}
+              icon={canAdd ? <Icon name="bag" size={16} color="#ffffff" /> : undefined}
+              onPress={handleAddToCart}
+            />
+          </View>
         </View>
       </If>
     </SafeAreaView>

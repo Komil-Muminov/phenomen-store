@@ -1,0 +1,245 @@
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { Env, ErrorMessages, HttpStatus, PlatformRoles, UserRoles } from '@/shared/config';
+import { IListResult, IPlatformContext } from '@/shared/types';
+import { AppError, pickString } from '@/shared/utils';
+import { invalidateTenantCache } from '@/modules/tenant';
+import {
+  countTenants,
+  existsTenantKey,
+  insertAuditEntry,
+  insertDefaultConfig,
+  insertPlatformUser,
+  insertTenant,
+  insertTenantOwner,
+  selectPlatformUserByLogin,
+  selectTenantById,
+  selectTenants,
+  setTenantStatus,
+  touchPlatformLogin,
+  updateTenantFields,
+} from '@/modules/platform/platform.db';
+import {
+  ICreateOwnerPayload,
+  ICreateTenantPayload,
+  ITenantSummary,
+  PlatformActions,
+  PlatformErrors,
+  SALT_ROUNDS,
+  TENANT_UPDATABLE_FIELDS,
+  TenantStatuses,
+} from '@/modules/platform/types';
+
+const KEY_PATTERN = /^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/;
+
+const requireTenantRow = async (id: string): Promise<ITenantSummary> => {
+  const tenant = await selectTenantById(id);
+
+  if (!tenant) {
+    throw new AppError(PlatformErrors.tenantMissing, HttpStatus.notFound);
+  }
+
+  return tenant;
+};
+
+export const ensurePlatformAdmin = async (): Promise<void> => {
+  const login = pickString(Env.platform.adminLogin);
+  const password = pickString(Env.platform.adminPassword);
+
+  if (!login || !password) {
+    return;
+  }
+
+  const existing = await selectPlatformUserByLogin(login);
+
+  if (existing) {
+    return;
+  }
+
+  await insertPlatformUser(
+    login,
+    await bcrypt.hash(password, SALT_ROUNDS),
+    pickString(Env.platform.adminName, login),
+    PlatformRoles.superadmin,
+  );
+};
+
+export const authenticatePlatform = async (
+  rawLogin: unknown,
+  rawPassword: unknown,
+  ip: string | null,
+): Promise<{ token: string; login: string; name: string; role: string }> => {
+  const login = pickString(rawLogin);
+  const password = typeof rawPassword === 'string' ? rawPassword : '';
+  const user = login ? await selectPlatformUserByLogin(login) : null;
+
+  if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+    throw new AppError(PlatformErrors.invalidCredentials, HttpStatus.unauthorized);
+  }
+
+  if (user.status !== TenantStatuses.active) {
+    throw new AppError(PlatformErrors.accountDisabled, HttpStatus.forbidden);
+  }
+
+  const context: IPlatformContext = {
+    id: user.id,
+    login: user.login,
+    role: user.role === PlatformRoles.superadmin ? PlatformRoles.superadmin : PlatformRoles.operator,
+    scope: 'platform',
+  };
+
+  await touchPlatformLogin(user.id);
+  await insertAuditEntry({
+    actorId: user.id,
+    actorLogin: user.login,
+    action: PlatformActions.login,
+    ip,
+  });
+
+  return {
+    token: jwt.sign(context, Env.platform.jwtSecret, { expiresIn: Env.platform.jwtExpiresIn }),
+    login: user.login,
+    name: user.name,
+    role: context.role,
+  };
+};
+
+export const listTenants = async (
+  page: number,
+  limit: number,
+  offset: number,
+): Promise<IListResult<ITenantSummary>> => ({
+  items: await selectTenants(limit, offset),
+  total: await countTenants(),
+  page,
+  limit,
+});
+
+export const createTenant = async (
+  actor: IPlatformContext,
+  payload: ICreateTenantPayload,
+  ip: string | null,
+): Promise<ITenantSummary> => {
+  const key = pickString(payload.key).toLowerCase();
+  const name = pickString(payload.name);
+
+  if (!KEY_PATTERN.test(key)) {
+    throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
+  }
+
+  if (await existsTenantKey(key)) {
+    throw new AppError(PlatformErrors.keyTaken, HttpStatus.conflict);
+  }
+
+  const tenant = await insertTenant(
+    key,
+    name,
+    pickString(payload.vertical, 'universal'),
+    pickString(payload.plan, 'start'),
+    pickString(payload.bundleId) || null,
+  );
+
+  await insertDefaultConfig(tenant.id);
+  await insertAuditEntry({
+    actorId: actor.id,
+    actorLogin: actor.login,
+    action: PlatformActions.tenantCreate,
+    tenantId: tenant.id,
+    payload: { key, name },
+    ip,
+  });
+
+  return tenant;
+};
+
+export const updateTenant = async (
+  actor: IPlatformContext,
+  id: string,
+  payload: Record<string, unknown>,
+  ip: string | null,
+): Promise<ITenantSummary> => {
+  const tenant = await requireTenantRow(id);
+  const patch: Record<string, unknown> = {};
+
+  TENANT_UPDATABLE_FIELDS.forEach((field) => {
+    const value = payload[field];
+
+    if (typeof value === 'string' && value.trim().length > 0) {
+      patch[field] = value.trim();
+    }
+  });
+
+  if (Object.keys(patch).length === 0) {
+    throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
+  }
+
+  await updateTenantFields(id, patch);
+  invalidateTenantCache(tenant.key);
+  await insertAuditEntry({
+    actorId: actor.id,
+    actorLogin: actor.login,
+    action: PlatformActions.tenantUpdate,
+    tenantId: id,
+    payload: patch,
+    ip,
+  });
+
+  return requireTenantRow(id);
+};
+
+export const deactivateTenant = async (
+  actor: IPlatformContext,
+  id: string,
+  ip: string | null,
+): Promise<ITenantSummary> => {
+  const tenant = await requireTenantRow(id);
+
+  await setTenantStatus(id, TenantStatuses.disabled);
+  invalidateTenantCache(tenant.key);
+  await insertAuditEntry({
+    actorId: actor.id,
+    actorLogin: actor.login,
+    action: PlatformActions.tenantDeactivate,
+    tenantId: id,
+    payload: { key: tenant.key },
+    ip,
+  });
+
+  return requireTenantRow(id);
+};
+
+export const createTenantOwner = async (
+  actor: IPlatformContext,
+  tenantId: string,
+  payload: ICreateOwnerPayload,
+  ip: string | null,
+): Promise<{ id: string }> => {
+  const tenant = await requireTenantRow(tenantId);
+  const phone = pickString(payload.phone) || null;
+  const email = pickString(payload.email) || null;
+  const password = typeof payload.password === 'string' ? payload.password : '';
+
+  if ((!phone && !email) || password.length < 6) {
+    throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
+  }
+
+  const ownerId = await insertTenantOwner(
+    tenant.id,
+    await bcrypt.hash(password, SALT_ROUNDS),
+    pickString(payload.name, tenant.name),
+    UserRoles.owner,
+    phone,
+    email,
+  );
+
+  await insertAuditEntry({
+    actorId: actor.id,
+    actorLogin: actor.login,
+    action: PlatformActions.ownerCreate,
+    tenantId: tenant.id,
+    payload: { ownerId, phone, email },
+    ip,
+  });
+
+  return { id: ownerId };
+};

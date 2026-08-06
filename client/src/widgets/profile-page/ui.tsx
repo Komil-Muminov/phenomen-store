@@ -8,7 +8,7 @@ import { ProfileOrders } from '@/features/profile-orders';
 import { ApiRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useAuth } from '@/shared/auth';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { If, StateView } from '@/shared/ui';
+import { Icon, If, StateView } from '@/shared/ui';
 
 interface IProfile {
   id: string;
@@ -116,9 +116,9 @@ export const ProfilePage = () => {
       <View className="flex-row items-center gap-3 px-4 py-2">
         <Pressable
           onPress={() => router.back()}
-          className="h-10 w-10 items-center justify-center rounded-brandSm border border-line bg-background active:border-primary active:bg-surface"
+          className="h-10 w-10 items-center justify-center rounded-xl border border-line bg-background active:border-primary active:bg-surface"
         >
-          <Text className="text-lg text-content">←</Text>
+          <Icon name="arrow-left" size={20} />
         </Pressable>
         <Text className="flex-1 text-lg font-semibold text-content">Профиль</Text>
       </View>

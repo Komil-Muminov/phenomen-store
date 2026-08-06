@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ICart } from '@/entities/cart';
+import { DEFAULT_CART_TOTALS, ICart } from '@/entities/cart';
 import { ITenantConfig } from '@/entities/tenant';
 import {
   CheckoutForm,
@@ -16,7 +16,7 @@ import { ApiRoutes, AppRoutes, IdempotencyHeader, QueryKeys, StaleTimeMs } from 
 import { useAuth } from '@/shared/auth';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { createIdempotencyKey } from '@/shared/session';
-import { If, StateView } from '@/shared/ui';
+import { Icon, If, StateView } from '@/shared/ui';
 
 interface IOrderResponse {
   id: string;
@@ -111,9 +111,9 @@ export const CheckoutPage = () => {
       <View className="flex-row items-center gap-3 px-4 py-2">
         <Pressable
           onPress={() => router.back()}
-          className="h-10 w-10 items-center justify-center rounded-brandSm border border-line bg-background active:border-primary active:bg-surface"
+          className="h-10 w-10 items-center justify-center rounded-xl border border-line bg-background active:border-primary active:bg-surface"
         >
-          <Text className="text-lg text-content">←</Text>
+          <Icon name="arrow-left" size={20} />
         </Pressable>
         <Text className="flex-1 text-lg font-semibold text-content">Оформление</Text>
       </View>
@@ -134,7 +134,7 @@ export const CheckoutPage = () => {
           <CheckoutForm
             form={form}
             errors={errors}
-            totals={(cart as ICart).totals}
+            totals={cart?.totals ?? DEFAULT_CART_TOTALS}
             currencySymbol={config?.locale.currencySymbol ?? ''}
             deliveryMethods={deliveryMethods}
             paymentMethods={paymentMethods}

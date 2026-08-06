@@ -23,7 +23,7 @@ export const sendCreated = <T>(res: Response, data: T): void => {
 };
 
 export const sendList = <T>(res: Response, result: IListResult<T>): void => {
-  res.status(HttpStatus.ok).json({ success: true, ...result });
+  res.status(HttpStatus.ok).json({ success: true, data: result });
 };
 
 export const parsePagination = (query: Record<string, unknown>): IPaginationParams => {

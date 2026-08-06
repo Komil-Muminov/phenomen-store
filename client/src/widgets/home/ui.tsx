@@ -10,7 +10,7 @@ import { StoreIntro } from '@/features/store-intro';
 import { IBanner, IStorefrontSection, StorefrontSections } from '@/features/storefront-sections';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery } from '@/shared/hooks';
-import { If, StateView } from '@/shared/ui';
+import { If, SkeletonBanner, SkeletonProductGrid, StateView } from '@/shared/ui';
 
 const BannerActions = {
   category: 'category',
@@ -83,7 +83,19 @@ export const Home = () => {
       </If>
       <If
         condition={Boolean(sections)}
-        fallback={<StateView loading={isLoading} errorMessage={error?.message ?? null} onRetry={handleRefresh} />}
+        fallback={
+          <StateView
+            loading={isLoading}
+            skeleton={
+              <ScrollView className="flex-1 px-4 gap-4 py-2" showsVerticalScrollIndicator={false}>
+                <SkeletonBanner />
+                <SkeletonProductGrid />
+              </ScrollView>
+            }
+            errorMessage={error?.message ?? null}
+            onRetry={handleRefresh}
+          />
+        }
       >
         <ScrollView
           className="flex-1"

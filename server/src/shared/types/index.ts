@@ -1,7 +1,16 @@
 import { Request } from 'express';
-import { UserRoles } from '@/shared/config';
+import { PlatformRoles, UserRoles } from '@/shared/config';
 
 export type TUserRole = (typeof UserRoles)[keyof typeof UserRoles];
+
+export type TPlatformRole = (typeof PlatformRoles)[keyof typeof PlatformRoles];
+
+export interface IPlatformContext {
+  id: string;
+  login: string;
+  role: TPlatformRole;
+  scope: 'platform';
+}
 
 export interface ITenantContext {
   id: string;
@@ -19,6 +28,7 @@ export interface IUserContext {
 export interface IAppRequest extends Request {
   tenant?: ITenantContext;
   user?: IUserContext;
+  platform?: IPlatformContext;
 }
 
 export interface IListResult<T> {

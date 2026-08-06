@@ -9,6 +9,7 @@ export {
   AuthHeader,
   AuthScheme,
   UserRoles,
+  PlatformRoles,
   ErrorMessages,
   Pagination,
 } from './constants';

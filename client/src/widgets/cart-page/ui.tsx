@@ -2,12 +2,13 @@ import { useCallback } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CartItemRow, ICart, ICartItem } from '@/entities/cart';
+import { CartItemRow, DEFAULT_CART_TOTALS, ICart, ICartItem } from '@/entities/cart';
 import { ITenantConfig } from '@/entities/tenant';
 import { CartSummary } from '@/features/cart-summary';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
+import { formatItemCount } from '@/shared/lib';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { Button, If, StateView } from '@/shared/ui';
+import { Button, Icon, If, StateView } from '@/shared/ui';
 
 export const CartPage = () => {
   const router = useRouter();
@@ -54,13 +55,13 @@ export const CartPage = () => {
       <View className="flex-row items-center gap-3 px-4 py-2">
         <Pressable
           onPress={() => router.back()}
-          className="h-10 w-10 items-center justify-center rounded-brandSm border border-line bg-background active:border-primary active:bg-surface"
+          className="h-10 w-10 items-center justify-center rounded-xl border border-line bg-background active:border-primary active:bg-surface"
         >
-          <Text className="text-lg text-content">←</Text>
+          <Icon name="arrow-left" size={20} />
         </Pressable>
         <Text className="flex-1 text-lg font-semibold text-content">Корзина</Text>
         <If condition={(cart?.items.length ?? 0) > 0}>
-          <Text className="text-xs text-muted">{`${cart?.items.length ?? 0} тов.`}</Text>
+          <Text className="text-xs font-semibold text-muted">{formatItemCount(cart?.items.length ?? 0)}</Text>
         </If>
       </View>
 
@@ -72,8 +73,8 @@ export const CartPage = () => {
           condition={(cart?.items.length ?? 0) > 0}
           fallback={(
             <View className="flex-1 items-center justify-center gap-4 px-6 py-12">
-              <View className="h-20 w-20 items-center justify-center rounded-full border border-line bg-surface">
-                <Text className="text-3xl">🛒</Text>
+              <View className="h-20 w-20 items-center justify-center rounded-full border border-line bg-surface/80">
+                <Icon name="bag" size={36} color="#737373" />
               </View>
               <View className="gap-1 items-center">
                 <Text className="text-lg font-bold text-content">Ваша корзина пуста</Text>
@@ -104,7 +105,7 @@ export const CartPage = () => {
             </View>
 
             <CartSummary
-              totals={(cart as ICart).totals}
+              totals={cart?.totals ?? DEFAULT_CART_TOTALS}
               currencySymbol={config?.locale.currencySymbol ?? ''}
               promoCode={cart?.promoCode ?? null}
               promoApplied={Boolean(cart?.promoApplied)}

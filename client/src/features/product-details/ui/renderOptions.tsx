@@ -11,9 +11,9 @@ interface IProps {
 }
 
 export const OptionPicker = ({ product, code, selected, onSelect }: IProps) => (
-  <View className="gap-2">
-    <Text className="text-sm font-semibold text-content">{OptionLabels[code]}</Text>
-    <View className="flex-row flex-wrap gap-2">
+  <View className="gap-2.5">
+    <Text className="text-sm font-bold tracking-tight text-content">{OptionLabels[code]}</Text>
+    <View className="flex-row flex-wrap gap-2.5">
       {uniqueOptionValues(product.variants, code).map((value) => {
         const available = isOptionAvailable(product, code, value, selected);
         const active = selected[code] === value;
@@ -24,12 +24,14 @@ export const OptionPicker = ({ product, code, selected, onSelect }: IProps) => (
             disabled={!available}
             onPress={() => onSelect(code, value)}
             className={[
-              'rounded-brandSm border px-4 py-2 active:bg-surface',
-              active ? 'border-primary bg-primary' : 'border-line bg-background',
+              'min-w-[48px] items-center justify-center rounded-xl border px-4 py-2.5 active:scale-95',
+              active ? 'border-primary bg-primary' : 'border-line bg-surface/50',
               available ? 'opacity-100' : 'opacity-40',
             ].join(' ')}
           >
-            <Text className={active ? 'text-sm text-onPrimary' : 'text-sm text-content'}>{value}</Text>
+            <Text className={active ? 'text-sm font-bold text-onPrimary' : 'text-sm font-medium text-content'}>
+              {value}
+            </Text>
           </Pressable>
         );
       })}

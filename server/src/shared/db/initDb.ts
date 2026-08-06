@@ -4,6 +4,7 @@ import { Env } from '@/shared/config';
 import { CORE_SCHEMA_SQL } from '@/shared/db/schema.core';
 import { CATALOG_SCHEMA_SQL } from '@/shared/db/schema.catalog';
 import { SALES_SCHEMA_SQL } from '@/shared/db/schema.sales';
+import { PLATFORM_SCHEMA_SQL } from '@/shared/db/schema.platform';
 
 const TENANT_TABLES = [
   'tenant_configs',
@@ -203,6 +204,7 @@ export const initDb = async (): Promise<void> => {
   await pool.query(CORE_SCHEMA_SQL);
   await pool.query(CATALOG_SCHEMA_SQL);
   await pool.query(SALES_SCHEMA_SQL);
+  await pool.query(PLATFORM_SCHEMA_SQL);
   await applyRowLevelSecurity();
   await seedDemoTenant();
 };

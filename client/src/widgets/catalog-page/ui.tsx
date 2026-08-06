@@ -7,8 +7,9 @@ import { ITenantConfig } from '@/entities/tenant';
 import { CatalogFilters, TFacets, TSelectedFacets, serializeFacets, toggleFacetValue } from '@/features/catalog-filters';
 import { CatalogGrid } from '@/features/catalog-grid';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
+import { formatItemCount } from '@/shared/lib';
 import { useGetQuery } from '@/shared/hooks';
-import { If, StateView } from '@/shared/ui';
+import { Icon, If, SkeletonProductGrid, StateView } from '@/shared/ui';
 
 const DEFAULT_SORT = 'popular';
 const PAGE_SIZE = 20;
@@ -76,9 +77,9 @@ export const CatalogPage = () => {
       <View className="flex-row items-center gap-3 px-4 py-2">
         <Pressable
           onPress={() => router.back()}
-          className="h-10 w-10 items-center justify-center rounded-brandSm border border-line bg-background active:border-primary active:bg-surface"
+          className="h-10 w-10 items-center justify-center rounded-xl border border-line bg-background active:border-primary active:bg-surface"
         >
-          <Text className="text-lg text-content">←</Text>
+          <Icon name="arrow-left" size={20} />
         </Pressable>
         <Text className="flex-1 text-lg font-semibold text-content">Каталог</Text>
         <If condition={activeFilterCount > 0}>
@@ -89,23 +90,29 @@ export const CatalogPage = () => {
             <Text className="text-xs font-semibold text-primary">Сбросить ({activeFilterCount})</Text>
           </Pressable>
         </If>
-        <Text className="text-xs text-muted">{`${data?.total ?? 0} тов.`}</Text>
+        <Text className="text-xs font-semibold text-muted">{formatItemCount(data?.total ?? 0)}</Text>
       </View>
 
-      <View className="px-4 py-1.5">
+      <View className="px-4 py-1.5 pb-3">
         <View className="relative justify-center">
+          <View className="absolute left-3 z-10">
+            <Icon name="search" size={16} color="#737373" />
+          </View>
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Поиск по каталогу..."
-            className="h-10 rounded-brandSm border border-line bg-surface pl-3 pr-9 text-sm text-content"
+            placeholderTextColor="#a3a3a3"
+            style={{ paddingVertical: 0 }}
+            textAlignVertical="center"
+            className="h-12 rounded-2xl border border-line bg-surface pl-9 pr-9 text-sm font-medium text-content"
           />
           <If condition={searchQuery.length > 0}>
             <Pressable
               onPress={() => setSearchQuery('')}
-              className="absolute right-2.5 h-5 w-5 items-center justify-center rounded-full bg-line"
+              className="absolute right-3 h-5 w-5 items-center justify-center rounded-full bg-line"
             >
-              <Text className="text-[10px] font-bold text-muted">✕</Text>
+              <Icon name="cross" size={12} color="#737373" />
             </Pressable>
           </If>
         </View>
@@ -113,7 +120,14 @@ export const CatalogPage = () => {
 
       <If
         condition={Boolean(data)}
-        fallback={<StateView loading={isLoading} errorMessage={error?.message ?? null} onRetry={handleRetry} />}
+        fallback={
+          <StateView
+            loading={isLoading}
+            skeleton={<SkeletonProductGrid />}
+            errorMessage={error?.message ?? null}
+            onRetry={handleRetry}
+          />
+        }
       >
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <CatalogFilters

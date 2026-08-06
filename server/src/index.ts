@@ -9,6 +9,9 @@ import { storefrontRouter } from '@/modules/storefront';
 import { cartRouter } from '@/modules/cart';
 import { orderRouter } from '@/modules/order';
 import { authRouter } from '@/modules/auth';
+import { wishlistRouter } from '@/modules/wishlist';
+import { reviewsRouter } from '@/modules/reviews';
+import { ensurePlatformAdmin, platformRouter } from '@/modules/platform';
 
 const app = express();
 
@@ -19,6 +22,8 @@ app.get(ApiRoutes.health, (_req, res) => {
   res.json({ success: true, data: { status: 'ok', env: Env.nodeEnv } });
 });
 
+app.use(ApiRoutes.platform, platformRouter);
+
 app.use(tenantMiddleware);
 app.use(ApiRoutes.tenants, tenantRouter);
 app.use(ApiRoutes.storefront, storefrontRouter);
@@ -27,12 +32,15 @@ app.use(ApiRoutes.categories, categoryRouter);
 app.use(ApiRoutes.cart, cartRouter);
 app.use(ApiRoutes.orders, orderRouter);
 app.use(ApiRoutes.auth, authRouter);
+app.use(ApiRoutes.wishlist, wishlistRouter);
+app.use(ApiRoutes.reviews, reviewsRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 
 const bootstrap = async (): Promise<void> => {
   await initDb();
+  await ensurePlatformAdmin();
 
   const demoTenant = await resolveTenantByKey(Env.defaultTenantKey);
 

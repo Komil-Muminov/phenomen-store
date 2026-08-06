@@ -16,3 +16,14 @@ export const uniqueOptionValues = (
   variants: { options: Record<string, string> }[],
   code: string,
 ): string[] => Array.from(new Set(variants.map((variant) => variant.options[code]).filter(Boolean)));
+
+export const formatItemCount = (count: number): string => {
+  const abs = Math.abs(count) % 100;
+  const num = abs % 10;
+
+  if (abs > 10 && abs < 20) return `${count} товаров`;
+  if (num > 1 && num < 5) return `${count} товара`;
+  if (num === 1) return `${count} товар`;
+
+  return `${count} товаров`;
+};

@@ -1,4 +1,5 @@
 export const ApiRoutes = {
+  platform: '/platform',
   tenants: '/tenants',
   storefront: '/storefront',
   catalog: '/products',
@@ -6,6 +7,8 @@ export const ApiRoutes = {
   cart: '/cart',
   orders: '/orders',
   auth: '/auth',
+  reviews: '/reviews',
+  wishlist: '/wishlist',
   health: '/health',
 } as const;
 
@@ -47,6 +50,11 @@ export const UserRoles = {
   admin: 'admin',
   owner: 'owner',
   platform: 'platform',
+} as const;
+
+export const PlatformRoles = {
+  operator: 'operator',
+  superadmin: 'superadmin',
 } as const;
 
 export const ErrorMessages = {
