@@ -5,6 +5,7 @@
   "main": "expo-router/entry",
   "scripts": {
     "dev": "expo start",
+    "tunnel": "expo start --tunnel",
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -21,7 +22,7 @@
     "expo-router": "~3.5.20",
     "expo-splash-screen": "~0.27.5",
     "expo-status-bar": "~1.12.1",
-    "nativewind": "^4.0.36",
+    "nativewind": "4.1.23",
     "react": "18.2.0",
     "react-native": "0.74.5",
     "react-native-gesture-handler": "~2.16.1",

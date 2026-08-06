@@ -7,7 +7,8 @@
   ],
   "scripts": {
     "predev": "npm run db:init",
-    "dev": "concurrently -k -n server,mobile -c blue,magenta \"npm:dev:server\" \"npm:dev:mobile\"",
+    "dev": "wt -d . powershell -NoExit -Command \"npm run dev:server\" ; split-pane -d . powershell -NoExit -Command \"npm run dev:mobile\"",
+    "dev:log": "concurrently -k -n server,mobile -c blue,magenta \"npm:dev:server\" \"npm:dev:mobile\"",
     "dev:server": "npm run dev --workspace server",
     "dev:mobile": "npm run dev --prefix client",
     "db:init": "npm run db:init --workspace server"
