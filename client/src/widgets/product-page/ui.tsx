@@ -67,10 +67,7 @@ export const ProductPage = () => {
       <View className="flex-row items-center gap-3 px-4 py-2">
         <Pressable
           onPress={() => router.back()}
-          className={({ pressed }) => [
-            'h-10 w-10 items-center justify-center rounded-brandSm border',
-            pressed ? 'border-primary bg-surface' : 'border-line bg-background',
-          ].join(' ')}
+          className="h-10 w-10 items-center justify-center rounded-brandSm border border-line bg-background active:border-primary active:bg-surface"
         >
           <Text className="text-lg text-content">←</Text>
         </Pressable>

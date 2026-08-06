@@ -34,10 +34,10 @@ export const Button = ({
     accessibilityRole="button"
     disabled={disabled || loading}
     onPress={onPress}
-    className={({ pressed }) => [
-      'flex-row items-center justify-center rounded-brandMd',
+    className={[
+      'flex-row items-center justify-center rounded-brandMd active:opacity-80',
       ButtonSizeStyles[size],
-      pressed ? ButtonPressedStyles[variant] : ButtonContainerStyles[variant],
+      ButtonContainerStyles[variant],
       fullWidth ? 'w-full' : 'self-start',
       disabled || loading ? 'opacity-50' : 'opacity-100',
     ].join(' ')}

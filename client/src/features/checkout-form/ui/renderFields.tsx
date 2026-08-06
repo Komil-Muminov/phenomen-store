@@ -46,10 +46,9 @@ export const OptionSelector = ({ options, labels, value, error, onSelect }: IOpt
         <Pressable
           key={option}
           onPress={() => onSelect(option)}
-          className={({ pressed }) => [
-            'rounded-brandSm border px-4 py-3',
+          className={[
+            'rounded-brandSm border px-4 py-3 active:bg-surface',
             value === option ? 'border-primary bg-primary' : 'border-line bg-background',
-            pressed && value !== option ? 'bg-surface' : '',
           ].join(' ')}
         >
           <Text className={value === option ? 'text-sm text-onPrimary' : 'text-sm text-content'}>

@@ -9,10 +9,7 @@ interface IProps {
 export const CategoryTile = ({ category, onPress }: IProps) => (
   <Pressable
     onPress={() => onPress(category)}
-    className={({ pressed }) => [
-      'w-28 items-center gap-2 rounded-brandMd border p-2',
-      pressed ? 'border-primary bg-surface' : 'border-line bg-background',
-    ].join(' ')}
+    className="w-28 items-center gap-2 rounded-brandMd border border-line bg-background p-2 active:border-primary active:bg-surface"
   >
     <View className="h-16 w-16 overflow-hidden rounded-brandLg bg-surface">
       <Image

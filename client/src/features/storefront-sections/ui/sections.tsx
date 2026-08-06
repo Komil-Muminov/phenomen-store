@@ -29,10 +29,7 @@ export const BannerCarousel = ({ banners, onPress }: IBannerProps) => (
     renderItem={({ item }) => (
       <Pressable
         onPress={() => onPress(item)}
-        className={({ pressed }) => [
-          'h-40 w-80 overflow-hidden rounded-brandLg border',
-          pressed ? 'border-primary' : 'border-line',
-        ].join(' ')}
+        className="h-40 w-80 overflow-hidden rounded-brandLg border border-line active:border-primary"
       >
         <Image source={{ uri: item.imageUrl }} className="h-full w-full bg-surface" resizeMode="cover" />
         <View className="absolute bottom-0 w-full bg-surface/90 p-3">

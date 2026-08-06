@@ -10,10 +10,9 @@ interface IProps {
   onFacetToggle: (code: string, value: string) => void;
 }
 
-const chipClassName = (active: boolean, pressed: boolean): string => [
-  'rounded-brandSm border px-3 py-2',
+const chipClassName = (active: boolean): string => [
+  'rounded-brandSm border px-3 py-2 active:bg-surface',
   active ? 'border-primary bg-primary' : 'border-line bg-background',
-  pressed && !active ? 'bg-surface' : '',
 ].join(' ');
 
 const chipTextClassName = (active: boolean): string => (
@@ -27,7 +26,7 @@ export const CatalogFilters = ({ facets, selectedFacets, sort, onSortChange, onF
         <Pressable
           key={option.value}
           onPress={() => onSortChange(option.value)}
-          className={({ pressed }) => chipClassName(sort === option.value, pressed)}
+          className={chipClassName(sort === option.value)}
         >
           <Text className={chipTextClassName(sort === option.value)}>{option.label}</Text>
         </Pressable>
@@ -46,7 +45,7 @@ export const CatalogFilters = ({ facets, selectedFacets, sort, onSortChange, onF
                 <Pressable
                   key={item.value}
                   onPress={() => onFacetToggle(code, item.value)}
-                  className={({ pressed }) => chipClassName(active, pressed)}
+                  className={chipClassName(active)}
                 >
                   <Text className={chipTextClassName(active)}>{`${item.value} (${item.total})`}</Text>
                 </Pressable>

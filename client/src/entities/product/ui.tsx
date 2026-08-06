@@ -13,9 +13,8 @@ interface IProps {
 export const ProductCard = ({ product, currencySymbol, onPress, width = 'card' }: IProps) => (
   <Pressable
     onPress={() => onPress(product)}
-    className={({ pressed }) => [
-      'overflow-hidden rounded-brandMd border bg-background',
-      pressed ? 'border-primary bg-surface' : 'border-line',
+    className={[
+      'overflow-hidden rounded-brandMd border bg-background border-line active:border-primary active:bg-surface',
       width === 'card' ? 'w-44' : 'w-full',
     ].join(' ')}
   >

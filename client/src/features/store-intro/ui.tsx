@@ -38,19 +38,13 @@ export const StoreIntro = ({
       </View>
       <Pressable
         onPress={onProfilePress}
-        className={({ pressed }) => [
-          'h-10 w-10 items-center justify-center rounded-brandSm border',
-          pressed ? 'border-primary bg-surface' : 'border-line bg-background',
-        ].join(' ')}
+        className="h-10 w-10 items-center justify-center rounded-brandSm border border-line bg-background active:border-primary active:bg-surface"
       >
         <Text className="text-base text-content">👤</Text>
       </Pressable>
       <Pressable
         onPress={onCartPress}
-        className={({ pressed }) => [
-          'h-10 flex-row items-center gap-2 rounded-brandSm border px-3',
-          pressed ? 'border-primary bg-surface' : 'border-line bg-background',
-        ].join(' ')}
+        className="h-10 flex-row items-center gap-2 rounded-brandSm border border-line bg-background px-3 active:border-primary active:bg-surface"
       >
         <Text className="text-sm font-medium text-content">🛒</Text>
         <If condition={cartCount > 0}>
@@ -63,10 +57,7 @@ export const StoreIntro = ({
 
     <Pressable
       onPress={onSearchPress}
-      className={({ pressed }) => [
-        'h-11 flex-row items-center gap-2 rounded-brandSm border px-3.5',
-        pressed ? 'border-primary bg-surface' : 'border-line bg-surface/60',
-      ].join(' ')}
+      className="h-11 flex-row items-center gap-2 rounded-brandSm border border-line bg-surface/60 px-3.5 active:border-primary active:bg-surface"
     >
       <Text className="text-sm text-muted">🔍</Text>
       <Text className="flex-1 text-sm text-muted">Поиск товаров...</Text>

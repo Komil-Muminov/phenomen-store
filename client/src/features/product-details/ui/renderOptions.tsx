@@ -23,10 +23,9 @@ export const OptionPicker = ({ product, code, selected, onSelect }: IProps) => (
             key={value}
             disabled={!available}
             onPress={() => onSelect(code, value)}
-            className={({ pressed }) => [
-              'rounded-brandSm border px-4 py-2',
+            className={[
+              'rounded-brandSm border px-4 py-2 active:bg-surface',
               active ? 'border-primary bg-primary' : 'border-line bg-background',
-              pressed && !active ? 'bg-surface' : '',
               available ? 'opacity-100' : 'opacity-40',
             ].join(' ')}
           >

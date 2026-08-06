@@ -39,7 +39,7 @@ export const CartItemRow = ({ item, currencySymbol, disabled, onChangeQuantity }
       <Pressable
         disabled={disabled}
         onPress={() => onChangeQuantity(item, item.quantity + 1)}
-        className={({ pressed }) => stepperClassName(pressed)}
+        className="h-9 w-9 items-center justify-center rounded-brandSm border border-line bg-background active:border-primary active:bg-surface"
       >
         <Text className="text-base text-content">+</Text>
       </Pressable>
@@ -47,7 +47,7 @@ export const CartItemRow = ({ item, currencySymbol, disabled, onChangeQuantity }
       <Pressable
         disabled={disabled}
         onPress={() => onChangeQuantity(item, item.quantity - 1)}
-        className={({ pressed }) => stepperClassName(pressed)}
+        className="h-9 w-9 items-center justify-center rounded-brandSm border border-line bg-background active:border-primary active:bg-surface"
       >
         <Text className="text-base text-content">−</Text>
       </Pressable>
