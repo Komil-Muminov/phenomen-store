@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { setAuthToken } from '@/shared/api';
+import { setAuthToken, setOnUnauthorizedHandler } from '@/shared/api';
 import { QueryKeys } from '@/shared/config';
 import { clearAuthToken, loadAuthToken, saveAuthToken } from '@/shared/session';
 
@@ -53,6 +53,14 @@ export const AuthProvider = ({ children }: IProps) => {
     setToken(null);
     queryClient.clear();
   }, [queryClient]);
+
+  useEffect(() => {
+    setOnUnauthorizedHandler(logout);
+
+    return () => {
+      setOnUnauthorizedHandler(null);
+    };
+  }, [logout]);
 
   const value = useMemo(
     () => ({ token, ready, isAuthorized: Boolean(token), login, logout }),

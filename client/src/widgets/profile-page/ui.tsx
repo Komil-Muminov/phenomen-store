@@ -3,7 +3,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IOrder } from '@/entities/order';
-import { AuthPhone, AuthSteps, TAuthStep } from '@/features/auth-phone';
+import { AuthPhone, AuthSteps, RESEND_DELAY_SEC, TAuthStep } from '@/features/auth-phone';
 import { ProfileOrders } from '@/features/profile-orders';
 import { ApiRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useAuth } from '@/shared/auth';
@@ -33,6 +33,8 @@ export const ProfilePage = () => {
   const [values, setValues] = useState({ name: '', email: '' });
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
+  const [resendSeconds, setResendSeconds] = useState(0);
+
   const { data: profile, isLoading } = useGetQuery<IProfile>(
     [QueryKeys.profile],
     ApiRoutes.authProfile,
@@ -59,16 +61,37 @@ export const ProfilePage = () => {
     setValues({ name: profile?.name ?? '', email: profile?.email ?? '' });
   }, [profile?.name, profile?.email]);
 
+  useEffect(() => {
+    if (resendSeconds <= 0) {
+      return undefined;
+    }
+
+    const timer = setInterval(() => {
+      setResendSeconds((current) => (current > 0 ? current - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [resendSeconds]);
+
   const handleRequestCode = useCallback(() => {
     setAuthError(null);
     requestCode.mutate({ phone }, {
       onSuccess: (data) => {
         setDevCode(data.code);
         setStep(AuthSteps.code);
+        setResendSeconds(RESEND_DELAY_SEC);
       },
       onError: (error) => setAuthError(error.message),
     });
   }, [phone, requestCode]);
+
+  const handleChangePhone = useCallback(() => {
+    setStep(AuthSteps.phone);
+    setCode('');
+    setDevCode(null);
+    setAuthError(null);
+    setResendSeconds(0);
+  }, []);
 
   const handleVerify = useCallback(() => {
     setAuthError(null);
@@ -118,11 +141,12 @@ export const ProfilePage = () => {
                 devCode={devCode}
                 errorMessage={authError}
                 busy={requestCode.isPending || verifyCode.isPending}
+                resendSeconds={resendSeconds}
                 onPhoneChange={setPhone}
                 onCodeChange={setCode}
                 onRequestCode={handleRequestCode}
                 onVerify={handleVerify}
-                onChangePhone={() => setStep(AuthSteps.phone)}
+                onChangePhone={handleChangePhone}
               />
             )}
           >

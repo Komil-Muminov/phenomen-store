@@ -23,6 +23,12 @@ export const setAuthToken = (token: string | null): void => {
   authToken = token;
 };
 
+let onUnauthorizedCallback: (() => void) | null = null;
+
+export const setOnUnauthorizedHandler = (handler: (() => void) | null): void => {
+  onUnauthorizedCallback = handler;
+};
+
 apiClient.interceptors.request.use(async (config) => {
   if (authToken) {
     config.headers.Authorization = `Bearer ${authToken}`;
@@ -32,6 +38,19 @@ apiClient.interceptors.request.use(async (config) => {
 
   return config;
 });
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      if (onUnauthorizedCallback) {
+        onUnauthorizedCallback();
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
 
 export const requestData = async <T>(config: AxiosRequestConfig): Promise<T> => {
   const response = await apiClient.request<IApiResponse<T>>(config);

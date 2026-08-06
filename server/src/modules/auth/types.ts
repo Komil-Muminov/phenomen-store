@@ -44,7 +44,13 @@ const PHONE_MIN_DIGITS = 10;
 const PHONE_MAX_DIGITS = 15;
 
 export const normalizePhone = (raw: unknown): string | null => {
-  const digits = typeof raw === 'string' ? raw.replace(/\D/g, '') : '';
+  let digits = typeof raw === 'string' ? raw.replace(/\D/g, '') : '';
+
+  if (digits.length === 11 && digits.startsWith('8')) {
+    digits = `7${digits.slice(1)}`;
+  } else if (digits.length === 10) {
+    digits = `7${digits}`;
+  }
 
   if (digits.length < PHONE_MIN_DIGITS || digits.length > PHONE_MAX_DIGITS) {
     return null;

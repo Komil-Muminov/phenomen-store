@@ -9,8 +9,16 @@
     "predev": "npm run db:init",
     "dev": "wt -d . powershell -NoExit -Command \"npm run dev:server\" ; split-pane -d . powershell -NoExit -Command \"npm run dev:mobile\"",
     "dev:log": "concurrently -k -n server,mobile -c blue,magenta \"npm:dev:server\" \"npm:dev:mobile\"",
+    "pretunnel": "npm run db:init",
+    "tunnel": "wt -d . powershell -NoExit -Command \"npm run dev:server\" ; split-pane -d . powershell -NoExit -Command \"npm run tunnel:mobile\"",
     "dev:server": "npm run dev --workspace server",
     "dev:mobile": "npm run dev --prefix client",
+    "tunnel:mobile": "npm run tunnel --prefix client",
+    "light": "npm run light --prefix client",
+    "usb:reverse": "node -e \"const{execFileSync}=require('child_process');const p=require('path').join(process.env.LOCALAPPDATA,'Android','platform-tools','adb.exe');for(const q of [8081,4000])execFileSync(p,['reverse','tcp:'+q,'tcp:'+q],{stdio:'inherit'})\"",
+    "usb:mobile": "npm run usb --prefix client",
+    "preusb": "npm run db:init && npm run usb:reverse",
+    "usb": "wt -d . powershell -NoExit -Command \"npm run dev:server\" ; split-pane -d . powershell -NoExit -Command \"npm run usb:mobile\"",
     "db:init": "npm run db:init --workspace server"
   },
   "devDependencies": {
