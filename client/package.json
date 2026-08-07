@@ -7,7 +7,7 @@
     "dev": "expo start --host lan",
     "tunnel": "expo start --tunnel",
     "light": "expo start --host lan --no-dev --minify",
-    "usb": "node -e \"const path=require('path');const tools=path.resolve(process.cwd(),'..','.tools','platform-tools');process.env.PATH=tools+path.delimiter+process.env.PATH;process.env.ANDROID_HOME=path.resolve(process.cwd(),'..','.tools');require('child_process').spawnSync('npx.cmd',['expo','start','--localhost'],{stdio:'inherit'})\"",
+    "usb": "node -e \"const path=require('path');const tools=path.resolve(process.cwd(),'..','.tools','platform-tools');process.env.PATH=tools+path.delimiter+process.env.PATH;process.env.ANDROID_HOME=path.resolve(process.cwd(),'..','.tools');const r=require('child_process').spawnSync(process.execPath,[require.resolve('expo/bin/cli'),'start','--localhost'],{stdio:'inherit'});if(r.error)console.error(r.error.message)\"",
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
