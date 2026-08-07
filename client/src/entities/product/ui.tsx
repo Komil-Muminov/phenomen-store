@@ -72,21 +72,25 @@ export const ProductCard = ({ product, currencySymbol, onPress, width = 'card' }
       </View>
 
       <View className="gap-1.5 p-3">
-        <Text numberOfLines={2} className="text-sm font-medium leading-5 text-content">
-          {product.name}
-        </Text>
+        <View className="h-10 justify-start">
+          <Text numberOfLines={2} className="text-sm font-medium leading-5 text-content">
+            {product.name}
+          </Text>
+        </View>
 
-        <If condition={availableColors.length > 0}>
-          <View className="flex-row items-center gap-1 py-0.5">
-            {availableColors.map((col) => (
-              <View
-                key={col}
-                className="h-3 w-3 rounded-full border border-neutral-300"
-                style={{ backgroundColor: COLOR_MAP[col.toLowerCase()] ?? '#a3a3a3' }}
-              />
-            ))}
-          </View>
-        </If>
+        <View className="h-4 justify-center">
+          <If condition={availableColors.length > 0}>
+            <View className="flex-row items-center gap-1">
+              {availableColors.map((col) => (
+                <View
+                  key={col}
+                  className="h-3 w-3 rounded-full border border-neutral-300"
+                  style={{ backgroundColor: COLOR_MAP[col.toLowerCase()] ?? '#a3a3a3' }}
+                />
+              ))}
+            </View>
+          </If>
+        </View>
 
         <View className="flex-row flex-wrap items-baseline gap-x-1.5 gap-y-0.5 pt-0.5">
           <Text

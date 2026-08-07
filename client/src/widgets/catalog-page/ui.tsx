@@ -122,9 +122,8 @@ export const CatalogPage = () => {
             <Pressable
               key={tag}
               onPress={() => setSearchQuery(searchQuery === tag ? '' : tag)}
-              className={`rounded-full px-3 py-1 border ${
-                searchQuery === tag ? 'border-primary bg-primary' : 'border-line bg-surface/60'
-              }`}
+              className={`rounded-full px-3 py-1 border ${searchQuery === tag ? 'border-primary bg-primary' : 'border-line bg-surface/60'
+                }`}
             >
               <Text className={`text-xs font-semibold ${searchQuery === tag ? 'text-white' : 'text-muted'}`}>
                 {tag}
@@ -145,7 +144,7 @@ export const CatalogPage = () => {
           />
         }
       >
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
           <CatalogFilters
             facets={facets ?? {}}
             selectedFacets={selectedFacets}

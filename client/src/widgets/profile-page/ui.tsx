@@ -134,7 +134,7 @@ export const ProfilePage = () => {
         condition={ready}
         fallback={<StateView loading />}
       >
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 150 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <If
             condition={isAuthorized}
             fallback={(

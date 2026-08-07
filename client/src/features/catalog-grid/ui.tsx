@@ -9,20 +9,41 @@ interface IProps {
   onProductPress: (product: IProduct) => void;
 }
 
-export const CatalogGrid = ({ products, currencySymbol, onProductPress }: IProps) => (
-  <View className="flex-row flex-wrap justify-between gap-y-4 px-4 pb-8">
-    <If
-      condition={products.length > 0}
-      fallback={<Text className="w-full py-10 text-center text-sm text-muted">{UiMessages.emptyList}</Text>}
-    >
-      {products.map((product) => (
-        <ProductCard
-          key={product.id}
-          product={product}
-          currencySymbol={currencySymbol}
-          onPress={onProductPress}
-        />
-      ))}
-    </If>
-  </View>
-);
+export const CatalogGrid = ({ products, currencySymbol, onProductPress }: IProps) => {
+  const leftColumn = products.filter((_, idx) => idx % 2 === 0);
+  const rightColumn = products.filter((_, idx) => idx % 2 === 1);
+
+  return (
+    <View className="px-4 pb-8">
+      <If
+        condition={products.length > 0}
+        fallback={<Text className="w-full py-10 text-center text-sm text-muted">{UiMessages.emptyList}</Text>}
+      >
+        <View className="flex-row justify-between gap-3">
+          <View className="flex-1 gap-4">
+            {leftColumn.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                currencySymbol={currencySymbol}
+                onPress={onProductPress}
+                width="full"
+              />
+            ))}
+          </View>
+          <View className="flex-1 gap-4">
+            {rightColumn.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                currencySymbol={currencySymbol}
+                onPress={onProductPress}
+                width="full"
+              />
+            ))}
+          </View>
+        </View>
+      </If>
+    </View>
+  );
+};

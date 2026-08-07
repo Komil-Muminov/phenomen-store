@@ -58,9 +58,8 @@ export const BottomBar = ({ cartCount = 0 }: IProps) => {
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.7}
-              className={`text-[9.5px] font-bold mt-0.5 tracking-tighter ${
-                isActive ? 'text-white font-extrabold' : 'text-neutral-400'
-              }`}
+              className={`text-[9.5px] font-bold mt-0.5 tracking-tighter ${isActive ? 'text-white font-extrabold' : 'text-neutral-400'
+                }`}
             >
               {item.label}
             </Text>
