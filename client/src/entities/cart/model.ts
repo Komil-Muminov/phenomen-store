@@ -10,6 +10,7 @@ export interface ICartItem {
   oldPrice: number | null;
   total: number;
   stock: number;
+  unit?: string;
   media: string | null;
 }
 

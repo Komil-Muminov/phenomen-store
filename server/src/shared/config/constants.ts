@@ -5,6 +5,7 @@ export const ApiRoutes = {
   catalog: '/products',
   categories: '/categories',
   attributes: '/attributes',
+  media: '/media',
   cart: '/cart',
   orders: '/orders',
   auth: '/auth',

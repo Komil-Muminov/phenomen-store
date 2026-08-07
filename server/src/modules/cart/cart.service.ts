@@ -37,6 +37,7 @@ const mapViewItem = (row: ICartItemRow) => ({
   oldPrice: row.old_price === null ? null : Number(row.old_price),
   total: Number(row.price) * Number(row.quantity),
   stock: Math.max(row.stock - row.reserved, 0),
+  unit: row.unit ?? 'piece',
   media: row.media,
 });
 

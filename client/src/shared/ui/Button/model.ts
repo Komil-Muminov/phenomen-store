@@ -7,6 +7,7 @@ export const ButtonVariants = {
 export type TButtonVariant = (typeof ButtonVariants)[keyof typeof ButtonVariants];
 
 export const ButtonSizes = {
+  small: 'small',
   medium: 'medium',
   large: 'large',
 } as const;
@@ -32,6 +33,7 @@ export const ButtonTextStyles: Record<TButtonVariant, string> = {
 };
 
 export const ButtonSizeStyles: Record<TButtonSize, string> = {
+  small: 'h-9 px-3',
   medium: 'h-11 px-4',
   large: 'h-14 px-6',
 };

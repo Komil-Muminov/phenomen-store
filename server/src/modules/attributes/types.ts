@@ -3,6 +3,7 @@ export const AttributePaths = {
   create: '/create',
   update: '/update/:id',
   deactivate: '/deactivate/:id',
+  remove: '/delete/:id',
 } as const;
 
 export const AttributeValueTypes = {

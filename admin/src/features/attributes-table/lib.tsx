@@ -1,16 +1,20 @@
 import { Button, Space, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { EditOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import type { IShopAttribute } from '@/entities/shop';
 
 interface IHandlers {
   onEdit: (attribute: IShopAttribute) => void;
+  onDelete: (attribute: IShopAttribute) => void;
 }
 
 const VISIBLE_VALUES = 8;
 
-export const buildAttributeColumns = ({ onEdit }: IHandlers): ColumnsType<IShopAttribute> => [
+export const buildAttributeColumns = ({
+  onEdit,
+  onDelete,
+}: IHandlers): ColumnsType<IShopAttribute> => [
   {
     title: 'Название',
     dataIndex: 'name',
@@ -68,6 +72,17 @@ export const buildAttributeColumns = ({ onEdit }: IHandlers): ColumnsType<IShopA
             aria-label="Изменить характеристику"
             icon={<EditOutlined />}
             onClick={() => onEdit(attribute)}
+            className="cursor-pointer!"
+          />
+        </Tooltip>
+
+        <Tooltip title="Удалить">
+          <Button
+            type="text"
+            danger
+            aria-label="Удалить характеристику"
+            icon={<DeleteOutlined />}
+            onClick={() => onDelete(attribute)}
             className="cursor-pointer!"
           />
         </Tooltip>

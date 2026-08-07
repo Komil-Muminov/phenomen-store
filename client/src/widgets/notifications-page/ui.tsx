@@ -243,7 +243,7 @@ export const NotificationsPage = () => {
                 <View className="flex-row items-center justify-between pt-4 pb-8 border-t border-line">
                   <Button
                     title="‹ Назад"
-                    size="sm"
+                    size="small"
                     disabled={page <= 1}
                     onPress={() => setPage((p) => Math.max(p - 1, 1))}
                   />
@@ -252,7 +252,7 @@ export const NotificationsPage = () => {
                   </Text>
                   <Button
                     title="Вперед ›"
-                    size="sm"
+                    size="small"
                     disabled={page >= (data?.totalPages ?? 1)}
                     onPress={() => setPage((p) => p + 1)}
                   />

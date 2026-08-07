@@ -31,11 +31,16 @@ export const SkeletonBanner = () => (
   </View>
 );
 
-export const SkeletonProductGrid = () => (
+const DEFAULT_SKELETON_COUNT = 4;
+
+interface IGridProps {
+  count?: number;
+}
+
+export const SkeletonProductGrid = ({ count = DEFAULT_SKELETON_COUNT }: IGridProps) => (
   <View className="flex-row flex-wrap justify-between gap-3 px-4 py-2">
-    <SkeletonCard />
-    <SkeletonCard />
-    <SkeletonCard />
-    <SkeletonCard />
+    {Array.from({ length: count }, (_item, index) => (
+      <SkeletonCard key={index} />
+    ))}
   </View>
 );

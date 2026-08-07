@@ -6,6 +6,7 @@ import { errorMiddleware, notFoundMiddleware } from '@/shared/middlewares';
 import { resolveTenantByKey, tenantMiddleware, tenantRouter } from '@/modules/tenant';
 import { categoryRouter, productRouter, seedDemoCatalog } from '@/modules/catalog';
 import { applyVerticalPreset, attributeRouter } from '@/modules/attributes';
+import { ensureUploadsRoot, mediaRouter, UPLOADS_ROUTE } from '@/modules/media';
 import { storefrontRouter } from '@/modules/storefront';
 import { cartRouter } from '@/modules/cart';
 import { orderRouter } from '@/modules/order';
@@ -20,6 +21,8 @@ const app = express();
 app.use(cors({ origin: Env.corsOrigins, credentials: true }));
 app.use(express.json({ limit: '2mb' }));
 
+app.use(UPLOADS_ROUTE, express.static(ensureUploadsRoot(), { maxAge: '7d' }));
+
 app.get(ApiRoutes.health, (_req, res) => {
   res.json({ success: true, data: { status: 'ok', env: Env.nodeEnv } });
 });
@@ -32,6 +35,7 @@ app.use(ApiRoutes.storefront, storefrontRouter);
 app.use(ApiRoutes.catalog, productRouter);
 app.use(ApiRoutes.categories, categoryRouter);
 app.use(ApiRoutes.attributes, attributeRouter);
+app.use(ApiRoutes.media, mediaRouter);
 app.use(ApiRoutes.cart, cartRouter);
 app.use(ApiRoutes.orders, orderRouter);
 app.use(ApiRoutes.auth, authRouter);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import { IOrder, OrderCard } from '@/entities/order';
 import { Button, ButtonVariants, Icon, If } from '@/shared/ui';
 

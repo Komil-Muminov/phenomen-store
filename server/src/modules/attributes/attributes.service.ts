@@ -3,6 +3,8 @@ import { ITenantContext } from '@/shared/types';
 import { AppError, pickString } from '@/shared/utils';
 import {
   appendAttributeValue,
+  countAttributeUsage,
+  deleteAttributeById,
   existsAttributeCode,
   insertAttribute,
   seedAttributePreset,
@@ -109,6 +111,32 @@ export const updateAttribute = async (
   );
 
   return mapAttribute((await selectAttributeById(tenant.id, id)) as IAttributeRow);
+};
+
+export const deleteAttribute = async (
+  tenant: ITenantContext,
+  id: string,
+): Promise<{ deleted: boolean }> => {
+  const existing = await selectAttributeById(tenant.id, id);
+
+  if (!existing) {
+    throw new AppError(AttributeErrors.notFound, HttpStatus.notFound);
+  }
+
+  const used = await countAttributeUsage(tenant.id, existing.code, existing.is_variant_option);
+
+  if (used > 0) {
+    throw new AppError(
+      existing.is_variant_option
+        ? `Характеристика используется в ${used} вариантах товаров. Сначала уберите её из товаров`
+        : `Характеристика заполнена у ${used} товаров. Сначала очистите её в карточках`,
+      HttpStatus.conflict,
+    );
+  }
+
+  await deleteAttributeById(tenant.id, id);
+
+  return { deleted: true };
 };
 
 export const rememberValue = async (

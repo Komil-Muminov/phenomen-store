@@ -14,8 +14,11 @@ import {
 import {
   authenticatePlatform,
   changePlatformPassword,
+  createPlatformUser,
   createTenant,
   createTenantOwner,
+  listAudit,
+  listPlatformUsers,
   deactivateTenant,
   listTenants,
   signIn,
@@ -78,6 +81,46 @@ platformRouter.patch(
         body.newPassword,
         readIp(req),
       ));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+platformRouter.get(
+  PlatformPaths.auditSearch,
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const { page, limit, offset } = parsePagination(req.query as Record<string, unknown>);
+
+      sendList(res, await listAudit(page, limit, offset));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+platformRouter.get(
+  PlatformPaths.userSearch,
+  platformRoleMiddleware([PlatformRoles.superadmin]),
+  async (_req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      sendOk(res, await listPlatformUsers());
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+platformRouter.post(
+  PlatformPaths.userCreate,
+  platformRoleMiddleware([PlatformRoles.superadmin]),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const body = (req.body ?? {}) as Record<string, unknown>;
+
+      requireFields(body, ['login', 'name', 'password']);
+      sendCreated(res, await createPlatformUser(requireActor(req), body, readIp(req)));
     } catch (error) {
       next(error);
     }

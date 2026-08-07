@@ -7,9 +7,11 @@ import {
   insertProduct,
   selectCategories,
   selectManagedProductById,
+  selectManagedProductBySlug,
   selectManagedProducts,
   selectOptionFacets,
   replaceVariants,
+  replaceMedia,
   updateProductAttributes,
   selectProductVariants,
   selectStockRows,
@@ -141,7 +143,10 @@ const PRODUCT_EDITABLE_FIELDS = [
   'oldPrice',
   'categoryId',
   'isActive',
+  'unit',
 ] as const;
+
+export const ProductUnits = ['piece', 'kg', 'liter', 'pack', 'meter'] as const;
 
 const requireProduct = async (tenant: ITenantContext, id: string) => {
   const row = await selectManagedProductById(tenant.id, id);
@@ -246,6 +251,12 @@ const readVariants = (
   });
 };
 
+const readMedia = (payload: Record<string, unknown>): string[] => (
+  Array.isArray(payload.media)
+    ? payload.media.map((item) => pickString(item)).filter(Boolean)
+    : []
+);
+
 const rememberUsedValues = async (
   tenantId: string,
   attributes: Record<string, string>,
@@ -296,6 +307,18 @@ export const createProduct = async (tenant: ITenantContext, payload: Record<stri
     await replaceVariants(tenant.id, created.id, variants);
   }
 
+  const media = readMedia(payload);
+
+  if (media.length > 0) {
+    await replaceMedia(tenant.id, created.id, media);
+  }
+
+  const unit = pickString(payload.unit);
+
+  if (unit && (ProductUnits as readonly string[]).includes(unit)) {
+    await updateProductFields(tenant.id, created.id, { unit });
+  }
+
   await rememberUsedValues(tenant.id, attributes, variants);
 
   return mapProduct(await requireProduct(tenant, created.id));
@@ -339,9 +362,69 @@ export const updateProduct = async (
     await replaceVariants(tenant.id, id, variants);
   }
 
+  if (Array.isArray(payload.media)) {
+    await replaceMedia(tenant.id, id, readMedia(payload));
+  }
+
   await rememberUsedValues(tenant.id, attributes, variants);
 
   return mapProduct(await requireProduct(tenant, id));
+};
+
+export interface IImportResult {
+  created: number;
+  updated: number;
+  failed: { row: number; name: string; reason: string }[];
+}
+
+export const importProducts = async (
+  tenant: ITenantContext,
+  payload: Record<string, unknown>,
+): Promise<IImportResult> => {
+  const rows = Array.isArray(payload.rows) ? payload.rows.filter(isPlainObject) : [];
+
+  if (rows.length === 0) {
+    throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
+  }
+
+  const result: IImportResult = { created: 0, updated: 0, failed: [] };
+  const categories = await selectManagedCategories(tenant.id);
+  const categoryByName = new Map(
+    categories.map((category) => [category.name.trim().toLowerCase(), category.id]),
+  );
+
+  for (let index = 0; index < rows.length; index += 1) {
+    const row = rows[index];
+    const name = pickString(row.name);
+
+    try {
+      const categoryName = pickString(row.category).toLowerCase();
+      const enriched = {
+        ...row,
+        categoryId: categoryName ? categoryByName.get(categoryName) ?? null : null,
+      };
+      const slug = pickString(row.slug).toLowerCase();
+      const existing = slug && SLUG_PATTERN.test(slug)
+        ? await selectManagedProductBySlug(tenant.id, slug)
+        : null;
+
+      if (existing) {
+        await updateProduct(tenant, existing.id, enriched);
+        result.updated += 1;
+      } else {
+        await createProduct(tenant, enriched);
+        result.created += 1;
+      }
+    } catch (error) {
+      result.failed.push({
+        row: index + 1,
+        name: name || '—',
+        reason: error instanceof AppError ? error.message : 'Не удалось обработать строку',
+      });
+    }
+  }
+
+  return result;
 };
 
 export const listStock = async (

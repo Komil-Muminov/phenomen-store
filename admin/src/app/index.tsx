@@ -10,11 +10,14 @@ import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 
 const Login = lazy(() => import('@/pages/login'));
 const Tenants = lazy(() => import('@/pages/tenants'));
+const PlatformAudit = lazy(() => import('@/pages/platform-audit'));
+const PlatformUsers = lazy(() => import('@/pages/platform-users'));
 const ShopOrders = lazy(() => import('@/pages/shop-orders'));
 const ShopProducts = lazy(() => import('@/pages/shop-products'));
 const ShopStock = lazy(() => import('@/pages/shop-stock'));
 const ShopAttributes = lazy(() => import('@/pages/shop-attributes'));
 const ShopCategories = lazy(() => import('@/pages/shop-categories'));
+const ShopSettings = lazy(() => import('@/pages/shop-settings'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,6 +60,14 @@ const Router = () => (
         path={AppRoutes.tenants}
         element={<PlatformRoute><Tenants /></PlatformRoute>}
       />
+      <Route
+        path={AppRoutes.audit}
+        element={<PlatformRoute><PlatformAudit /></PlatformRoute>}
+      />
+      <Route
+        path={AppRoutes.platformUsers}
+        element={<PlatformRoute><PlatformUsers /></PlatformRoute>}
+      />
       <Route path={AppRoutes.shopLogin} element={<Navigate to={AppRoutes.login} replace />} />
       <Route
         path={AppRoutes.shopOrders}
@@ -77,6 +88,10 @@ const Router = () => (
       <Route
         path={AppRoutes.shopCategories}
         element={<ShopRoute><ShopCategories /></ShopRoute>}
+      />
+      <Route
+        path={AppRoutes.shopSettings}
+        element={<ShopRoute><ShopSettings /></ShopRoute>}
       />
       <Route path="*" element={<Navigate to={AppRoutes.login} replace />} />
     </Routes>

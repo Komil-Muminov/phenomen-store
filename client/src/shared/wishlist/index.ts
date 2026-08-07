@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ApiRoutes } from '@/shared/config';
-import { api } from '@/shared/api';
+import { requestData } from '@/shared/api';
 
 const WISHLIST_STORAGE_KEY = '@phenomen_wishlist_ids';
 
@@ -26,10 +26,13 @@ export const loadWishlistFromStorage = async (): Promise<string[]> => {
     }
 
     try {
-      const res = await api.get<{ ids: string[] }>(ApiRoutes.wishlistGet);
+      const res = await requestData<{ ids: string[] }>({
+        url: ApiRoutes.wishlistGet,
+        method: 'get',
+      });
 
-      if (res.data?.data?.ids) {
-        globalWishlistIds = res.data.data.ids;
+      if (res?.ids) {
+        globalWishlistIds = res.ids;
         notifyListeners();
         await AsyncStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(globalWishlistIds));
       }
@@ -83,10 +86,14 @@ export const useWishlist = () => {
     saveWishlistToStorage(next);
 
     try {
-      const res = await api.post<{ ids: string[] }>(ApiRoutes.wishlistToggle, { productId });
+      const res = await requestData<{ ids: string[] }>({
+        url: ApiRoutes.wishlistToggle,
+        method: 'post',
+        data: { productId },
+      });
 
-      if (res.data?.data?.ids) {
-        globalWishlistIds = res.data.data.ids;
+      if (res?.ids) {
+        globalWishlistIds = res.ids;
         notifyListeners();
         saveWishlistToStorage(globalWishlistIds);
       }

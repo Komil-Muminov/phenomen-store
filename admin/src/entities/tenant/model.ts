@@ -47,6 +47,29 @@ export interface IPlatformSession {
   role: string;
 }
 
+export interface IAuditEntry {
+  id: string;
+  actorLogin: string;
+  action: string;
+  tenantKey: string | null;
+  payload: Record<string, unknown>;
+  ip: string | null;
+  createdAt: string;
+}
+
+export interface IAuditList {
+  items: IAuditEntry[];
+  total: number;
+}
+
+export interface IPlatformUser {
+  id: string;
+  login: string;
+  name: string;
+  role: string;
+  status: string;
+}
+
 export interface ISigninResult {
   scope: 'platform' | 'shop';
   token: string;

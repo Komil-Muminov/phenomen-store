@@ -17,8 +17,10 @@ import {
   insertPlatformUser,
   insertTenant,
   insertTenantOwner,
+  selectAuditEntries,
   selectPlatformUserById,
   selectPlatformUserByLogin,
+  selectPlatformUsers,
   selectTenantById,
   selectTenants,
   setTenantStatus,
@@ -189,6 +191,77 @@ export const signIn = async (
   );
 
   return { scope: 'shop', tenantKey: tenant.key, tenantName: tenant.name, ...session };
+};
+
+export const listAudit = async (
+  page: number,
+  limit: number,
+  offset: number,
+): Promise<IListResult<Record<string, unknown>>> => {
+  const { items, total } = await selectAuditEntries(limit, offset);
+
+  return {
+    items: items.map((row) => ({
+      id: row.id,
+      actorLogin: row.actor_login,
+      action: row.action,
+      tenantKey: row.tenant_key,
+      payload: row.payload ?? {},
+      ip: row.ip,
+      createdAt: row.created_at,
+    })),
+    total,
+    page,
+    limit,
+  };
+};
+
+export const listPlatformUsers = async (): Promise<Record<string, unknown>[]> => (
+  (await selectPlatformUsers()).map((row) => ({
+    id: row.id,
+    login: row.login,
+    name: row.name,
+    role: row.role,
+    status: row.status,
+  }))
+);
+
+export const createPlatformUser = async (
+  actor: IPlatformContext,
+  payload: Record<string, unknown>,
+  ip: string | null,
+): Promise<Record<string, unknown>> => {
+  const login = pickString(payload.login).toLowerCase();
+  const name = pickString(payload.name);
+  const password = typeof payload.password === 'string' ? payload.password : '';
+
+  if (!login || !name || password.length < PASSWORD_MIN_LENGTH) {
+    throw new AppError(PlatformErrors.passwordTooShort, HttpStatus.badRequest);
+  }
+
+  if (await selectPlatformUserByLogin(login)) {
+    throw new AppError(PlatformErrors.loginTaken, HttpStatus.conflict);
+  }
+
+  const role = payload.role === PlatformRoles.superadmin
+    ? PlatformRoles.superadmin
+    : PlatformRoles.operator;
+  const created = await insertPlatformUser(
+    login,
+    await bcrypt.hash(password, SALT_ROUNDS),
+    name,
+    role,
+  );
+
+  await insertAuditEntry({
+    actorId: actor.id,
+    actorLogin: actor.login,
+    action: PlatformActions.userCreate,
+    payload: { login, role },
+    ip,
+  });
+
+  return { id: created.id, login: created.login, name: created.name, role: created.role };
 };
 
 export const listTenants = async (

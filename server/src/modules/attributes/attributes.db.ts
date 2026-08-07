@@ -87,6 +87,32 @@ export const appendAttributeValue = async (
   );
 };
 
+export const countAttributeUsage = async (
+  tenantId: string,
+  code: string,
+  isVariantOption: boolean,
+): Promise<number> => {
+  const rows = await tenantQuery<{ total: string }>(
+    tenantId,
+    isVariantOption
+      ? `SELECT COUNT(*)::text AS total FROM product_variants
+         WHERE tenant_id = $1 AND options ? $2`
+      : `SELECT COUNT(*)::text AS total FROM products
+         WHERE tenant_id = $1 AND attributes ? $2`,
+    [tenantId, code],
+  );
+
+  return Number(rows[0]?.total ?? 0);
+};
+
+export const deleteAttributeById = async (tenantId: string, id: string): Promise<void> => {
+  await tenantQuery(
+    tenantId,
+    'DELETE FROM attributes WHERE tenant_id = $1 AND id = $2',
+    [tenantId, id],
+  );
+};
+
 export const seedAttributePreset = async (
   tenantId: string,
   preset: IAttributePreset[],

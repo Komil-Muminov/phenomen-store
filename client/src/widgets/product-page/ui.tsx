@@ -9,7 +9,7 @@ import { ISelectedOptions, ProductDetails, findVariant } from '@/features/produc
 import { ProductRail } from '@/features/storefront-sections/ui/sections';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { formatPrice } from '@/shared/lib';
+import { formatUnitPrice, initialQuantity } from '@/shared/lib';
 import { Button, Icon, If, SkeletonBox, StateView } from '@/shared/ui';
 
 const EMPTY_SELECTION: ISelectedOptions = { size: null, color: null };
@@ -69,10 +69,10 @@ export const ProductPage = () => {
     }
 
     addToCart.mutate(
-      { variantId: selectedVariant.id, quantity: 1 },
+      { variantId: selectedVariant.id, quantity: initialQuantity(product?.unit) },
       { onSuccess: () => setShowAddedToast(true) },
     );
-  }, [addToCart, selectedVariant]);
+  }, [addToCart, selectedVariant, product?.unit]);
 
   const handleSelect = useCallback((code: keyof ISelectedOptions, value: string) => {
     setSelected((current) => ({ ...current, [code]: current[code] === value ? null : value }));
@@ -163,7 +163,7 @@ export const ProductPage = () => {
           <View className="shrink justify-center pr-1">
             <Text className="text-[10px] font-bold uppercase tracking-wider text-muted">Цена</Text>
             <Text className="text-lg font-extrabold text-content">
-              {formatPrice(price, currencySymbol)}
+              {formatUnitPrice(price, currencySymbol, product?.unit)}
             </Text>
           </View>
 

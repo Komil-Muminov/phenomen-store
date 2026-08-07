@@ -21,6 +21,7 @@ export interface ICartItemRow {
   stock: number;
   reserved: number;
   tax_rate: string;
+  unit: string;
   media: string | null;
 }
 

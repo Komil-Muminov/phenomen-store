@@ -9,6 +9,7 @@ import { If } from '@/shared/ui/If';
 import { TenantsTable } from '@/features/tenants-table';
 import { TenantForm, ITenantFormValues } from '@/features/tenant-form';
 import { OwnerForm, IOwnerFormValues } from '@/features/owner-form';
+import { PlatformShell } from '@/widgets/platform-shell';
 import { RenderHeader } from '@/widgets/tenants-page/ui/renderHeader';
 import { INITIAL_STATE, buildUpdateUrl } from '@/widgets/tenants-page/model';
 import type { ITenant, ITenantList } from '@/entities/tenant';
@@ -99,7 +100,7 @@ export const TenantsPage = () => {
   }, [ownerMutation, state.target, message, closeModals]);
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <PlatformShell>
       <RenderHeader
         adminName={admin?.name ?? ''}
         total={tenantsQuery.data?.total ?? 0}
@@ -143,6 +144,6 @@ export const TenantsPage = () => {
         onSubmit={handleOwnerSubmit}
         onCancel={closeModals}
       />
-    </main>
+    </PlatformShell>
   );
 };

@@ -6,4 +6,7 @@ export type {
   IOwnerCreateBody,
   IPlatformSession,
   ISigninResult,
+  IAuditEntry,
+  IAuditList,
+  IPlatformUser,
 } from '@/entities/tenant/model';

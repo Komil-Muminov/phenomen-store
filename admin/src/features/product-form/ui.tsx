@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Form, Input, InputNumber, Modal, Select } from 'antd';
-import { UiMessages } from '@/shared/config';
+import { ProductUnits, UiMessages } from '@/shared/config';
 import { RenderAttributes } from '@/features/product-form/ui/renderAttributes';
+import { RenderMedia } from '@/features/product-form/ui/renderMedia';
 import { RenderVariants } from '@/features/product-form/ui/renderVariants';
 import {
   buildMatrix,
@@ -40,6 +41,7 @@ export const ProductForm = ({
   const [rows, setRows] = useState<IVariantRow[]>([]);
   const [hasVariants, setHasVariants] = useState(false);
   const [basePrice, setBasePrice] = useState(0);
+  const [media, setMedia] = useState<string[]>([]);
 
   const groups = useMemo(() => splitAttributes(attributes), [attributes]);
   const optionCodes = useMemo(() => groups.options.map((item) => item.code), [groups.options]);
@@ -56,12 +58,14 @@ export const ProductForm = ({
       basePrice: editing?.price ?? 0,
       oldPrice: editing?.oldPrice ?? null,
       categoryId: editing?.categoryId ?? null,
+      unit: editing?.unit ?? 'piece',
     });
     setDetails(editing?.attributes ?? {});
     setSelected(readSelectedOptions(editing, optionCodes));
     setRows(readVariantRows(editing));
     setHasVariants((editing?.variants?.length ?? 0) > 0);
     setBasePrice(editing?.price ?? 0);
+    setMedia(editing?.media ?? []);
   }, [open, editing, optionCodes, form]);
 
   const handleSelect = useCallback((code: string, values: string[]) => {
@@ -88,6 +92,7 @@ export const ProductForm = ({
     onSubmit({
       ...values,
       attributes: details,
+      media: media.filter(Boolean),
       variants: hasVariants
         ? rows.map((row) => ({
           options: row.options,
@@ -96,7 +101,7 @@ export const ProductForm = ({
         }))
         : [],
     });
-  }, [onSubmit, details, hasVariants, rows]);
+  }, [onSubmit, details, hasVariants, rows, media]);
 
   return (
     <Modal
@@ -141,6 +146,16 @@ export const ProductForm = ({
           </Form.Item>
         </div>
 
+        <Form.Item
+          name="unit"
+          label="Единица измерения"
+          extra="Для весового товара цена указывается за килограмм, покупатель берёт нужный вес"
+        >
+          <Select
+            options={ProductUnits.map((item) => ({ value: item.value, label: item.label }))}
+          />
+        </Form.Item>
+
         <Form.Item name="brand" label="Бренд">
           <Input placeholder="PHENOMEN" />
         </Form.Item>
@@ -149,6 +164,8 @@ export const ProductForm = ({
           <Input.TextArea rows={2} placeholder="Короткое описание товара" />
         </Form.Item>
       </Form>
+
+      <RenderMedia urls={media} onChange={setMedia} />
 
       <RenderAttributes
         attributes={groups.details}

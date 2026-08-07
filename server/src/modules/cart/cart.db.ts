@@ -5,7 +5,7 @@ import { CartStatus, ICartItemRow, ICartOwner, ICartRow, IPromotionRow } from '@
 const CART_ITEMS_SQL = `
   SELECT ci.id, ci.variant_id, p.id AS product_id, p.name AS product_name, pv.sku, pv.options,
          ci.quantity::text AS quantity, pv.price::text AS price, pv.old_price::text AS old_price,
-         pv.stock, pv.reserved, p.tax_rate::text AS tax_rate,
+         pv.stock, pv.reserved, p.tax_rate::text AS tax_rate, p.unit,
          (SELECT pm.url FROM product_media pm WHERE pm.product_id = p.id ORDER BY pm.position LIMIT 1) AS media
   FROM cart_items ci
   JOIN product_variants pv ON pv.id = ci.variant_id

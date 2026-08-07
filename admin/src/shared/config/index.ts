@@ -1,12 +1,15 @@
 export const AppRoutes = {
   login: '/login',
   tenants: '/tenants',
+  audit: '/audit',
+  platformUsers: '/users',
   shopLogin: '/shop/login',
   shopOrders: '/shop/orders',
   shopProducts: '/shop/products',
   shopStock: '/shop/stock',
   shopAttributes: '/shop/attributes',
   shopCategories: '/shop/categories',
+  shopSettings: '/shop/settings',
   root: '/',
 } as const;
 
@@ -18,6 +21,9 @@ export const ApiRoutes = {
   tenantsUpdate: '/platform/tenants/update',
   tenantsDeactivate: '/platform/tenants/deactivate',
   tenantsOwnerCreate: '/platform/tenants/owner/create',
+  platformAudit: '/platform/audit/search',
+  platformUsers: '/platform/users/search',
+  platformUserCreate: '/platform/users/create',
   shopLogin: '/auth/login',
   shopOrdersSearch: '/orders/manage/search',
   shopOrderStatus: '/orders/status',
@@ -30,22 +36,59 @@ export const ApiRoutes = {
   shopStockSearch: '/products/stock/search',
   shopStockUpdate: '/products/stock/update',
   shopProductDuplicate: '/products/duplicate',
+  shopProductImport: '/products/import',
   shopAttributeCreate: '/attributes/create',
   shopAttributeUpdate: '/attributes/update',
   shopCategoriesManage: '/categories/manage/search',
   shopCategoryCreate: '/categories/create',
   shopCategoryUpdate: '/categories/update',
   shopCategoryDeactivate: '/categories/deactivate',
+  shopConfig: '/tenants/config',
+  shopAttributeDelete: '/attributes/delete',
+  shopMediaUpload: '/media/upload',
 } as const;
 
 export const QueryKeys = {
   tenants: 'tenants',
+  audit: 'audit',
+  platformUsers: 'platform-users',
   shopOrders: 'shop-orders',
   shopProducts: 'shop-products',
   shopCategories: 'shop-categories',
   shopAttributes: 'shop-attributes',
   shopStock: 'shop-stock',
+  shopConfig: 'shop-config',
 } as const;
+
+export const ProductUnits = [
+  { value: 'piece', label: 'штука', short: 'шт' },
+  { value: 'kg', label: 'килограмм', short: 'кг' },
+  { value: 'liter', label: 'литр', short: 'л' },
+  { value: 'pack', label: 'упаковка', short: 'упак' },
+  { value: 'meter', label: 'метр', short: 'м' },
+] as const;
+
+export const ImportColumns = [
+  'name',
+  'price',
+  'oldPrice',
+  'category',
+  'brand',
+  'description',
+  'unit',
+  'slug',
+  'media',
+] as const;
+
+export const DeliveryMethods = [
+  { value: 'courier', label: 'Курьером' },
+  { value: 'pickup', label: 'Самовывоз' },
+] as const;
+
+export const PaymentMethods = [
+  { value: 'card_online', label: 'Картой онлайн' },
+  { value: 'cash_on_delivery', label: 'Наличными при получении' },
+] as const;
 
 export const StorageKeys = {
   token: 'phenomen_platform_token',

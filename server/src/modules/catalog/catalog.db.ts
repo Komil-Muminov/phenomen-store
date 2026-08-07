@@ -210,6 +210,7 @@ const PRODUCT_WRITE_COLUMNS: Record<string, string> = {
   oldPrice: 'old_price',
   categoryId: 'category_id',
   isActive: 'is_active',
+  unit: 'unit',
 };
 
 export const insertProduct = async (
@@ -285,6 +286,27 @@ export const replaceVariants = async (
           variant.oldPrice,
           variant.stock,
         ],
+      );
+    }
+  });
+};
+
+export const replaceMedia = async (
+  tenantId: string,
+  productId: string,
+  urls: string[],
+): Promise<void> => {
+  await withTenant(tenantId, async (client) => {
+    await client.query(
+      'DELETE FROM product_media WHERE tenant_id = $1 AND product_id = $2',
+      [tenantId, productId],
+    );
+
+    for (let index = 0; index < urls.length; index += 1) {
+      await client.query(
+        `INSERT INTO product_media (tenant_id, product_id, url, kind, position)
+         VALUES ($1, $2, $3, 'image', $4)`,
+        [tenantId, productId, urls[index], index * 10],
       );
     }
   });
@@ -400,6 +422,19 @@ export const selectProductById = async (tenantId: string, id: string): Promise<I
     tenantId,
     `${PRODUCT_SELECT} WHERE p.tenant_id = $1 AND p.id = $2 AND p.is_active LIMIT 1`,
     [tenantId, id],
+  );
+
+  return rows[0] ?? null;
+};
+
+export const selectManagedProductBySlug = async (
+  tenantId: string,
+  slug: string,
+): Promise<IProductRow | null> => {
+  const rows = await tenantQuery<IProductRow>(
+    tenantId,
+    `${PRODUCT_SELECT} WHERE p.tenant_id = $1 AND p.slug = $2 LIMIT 1`,
+    [tenantId, slug],
   );
 
   return rows[0] ?? null;

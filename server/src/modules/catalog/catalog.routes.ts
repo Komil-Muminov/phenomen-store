@@ -11,6 +11,7 @@ import {
   deactivateCategory,
   deactivateProduct,
   duplicateProduct,
+  importProducts,
   listManagedCategories,
   listStock,
   updateCategory,
@@ -31,6 +32,8 @@ const STOCK_SEARCH_ACTION = '/stock/search';
 const STOCK_UPDATE_ACTION = '/stock/update/:id';
 
 const DUPLICATE_ACTION = '/duplicate/:id';
+
+const IMPORT_ACTION = '/import';
 
 const STAFF_ROLES = [UserRoles.manager, UserRoles.admin, UserRoles.owner, UserRoles.platform];
 
@@ -110,6 +113,19 @@ productRouter.patch(
       const id = requireUuid(req.params.id, 'id');
 
       sendOk(res, await changeStock(requireTenant(req), id, req.body?.stock));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+productRouter.post(
+  IMPORT_ACTION,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      sendOk(res, await importProducts(requireTenant(req), req.body ?? {}));
     } catch (error) {
       next(error);
     }

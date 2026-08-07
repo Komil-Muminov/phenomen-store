@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ICart, countCartItems } from '@/entities/cart';
 import { IProduct, ProductCard } from '@/entities/product';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
-import { formatItemCount } from '@/shared/lib';
+import { formatItemCount, initialQuantity, roundQuantity, unitStep } from '@/shared/lib';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { BottomBar, Button, Icon, If, StateView } from '@/shared/ui';
 import { useWishlist } from '@/shared/wishlist';
@@ -19,7 +19,7 @@ export const WishlistPage = () => {
   const router = useRouter();
   const { wishlistIds, count } = useWishlist();
 
-  const { data: catalog, isLoading, refetch } = useGetQuery<IProductList>(
+  const { data: catalog, isLoading } = useGetQuery<IProductList>(
     [QueryKeys.products, 'wishlist'],
     ApiRoutes.productsSearch,
     { staleTime: StaleTimeMs.medium },
@@ -63,7 +63,9 @@ export const WishlistPage = () => {
 
     if (existingIndex >= 0) {
       nextItems = currentItems.map((item, idx) => (
-        idx === existingIndex ? { ...item, quantity: item.quantity + 1 } : item
+        idx === existingIndex
+          ? { ...item, quantity: roundQuantity(item.quantity + unitStep(product.unit)) }
+          : item
       ));
     } else {
       nextItems = [
@@ -74,7 +76,7 @@ export const WishlistPage = () => {
           name: product.name,
           sku: defaultVariant.sku,
           options: defaultVariant.options,
-          quantity: 1,
+          quantity: initialQuantity(product.unit),
           price: defaultVariant.price,
           oldPrice: defaultVariant.oldPrice,
           total: defaultVariant.price,

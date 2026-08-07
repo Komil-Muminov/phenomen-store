@@ -47,6 +47,8 @@ export interface IShopProduct {
   inStock: boolean;
   attributes: Record<string, string>;
   variants: IProductVariant[];
+  media: string[];
+  unit?: string;
 }
 
 export interface IStockItem {

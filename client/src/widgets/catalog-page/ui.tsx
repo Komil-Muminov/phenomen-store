@@ -8,9 +8,9 @@ import { ITenantConfig } from '@/entities/tenant';
 import { CatalogFilters, TFacets, TSelectedFacets, serializeFacets, toggleFacetValue } from '@/features/catalog-filters';
 import { CatalogGrid } from '@/features/catalog-grid';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
-import { formatItemCount } from '@/shared/lib';
+import { formatItemCount, initialQuantity, roundQuantity, unitStep } from '@/shared/lib';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { BottomBar, Icon, If, SkeletonProductGrid, StateView } from '@/shared/ui';
+import { BottomBar, Button, Icon, If, SkeletonProductGrid, StateView } from '@/shared/ui';
 
 const DEFAULT_SORT = 'popular';
 const PAGE_SIZE = 20;
@@ -87,7 +87,9 @@ export const CatalogPage = () => {
 
     if (existingIndex >= 0) {
       nextItems = currentItems.map((item, idx) => (
-        idx === existingIndex ? { ...item, quantity: item.quantity + 1 } : item
+        idx === existingIndex
+          ? { ...item, quantity: roundQuantity(item.quantity + unitStep(product.unit)) }
+          : item
       ));
     } else {
       nextItems = [
@@ -98,7 +100,7 @@ export const CatalogPage = () => {
           name: product.name,
           sku: defaultVariant.sku,
           options: defaultVariant.options,
-          quantity: 1,
+          quantity: initialQuantity(product.unit),
           price: defaultVariant.price,
           oldPrice: defaultVariant.oldPrice,
           total: defaultVariant.price,
@@ -154,11 +156,12 @@ export const CatalogPage = () => {
         </View>
       </View>
 
+      {/* Быстрые теги подсказок поиска с комфортным вертикальным отступом */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        className="h-10 flex-grow-0"
-        contentContainerStyle={{ alignItems: 'center', paddingHorizontal: 16, gap: 8 }}
+        className="h-12 flex-grow-0 my-1.5"
+        contentContainerStyle={{ alignItems: 'center', paddingHorizontal: 16, paddingVertical: 4, gap: 8 }}
       >
         {QUICK_SEARCH_TAGS.map((tag) => (
           <Pressable
@@ -183,13 +186,15 @@ export const CatalogPage = () => {
       </View>
 
       <If
-        condition={!isLoading}
-        fallback={
-          <SkeletonProductGrid
-            count={6}
-            currencySymbol={config?.locale.currencySymbol ?? ''}
+        condition={!isLoading && !error}
+        fallback={(
+          <StateView
+            loading={isLoading}
+            errorMessage={error ? error.message : null}
+            skeleton={<SkeletonProductGrid count={6} />}
+            onRetry={handleRetry}
           />
-        }
+        )}
       >
         <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 76 }} showsVerticalScrollIndicator={false}>
           <CatalogFilters
@@ -199,6 +204,23 @@ export const CatalogPage = () => {
             onSortChange={setSort}
             onFacetToggle={handleFacetToggle}
           />
+
+          <If condition={(data?.items?.length ?? 0) === 0}>
+            <View className="items-center gap-3 px-6 py-16">
+              <Text className="text-base font-bold text-content">Ничего не найдено</Text>
+              <Text className="text-center text-xs text-muted">
+                {activeFilterCount > 0
+                  ? 'Попробуйте убрать часть фильтров'
+                  : 'Попробуйте изменить поисковый запрос'}
+              </Text>
+              <If condition={activeFilterCount > 0 || Boolean(searchQuery)}>
+                <View className="w-48 pt-2">
+                  <Button title="Сбросить фильтры" onPress={handleResetFilters} />
+                </View>
+              </If>
+            </View>
+          </If>
+
           <CatalogGrid
             products={data?.items ?? []}
             currencySymbol={config?.locale.currencySymbol ?? ''}

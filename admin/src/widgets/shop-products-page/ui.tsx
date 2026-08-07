@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Alert, App as AntApp, Button, Typography } from 'antd';
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { PlusOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/shared/api';
 import { ApiRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
@@ -9,6 +9,7 @@ import { If } from '@/shared/ui/If';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { ProductsTable } from '@/features/products-table';
 import { ProductForm, IProductPayload } from '@/features/product-form';
+import { ProductImport, IImportRow, IImportResult } from '@/features/product-import';
 import { ShopShell } from '@/widgets/shop-shell';
 import type {
   IShopAttribute,
@@ -22,6 +23,8 @@ export const ShopProductsPage = () => {
   const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<IShopProduct | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importResult, setImportResult] = useState<IImportResult | null>(null);
 
   const productsQuery = useGetQuery<IShopProductList>(
     [QueryKeys.shopProducts],
@@ -56,6 +59,10 @@ export const ShopProductsPage = () => {
     (body) => `${ApiRoutes.shopProductDuplicate}/${body.id}`,
     { scope: 'shop', invalidate },
   );
+  const importMutation = useMutationQuery<{ rows: IImportRow[] }, IImportResult>(
+    ApiRoutes.shopProductImport,
+    { scope: 'shop', invalidate },
+  );
 
   const closeForm = useCallback(() => {
     setFormOpen(false);
@@ -82,6 +89,18 @@ export const ShopProductsPage = () => {
       onError: (error) => message.error(extractErrorMessage(error)),
     });
   }, [toggleMutation, message]);
+
+  const handleImport = useCallback((rows: IImportRow[]) => {
+    setImportResult(null);
+
+    importMutation.mutate({ rows }, {
+      onSuccess: (result) => {
+        setImportResult(result);
+        message.success(`Создано ${result.created}, обновлено ${result.updated}`);
+      },
+      onError: (error) => message.error(extractErrorMessage(error)),
+    });
+  }, [importMutation, message]);
 
   const handleDuplicate = useCallback((product: IShopProduct) => {
     duplicateMutation.mutate({ id: product.id }, {
@@ -138,6 +157,14 @@ export const ShopProductsPage = () => {
           </Tooltip>
 
           <Button
+            icon={<UploadOutlined />}
+            onClick={() => setImportOpen(true)}
+            className="cursor-pointer!"
+          >
+            Загрузить из таблицы
+          </Button>
+
+          <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={handleCreate}
@@ -175,6 +202,17 @@ export const ShopProductsPage = () => {
         isSaving={createMutation.isPending || updateMutation.isPending}
         onSubmit={handleSubmit}
         onCancel={closeForm}
+      />
+
+      <ProductImport
+        open={importOpen}
+        isSaving={importMutation.isPending}
+        result={importResult}
+        onSubmit={handleImport}
+        onCancel={() => {
+          setImportOpen(false);
+          setImportResult(null);
+        }}
       />
     </ShopShell>
   );

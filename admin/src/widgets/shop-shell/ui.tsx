@@ -6,6 +6,7 @@ import {
   DatabaseOutlined,
   FolderOutlined,
   LogoutOutlined,
+  SettingOutlined,
   ShoppingOutlined,
   TagsOutlined,
 } from '@ant-design/icons';
@@ -60,6 +61,10 @@ export const ShopShell = ({ children }: IProps) => {
               <NavLink to={AppRoutes.shopAttributes} className={buildLinkClass}>
                 <ApartmentOutlined aria-hidden="true" />
                 Характеристики
+              </NavLink>
+              <NavLink to={AppRoutes.shopSettings} className={buildLinkClass}>
+                <SettingOutlined aria-hidden="true" />
+                Настройки
               </NavLink>
             </nav>
           </div>

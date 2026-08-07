@@ -79,9 +79,10 @@ export const updateTenantConfig = async (
   payload: Record<string, unknown>,
 ): Promise<ITenantPublicConfig> => {
   const patch: Record<string, unknown> = {};
+  const aliases: Record<string, string> = { order_rules: 'orderRules' };
 
   CONFIG_UPDATABLE_FIELDS.forEach((field) => {
-    const value = payload[field];
+    const value = payload[field] ?? payload[aliases[field] ?? field];
 
     if (isPlainObject(value) || Array.isArray(value)) {
       patch[field] = value;

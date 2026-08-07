@@ -14,11 +14,13 @@ export interface IProductFormValues {
   basePrice: number;
   oldPrice?: number | null;
   categoryId?: string | null;
+  unit?: string;
 }
 
 export interface IProductPayload extends IProductFormValues {
   attributes: Record<string, string>;
   variants: { options: Record<string, string>; price?: number; stock: number }[];
+  media: string[];
 }
 
 export const buildRowKey = (options: Record<string, string>): string => (

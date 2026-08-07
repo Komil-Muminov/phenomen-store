@@ -5,6 +5,7 @@ import { IAppRequest } from '@/shared/types';
 import { AppError, requireUuid, sendCreated, sendOk } from '@/shared/utils';
 import {
   createAttribute,
+  deleteAttribute,
   listAttributes,
   updateAttribute,
 } from '@/modules/attributes/attributes.service';
@@ -40,6 +41,21 @@ attributeRouter.post(
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       sendCreated(res, await createAttribute(requireTenant(req), req.body ?? {}));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+attributeRouter.delete(
+  AttributePaths.remove,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+
+      sendOk(res, await deleteAttribute(requireTenant(req), id));
     } catch (error) {
       next(error);
     }

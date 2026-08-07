@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { FlatList, Image, Pressable, Text, View, useWindowDimensions } from 'react-native';
-import { IProduct, ProductPlaceholderImage, VariantOptionCodes } from '@/entities/product';
-import { formatDiscount, formatPrice } from '@/shared/lib';
-import { Icon, If } from '@/shared/ui';
+import { FlatList, Image, Text, View, useWindowDimensions } from 'react-native';
+import { IProduct, ProductPlaceholderImage } from '@/entities/product';
+import { formatDiscount, formatPrice, formatUnitPrice } from '@/shared/lib';
+import { If } from '@/shared/ui';
 import {
   AttributeLabels,
   ISelectedOptions,
@@ -143,7 +143,7 @@ export const ProductDetails = ({ product, currencySymbol, selected, onSelect }: 
 
         <View className="flex-row items-baseline gap-2 pt-1">
           <Text className="text-2xl font-black text-content">
-            {formatPrice(price, currencySymbol)}
+            {formatUnitPrice(price, currencySymbol, product.unit)}
           </Text>
           <If condition={Boolean(oldPrice && oldPrice > price)}>
             <Text className="text-base text-muted line-through">

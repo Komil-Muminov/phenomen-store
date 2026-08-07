@@ -48,6 +48,7 @@ export const Env = {
   isProduction: readString('NODE_ENV', 'development') === 'production',
   corsOrigins: readList('CORS_ORIGINS', ['http://localhost:8081']),
   defaultTenantKey: readString('DEFAULT_TENANT_KEY', 'demo-fashion'),
+  publicUrl: readString('PUBLIC_URL', `http://localhost:${readNumber('PORT', 4000)}`),
   jwtSecret: readString('JWT_SECRET', 'dev_secret'),
   jwtExpiresIn: readString('JWT_EXPIRES_IN', '30d'),
   platform: {

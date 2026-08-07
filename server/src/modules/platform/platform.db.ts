@@ -210,6 +210,42 @@ export const existsStaffLogin = async (login: string): Promise<boolean> => {
   return rows.length > 0;
 };
 
+export interface IAuditRow {
+  id: string;
+  actor_login: string;
+  action: string;
+  tenant_id: string | null;
+  tenant_key: string | null;
+  payload: Record<string, unknown>;
+  ip: string | null;
+  created_at: string;
+}
+
+export const selectAuditEntries = async (
+  limit: number,
+  offset: number,
+): Promise<{ items: IAuditRow[]; total: number }> => {
+  const items = await query<IAuditRow>(
+    `SELECT a.id, a.actor_login, a.action, a.tenant_id, t.key AS tenant_key,
+            a.payload, a.ip, a.created_at::text AS created_at
+     FROM platform_audit_log a
+     LEFT JOIN tenants t ON t.id = a.tenant_id
+     ORDER BY a.created_at DESC
+     LIMIT $1 OFFSET $2`,
+    [limit, offset],
+  );
+  const counted = await query<{ total: string }>(
+    'SELECT COUNT(*)::text AS total FROM platform_audit_log',
+  );
+
+  return { items, total: Number(counted[0]?.total ?? 0) };
+};
+
+export const selectPlatformUsers = async (): Promise<IPlatformUserRow[]> => query<IPlatformUserRow>(
+  `SELECT id, login, password_hash, name, role, status
+   FROM platform_users ORDER BY created_at`,
+);
+
 export const insertAuditEntry = async (entry: IAuditEntry): Promise<void> => {
   await query(
     `INSERT INTO platform_audit_log (actor_id, actor_login, action, tenant_id, payload, ip)

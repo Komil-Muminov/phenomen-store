@@ -1,6 +1,6 @@
 import { Image, Pressable, Text, View } from 'react-native';
 import { ProductPlaceholderImage } from '@/entities/product';
-import { formatPrice } from '@/shared/lib';
+import { formatPrice, formatQuantity, roundQuantity, unitLabel, unitStep } from '@/shared/lib';
 import { Icon, If } from '@/shared/ui';
 import { ICartItem } from '@/entities/cart/model';
 
@@ -11,7 +11,11 @@ interface IProps {
   onChangeQuantity: (item: ICartItem, quantity: number) => void;
 }
 
-export const CartItemRow = ({ item, currencySymbol, disabled, onChangeQuantity }: IProps) => (
+export const CartItemRow = ({ item, currencySymbol, disabled, onChangeQuantity }: IProps) => {
+  const step = unitStep(item.unit);
+  const isLast = roundQuantity(item.quantity - step) <= 0;
+
+  return (
   <View className="flex-row gap-3 rounded-2xl border border-line bg-surface/50 p-3">
     <Image
       source={{ uri: item.media ?? ProductPlaceholderImage }}
@@ -36,28 +40,33 @@ export const CartItemRow = ({ item, currencySymbol, disabled, onChangeQuantity }
       </Text>
 
       <If condition={item.quantity > item.stock}>
-        <Text className="text-xs font-medium text-danger">{`Доступно только ${item.stock}`}</Text>
+        <Text className="text-xs font-medium text-danger">
+          {`Доступно только ${item.stock} ${unitLabel(item.unit)}`}
+        </Text>
       </If>
     </View>
 
     <View className="items-center justify-between py-0.5">
       <Pressable
         disabled={disabled}
-        onPress={() => onChangeQuantity(item, item.quantity + 1)}
+        onPress={() => onChangeQuantity(item, roundQuantity(item.quantity + step))}
         className="h-8 w-8 items-center justify-center rounded-lg border border-line bg-background active:border-primary active:bg-surface"
       >
         <Icon name="plus" size={14} />
       </Pressable>
 
-      <Text className="text-sm font-bold text-content">{item.quantity}</Text>
+      <Text className="text-xs font-bold text-content">
+        {formatQuantity(item.quantity, item.unit)}
+      </Text>
 
       <Pressable
         disabled={disabled}
-        onPress={() => onChangeQuantity(item, item.quantity - 1)}
+        onPress={() => onChangeQuantity(item, roundQuantity(item.quantity - step))}
         className="h-8 w-8 items-center justify-center rounded-lg border border-line bg-background active:border-primary active:bg-surface"
       >
-        <Icon name={item.quantity === 1 ? 'trash' : 'minus'} size={14} color={item.quantity === 1 ? '#ef4444' : '#171717'} />
+        <Icon name={isLast ? 'trash' : 'minus'} size={14} color={isLast ? '#ef4444' : '#171717'} />
       </Pressable>
     </View>
   </View>
-);
+  );
+};

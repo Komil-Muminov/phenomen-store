@@ -1,6 +1,6 @@
 import { ReactNode, useCallback } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { formatDiscount, formatPrice } from '@/shared/lib';
+import { formatDiscount, formatPrice, formatUnitPrice } from '@/shared/lib';
 import { Icon, If } from '@/shared/ui';
 import { useWishlist } from '@/shared/wishlist';
 import { useAddToCart } from '@/entities/cart';
@@ -37,6 +37,7 @@ export const ProductCard = ({
 }: IProps) => {
   const { isWishlisted, toggleWishlist } = useWishlist();
   const { addToCart, isPending } = useAddToCart();
+  const busyAddToCart = Boolean(loadingAddToCart) || isPending;
   const activeWish = isWishlisted(product.id);
 
   const availableColors = Array.from(
@@ -82,7 +83,11 @@ export const ProductCard = ({
             <View className="absolute right-2.5 top-2.5 flex-row items-center gap-1.5 z-10">
               <Pressable
                 onPress={handleAddToCart}
-                className="h-8 w-8 items-center justify-center rounded-full bg-background/90 shadow-sm border border-line active:scale-90"
+                disabled={busyAddToCart}
+                className={[
+                  'h-8 w-8 items-center justify-center rounded-full bg-background/90 shadow-sm border border-line active:scale-90',
+                  busyAddToCart ? 'opacity-50' : '',
+                ].join(' ')}
               >
                 <Icon name="bag" size={15} color="#171717" />
               </Pressable>
@@ -142,7 +147,7 @@ export const ProductCard = ({
               minimumFontScale={0.85}
               className="text-base font-bold text-content"
             >
-              {formatPrice(product.price, currencySymbol)}
+              {formatUnitPrice(product.price, currencySymbol, product.unit)}
             </Text>
             <If condition={Boolean(product.oldPrice && product.oldPrice > product.price)}>
               <Text className="text-xs text-muted line-through">

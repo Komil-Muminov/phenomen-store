@@ -7,6 +7,9 @@ export const PlatformPaths = {
   ownerCreate: '/tenants/owner/create/:id',
   passwordUpdate: '/auth/password/update',
   signin: '/auth/signin',
+  auditSearch: '/audit/search',
+  userSearch: '/users/search',
+  userCreate: '/users/create',
 } as const;
 
 export const PlatformActions = {
@@ -16,6 +19,7 @@ export const PlatformActions = {
   tenantDeactivate: 'tenant.deactivate',
   ownerCreate: 'tenant.owner.create',
   passwordUpdate: 'auth.password.update',
+  userCreate: 'platform.user.create',
 } as const;
 
 export const PlatformErrors = {

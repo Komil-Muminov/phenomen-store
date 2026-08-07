@@ -119,6 +119,20 @@ export const requestData = async <T>(
   return response.data.data;
 };
 
+export const uploadFile = async <T>(url: string, file: File): Promise<T> => {
+  const form = new FormData();
+
+  form.append('file', file);
+
+  const response = await shopClient.post<IApiResponse<T>>(url, form);
+
+  if (!response.data?.success) {
+    throw new Error(response.data?.message ?? UiMessages.loadError);
+  }
+
+  return response.data.data;
+};
+
 export const extractErrorMessage = (error: unknown): string => {
   if (axios.isAxiosError(error)) {
     return error.response?.data?.message ?? error.message;

@@ -13,7 +13,7 @@ import { ShopShell } from '@/widgets/shop-shell';
 import type { IShopAttribute } from '@/entities/shop';
 
 export const ShopAttributesPage = () => {
-  const { message } = AntApp.useApp();
+  const { message, modal } = AntApp.useApp();
   const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<IShopAttribute | null>(null);
@@ -32,6 +32,10 @@ export const ShopAttributesPage = () => {
   const updateMutation = useMutationQuery<IAttributeFormValues & { id: string }, IShopAttribute>(
     (body) => `${ApiRoutes.shopAttributeUpdate}/${body.id}`,
     { scope: 'shop', method: 'patch', invalidate },
+  );
+  const deleteMutation = useMutationQuery<{ id: string }, { deleted: boolean }>(
+    (body) => `${ApiRoutes.shopAttributeDelete}/${body.id}`,
+    { scope: 'shop', method: 'delete', invalidate },
   );
 
   const counters = useMemo(() => {
@@ -61,6 +65,23 @@ export const ShopAttributesPage = () => {
   const handleRefresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: [QueryKeys.shopAttributes] });
   }, [queryClient]);
+
+  const handleDelete = useCallback((attribute: IShopAttribute) => {
+    modal.confirm({
+      title: `Удалить «${attribute.name}»?`,
+      content: 'Характеристика исчезнет из карточек товаров. Если она где-то заполнена, удаление будет отклонено.',
+      okText: 'Удалить',
+      okButtonProps: { danger: true },
+      cancelText: 'Отмена',
+      onOk: () => new Promise<void>((resolve) => {
+        deleteMutation.mutate({ id: attribute.id }, {
+          onSuccess: () => message.success('Характеристика удалена'),
+          onError: (error) => message.error(extractErrorMessage(error)),
+          onSettled: () => resolve(),
+        });
+      }),
+    });
+  }, [deleteMutation, modal, message]);
 
   const handleSubmit = useCallback((values: IAttributeFormValues) => {
     const onError = (error: Error) => message.error(extractErrorMessage(error));
@@ -142,6 +163,7 @@ export const ShopAttributesPage = () => {
           items={attributesQuery.data ?? []}
           isLoading={attributesQuery.isLoading}
           onEdit={handleEdit}
+          onDelete={handleDelete}
         />
       </section>
 

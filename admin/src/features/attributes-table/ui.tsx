@@ -7,10 +7,14 @@ interface IProps {
   items: IShopAttribute[];
   isLoading: boolean;
   onEdit: (attribute: IShopAttribute) => void;
+  onDelete: (attribute: IShopAttribute) => void;
 }
 
-export const AttributesTable = ({ items, isLoading, onEdit }: IProps) => {
-  const columns = useMemo(() => buildAttributeColumns({ onEdit }), [onEdit]);
+export const AttributesTable = ({ items, isLoading, onEdit, onDelete }: IProps) => {
+  const columns = useMemo(
+    () => buildAttributeColumns({ onEdit, onDelete }),
+    [onEdit, onDelete],
+  );
 
   return (
     <Table<IShopAttribute>
