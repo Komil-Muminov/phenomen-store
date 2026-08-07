@@ -8,10 +8,14 @@ interface IProps {
   isLoading: boolean;
   onEdit: (product: IShopProduct) => void;
   onToggle: (product: IShopProduct) => void;
+  onDuplicate: (product: IShopProduct) => void;
 }
 
-export const ProductsTable = ({ items, isLoading, onEdit, onToggle }: IProps) => {
-  const columns = useMemo(() => buildProductColumns({ onEdit, onToggle }), [onEdit, onToggle]);
+export const ProductsTable = ({ items, isLoading, onEdit, onToggle, onDuplicate }: IProps) => {
+  const columns = useMemo(
+    () => buildProductColumns({ onEdit, onToggle, onDuplicate }),
+    [onEdit, onToggle, onDuplicate],
+  );
 
   return (
     <Table<IShopProduct>

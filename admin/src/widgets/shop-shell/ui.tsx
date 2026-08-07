@@ -1,7 +1,13 @@
 import { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Button, Typography } from 'antd';
-import { LogoutOutlined, ShoppingOutlined, TagsOutlined } from '@ant-design/icons';
+import {
+  ApartmentOutlined,
+  DatabaseOutlined,
+  LogoutOutlined,
+  ShoppingOutlined,
+  TagsOutlined,
+} from '@ant-design/icons';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { AppRoutes } from '@/shared/config';
 import { useShopAuth } from '@/shared/shop-auth';
@@ -41,6 +47,14 @@ export const ShopShell = ({ children }: IProps) => {
               <NavLink to={AppRoutes.shopProducts} className={buildLinkClass}>
                 <TagsOutlined aria-hidden="true" />
                 Товары
+              </NavLink>
+              <NavLink to={AppRoutes.shopStock} className={buildLinkClass}>
+                <DatabaseOutlined aria-hidden="true" />
+                Остатки
+              </NavLink>
+              <NavLink to={AppRoutes.shopAttributes} className={buildLinkClass}>
+                <ApartmentOutlined aria-hidden="true" />
+                Характеристики
               </NavLink>
             </nav>
           </div>

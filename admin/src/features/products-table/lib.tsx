@@ -1,17 +1,22 @@
 import { Button, Space, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { CheckCircleOutlined, EditOutlined, StopOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, CopyOutlined, EditOutlined, StopOutlined } from '@ant-design/icons';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import type { IShopProduct } from '@/entities/shop';
 
 interface IHandlers {
   onEdit: (product: IShopProduct) => void;
   onToggle: (product: IShopProduct) => void;
+  onDuplicate: (product: IShopProduct) => void;
 }
 
 const formatPrice = (value: number): string => `${value.toLocaleString('ru-RU')} смн`;
 
-export const buildProductColumns = ({ onEdit, onToggle }: IHandlers): ColumnsType<IShopProduct> => [
+export const buildProductColumns = ({
+  onEdit,
+  onToggle,
+  onDuplicate,
+}: IHandlers): ColumnsType<IShopProduct> => [
   {
     title: 'Ключ',
     dataIndex: 'slug',
@@ -64,6 +69,16 @@ export const buildProductColumns = ({ onEdit, onToggle }: IHandlers): ColumnsTyp
             aria-label="Редактировать товар"
             icon={<EditOutlined />}
             onClick={() => onEdit(product)}
+            className="cursor-pointer!"
+          />
+        </Tooltip>
+
+        <Tooltip title="Дублировать">
+          <Button
+            type="text"
+            aria-label="Дублировать товар"
+            icon={<CopyOutlined />}
+            onClick={() => onDuplicate(product)}
             className="cursor-pointer!"
           />
         </Tooltip>

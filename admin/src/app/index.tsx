@@ -12,6 +12,8 @@ const Login = lazy(() => import('@/pages/login'));
 const Tenants = lazy(() => import('@/pages/tenants'));
 const ShopOrders = lazy(() => import('@/pages/shop-orders'));
 const ShopProducts = lazy(() => import('@/pages/shop-products'));
+const ShopStock = lazy(() => import('@/pages/shop-stock'));
+const ShopAttributes = lazy(() => import('@/pages/shop-attributes'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,6 +64,14 @@ const Router = () => (
       <Route
         path={AppRoutes.shopProducts}
         element={<ShopRoute><ShopProducts /></ShopRoute>}
+      />
+      <Route
+        path={AppRoutes.shopStock}
+        element={<ShopRoute><ShopStock /></ShopRoute>}
+      />
+      <Route
+        path={AppRoutes.shopAttributes}
+        element={<ShopRoute><ShopAttributes /></ShopRoute>}
       />
       <Route path="*" element={<Navigate to={AppRoutes.login} replace />} />
     </Routes>

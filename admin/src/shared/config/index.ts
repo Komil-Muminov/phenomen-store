@@ -5,6 +5,7 @@ export const AppRoutes = {
   shopOrders: '/shop/orders',
   shopProducts: '/shop/products',
   shopStock: '/shop/stock',
+  shopAttributes: '/shop/attributes',
   root: '/',
 } as const;
 
@@ -28,6 +29,8 @@ export const ApiRoutes = {
   shopStockSearch: '/products/stock/search',
   shopStockUpdate: '/products/stock/update',
   shopProductDuplicate: '/products/duplicate',
+  shopAttributeCreate: '/attributes/create',
+  shopAttributeUpdate: '/attributes/update',
 } as const;
 
 export const QueryKeys = {

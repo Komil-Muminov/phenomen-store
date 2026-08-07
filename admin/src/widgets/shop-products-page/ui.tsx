@@ -52,6 +52,10 @@ export const ShopProductsPage = () => {
     (body) => `${ApiRoutes.shopProductUpdate}/${body.id}`,
     { scope: 'shop', method: 'patch', invalidate },
   );
+  const duplicateMutation = useMutationQuery<{ id: string }, IShopProduct>(
+    (body) => `${ApiRoutes.shopProductDuplicate}/${body.id}`,
+    { scope: 'shop', invalidate },
+  );
 
   const closeForm = useCallback(() => {
     setFormOpen(false);
@@ -78,6 +82,13 @@ export const ShopProductsPage = () => {
       onError: (error) => message.error(extractErrorMessage(error)),
     });
   }, [toggleMutation, message]);
+
+  const handleDuplicate = useCallback((product: IShopProduct) => {
+    duplicateMutation.mutate({ id: product.id }, {
+      onSuccess: (created) => message.success(`Создана копия: ${created.name}`),
+      onError: (error) => message.error(extractErrorMessage(error)),
+    });
+  }, [duplicateMutation, message]);
 
   const handleSubmit = useCallback((values: IProductPayload) => {
     const onError = (error: Error) => message.error(extractErrorMessage(error));
@@ -152,6 +163,7 @@ export const ShopProductsPage = () => {
           isLoading={productsQuery.isLoading}
           onEdit={handleEdit}
           onToggle={handleToggle}
+          onDuplicate={handleDuplicate}
         />
       </section>
 
