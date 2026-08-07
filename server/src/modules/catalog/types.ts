@@ -77,6 +77,11 @@ export const DemoProducts = [
     oldPrice: 6990,
     colors: ['Чёрный', 'Молочный'],
     attributes: { material: 'Хлопок 80%', season: 'Демисезон', fit: 'Oversize' },
+    media: [
+      'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?q=80&w=800&auto=format&fit=crop',
+    ],
   },
   {
     slug: 'straight-jeans',
@@ -87,6 +92,11 @@ export const DemoProducts = [
     oldPrice: null,
     colors: ['Синий', 'Чёрный'],
     attributes: { material: 'Деним', season: 'Всесезон', fit: 'Straight' },
+    media: [
+      'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1582418702059-97ebdfb35d09?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1604176354204-9268737828e4?q=80&w=800&auto=format&fit=crop',
+    ],
   },
   {
     slug: 'wool-coat',
@@ -97,6 +107,11 @@ export const DemoProducts = [
     oldPrice: 24900,
     colors: ['Бежевый', 'Графит'],
     attributes: { material: 'Шерсть 70%', season: 'Зима', fit: 'Regular' },
+    media: [
+      'https://images.unsplash.com/photo-1539533018447-63fcce2678e3?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
+    ],
   },
   {
     slug: 'basic-tshirt',
@@ -107,6 +122,11 @@ export const DemoProducts = [
     oldPrice: null,
     colors: ['Белый', 'Чёрный', 'Хаки'],
     attributes: { material: 'Хлопок 100%', season: 'Лето', fit: 'Regular' },
+    media: [
+      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?q=80&w=800&auto=format&fit=crop',
+    ],
   },
   {
     slug: 'bomber-jacket',
@@ -117,6 +137,11 @@ export const DemoProducts = [
     oldPrice: 14900,
     colors: ['Хаки', 'Чёрный'],
     attributes: { material: 'Нейлон', season: 'Демисезон', fit: 'Regular' },
+    media: [
+      'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1548883354-7622d03aca27?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1520975954732-35dd22299614?q=80&w=800&auto=format&fit=crop',
+    ],
   },
   {
     slug: 'leather-belt',
@@ -127,5 +152,10 @@ export const DemoProducts = [
     oldPrice: null,
     colors: ['Чёрный', 'Коричневый'],
     attributes: { material: 'Натуральная кожа', season: 'Всесезон' },
+    media: [
+      'https://images.unsplash.com/photo-1624222247344-550fb60583dc?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1614252369475-531eda835eb1?q=80&w=800&auto=format&fit=crop',
+    ],
   },
 ];

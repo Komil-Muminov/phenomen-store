@@ -206,6 +206,66 @@ export const replaceVariants = async (
   });
 };
 
+export interface IStockRow {
+  id: string;
+  sku: string;
+  options: Record<string, string>;
+  stock: number;
+  price: string;
+  product_id: string;
+  product_name: string;
+  is_active: boolean;
+}
+
+export const selectStockRows = async (
+  tenantId: string,
+  limit: number,
+  offset: number,
+): Promise<{ items: IStockRow[]; total: number }> => withTenant(tenantId, async (client) => {
+  const items = await client.query<IStockRow>(
+    `SELECT v.id, v.sku, v.options, v.stock, v.price::text, v.is_active,
+            p.id AS product_id, p.name AS product_name
+     FROM product_variants v
+     JOIN products p ON p.id = v.product_id AND p.tenant_id = v.tenant_id
+     WHERE v.tenant_id = $1
+     ORDER BY p.name, v.sku
+     LIMIT $2 OFFSET $3`,
+    [tenantId, limit, offset],
+  );
+  const counted = await client.query<{ total: string }>(
+    'SELECT COUNT(*)::text AS total FROM product_variants WHERE tenant_id = $1',
+    [tenantId],
+  );
+
+  return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
+});
+
+export const selectProductVariants = async (
+  tenantId: string,
+  productId: string,
+): Promise<IVariantInput[]> => {
+  const rows = await tenantQuery<{
+    sku: string;
+    options: Record<string, string>;
+    price: string;
+    old_price: string | null;
+    stock: number;
+  }>(
+    tenantId,
+    `SELECT sku, options, price::text, old_price::text, stock
+     FROM product_variants WHERE tenant_id = $1 AND product_id = $2`,
+    [tenantId, productId],
+  );
+
+  return rows.map((row) => ({
+    sku: row.sku,
+    options: row.options ?? {},
+    price: Number(row.price),
+    oldPrice: row.old_price === null ? null : Number(row.old_price),
+    stock: row.stock,
+  }));
+};
+
 export const updateVariantStock = async (
   tenantId: string,
   variantId: string,
@@ -318,13 +378,17 @@ export const seedDemoCatalog = async (tenantId: string): Promise<void> => {
       }
 
       await client.query(
-        `INSERT INTO product_media (tenant_id, product_id, url, position)
-         SELECT $1, $2, $3, 0
-         WHERE NOT EXISTS (
-           SELECT 1 FROM product_media WHERE tenant_id = $1 AND product_id = $2
-         )`,
-        [tenantId, productId, `https://placehold.co/600x800/f6f6f7/111827?text=${encodeURIComponent(demo.name)}`],
+        `DELETE FROM product_media WHERE tenant_id = $1 AND product_id = $2`,
+        [tenantId, productId],
       );
+
+      for (let i = 0; i < (demo.media || []).length; i++) {
+        await client.query(
+          `INSERT INTO product_media (tenant_id, product_id, url, position)
+           VALUES ($1, $2, $3, $4)`,
+          [tenantId, productId, demo.media[i], i],
+        );
+      }
 
       for (const color of demo.colors) {
         for (const size of DemoSizes) {
@@ -344,6 +408,31 @@ export const seedDemoCatalog = async (tenantId: string): Promise<void> => {
           );
         }
       }
+    }
+
+    const unmappedProducts = await client.query<{ id: string }>(
+      `SELECT p.id FROM products p
+       WHERE p.tenant_id = $1
+         AND NOT EXISTS (
+           SELECT 1 FROM product_media pm WHERE pm.product_id = p.id AND pm.url NOT LIKE '%placehold%'
+         )`,
+      [tenantId],
+    );
+
+    for (const p of unmappedProducts.rows) {
+      await client.query(
+        `DELETE FROM product_media WHERE tenant_id = $1 AND product_id = $2`,
+        [tenantId, p.id],
+      );
+      await client.query(
+        `INSERT INTO product_media (tenant_id, product_id, url, position)
+         VALUES ($1, $2, $3, 0)`,
+        [
+          tenantId,
+          p.id,
+          'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop',
+        ],
+      );
     }
   });
 };

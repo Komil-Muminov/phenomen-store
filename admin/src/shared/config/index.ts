@@ -4,6 +4,7 @@ export const AppRoutes = {
   shopLogin: '/shop/login',
   shopOrders: '/shop/orders',
   shopProducts: '/shop/products',
+  shopStock: '/shop/stock',
   root: '/',
 } as const;
 
@@ -24,6 +25,9 @@ export const ApiRoutes = {
   shopProductDeactivate: '/products/deactivate',
   shopCategoriesSearch: '/categories/search',
   shopAttributesSearch: '/attributes/search',
+  shopStockSearch: '/products/stock/search',
+  shopStockUpdate: '/products/stock/update',
+  shopProductDuplicate: '/products/duplicate',
 } as const;
 
 export const QueryKeys = {
@@ -32,6 +36,7 @@ export const QueryKeys = {
   shopProducts: 'shop-products',
   shopCategories: 'shop-categories',
   shopAttributes: 'shop-attributes',
+  shopStock: 'shop-stock',
 } as const;
 
 export const StorageKeys = {

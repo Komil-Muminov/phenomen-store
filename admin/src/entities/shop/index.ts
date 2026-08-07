@@ -5,6 +5,8 @@ export type {
   IShopProduct,
   IProductVariant,
   IShopAttribute,
+  IStockItem,
+  IStockList,
   IShopProductList,
   IShopCategory,
   IShopSession,

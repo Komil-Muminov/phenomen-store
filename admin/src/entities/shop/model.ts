@@ -49,6 +49,22 @@ export interface IShopProduct {
   variants: IProductVariant[];
 }
 
+export interface IStockItem {
+  id: string;
+  sku: string;
+  options: Record<string, string>;
+  stock: number;
+  price: number;
+  productId: string;
+  productName: string;
+  isActive: boolean;
+}
+
+export interface IStockList {
+  items: IStockItem[];
+  total: number;
+}
+
 export interface IShopAttribute {
   id: string;
   code: string;

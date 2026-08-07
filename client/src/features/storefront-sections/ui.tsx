@@ -1,4 +1,4 @@
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { ICategory } from '@/entities/category';
 import { IProduct } from '@/entities/product';
 import { If } from '@/shared/ui';
@@ -52,10 +52,13 @@ export const StorefrontSections = ({ sections, ...handlers }: IProps) => (
     {sections.map((section) => (
       <View key={section.id} className="gap-3.5">
         <If condition={Boolean(section.title)}>
-          <View className="flex-row items-baseline justify-between px-4">
+          <View className="flex-row items-center justify-between px-4">
             <Text className="text-xl font-extrabold tracking-tight text-content">
               {section.title}
             </Text>
+            <Pressable onPress={() => handlers.onCategoryPress?.({ id: '', name: section.title } as any)}>
+              <Text className="text-xs font-extrabold text-primary">Смотреть все ›</Text>
+            </Pressable>
           </View>
         </If>
         {renderSection(section, handlers)}

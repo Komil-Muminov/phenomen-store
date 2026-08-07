@@ -145,7 +145,7 @@ export const authenticatePlatform = async (
   });
 
   return {
-    token: jwt.sign(context, Env.platform.jwtSecret, { expiresIn: Env.platform.jwtExpiresIn }),
+    token: jwt.sign(context, Env.platform.jwtSecret, { expiresIn: Env.platform.jwtExpiresIn as any }),
     login: user.login,
     name: user.name,
     role: context.role,

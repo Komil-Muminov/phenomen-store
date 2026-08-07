@@ -12,6 +12,7 @@ import { orderRouter } from '@/modules/order';
 import { authRouter } from '@/modules/auth';
 import { wishlistRouter } from '@/modules/wishlist';
 import { reviewsRouter } from '@/modules/reviews';
+import { notificationsRouter } from '@/modules/notifications';
 import { ensurePlatformAdmin, platformRouter } from '@/modules/platform';
 
 const app = express();
@@ -36,6 +37,7 @@ app.use(ApiRoutes.orders, orderRouter);
 app.use(ApiRoutes.auth, authRouter);
 app.use(ApiRoutes.wishlist, wishlistRouter);
 app.use(ApiRoutes.reviews, reviewsRouter);
+app.use(ApiRoutes.notifications, notificationsRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

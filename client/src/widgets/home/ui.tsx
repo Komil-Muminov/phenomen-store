@@ -49,17 +49,26 @@ export const Home = () => {
   }, [router]);
 
   const handleCategoryPress = useCallback((category: ICategory) => {
-    router.push(`${AppRoutes.catalog}?categoryId=${category.id}`);
+    if (category?.id) {
+      router.push(`${AppRoutes.catalog}?categoryId=${category.id}`);
+    } else {
+      router.push(AppRoutes.catalog);
+    }
   }, [router]);
 
   const handleBannerPress = useCallback((banner: IBanner) => {
-    if (banner.actionType === BannerActions.category && banner.actionValue) {
+    if (banner?.actionType === BannerActions.category && banner.actionValue) {
       router.push(`${AppRoutes.catalog}?categoryId=${banner.actionValue}`);
+      return;
     }
 
-    if (banner.actionType === BannerActions.product && banner.actionValue) {
+    if (banner?.actionType === BannerActions.product && banner.actionValue) {
       router.push(`${AppRoutes.product}/${banner.actionValue}`);
+      return;
     }
+
+    // Универсальный переход в каталог с сортировкой по скидкам для любых баннеров акций и коллекций
+    router.push(`${AppRoutes.catalog}?sort=discount`);
   }, [router]);
 
   const handleSearchPress = useCallback(() => {

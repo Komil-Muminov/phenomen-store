@@ -57,13 +57,13 @@ const DEMO_SECTIONS = [
 
 const DEMO_BANNERS = [
   {
-    imageUrl: 'https://placehold.co/800x400/111827/ffffff?text=NEW+SEASON',
+    imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop',
     title: 'Новая коллекция',
     subtitle: 'Осень-зима уже в продаже',
     position: 10,
   },
   {
-    imageUrl: 'https://placehold.co/800x400/e11d48/ffffff?text=SALE+-50',
+    imageUrl: 'https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=1200&auto=format&fit=crop',
     title: 'Распродажа',
     subtitle: 'Скидки до 50% на базовые модели',
     position: 20,
@@ -71,9 +71,24 @@ const DEMO_BANNERS = [
 ];
 
 const DEMO_CATEGORIES = [
-  { slug: 'women', name: 'Женщинам', position: 10 },
-  { slug: 'men', name: 'Мужчинам', position: 20 },
-  { slug: 'accessories', name: 'Аксессуары', position: 30 },
+  {
+    slug: 'women',
+    name: 'Женщинам',
+    position: 10,
+    imageUrl: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600&auto=format&fit=crop',
+  },
+  {
+    slug: 'men',
+    name: 'Мужчинам',
+    position: 20,
+    imageUrl: 'https://images.unsplash.com/photo-1490578474895-699bc4e2cf59?q=80&w=600&auto=format&fit=crop',
+  },
+  {
+    slug: 'accessories',
+    name: 'Аксессуары',
+    position: 30,
+    imageUrl: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?q=80&w=600&auto=format&fit=crop',
+  },
 ];
 
 const SERVICE_DATABASE = 'postgres';
@@ -216,20 +231,25 @@ const seedDemoTenant = async (): Promise<void> => {
     for (const banner of DEMO_BANNERS) {
       await client.query(
         `INSERT INTO banners (tenant_id, image_url, title, subtitle, position)
-         SELECT $1, $2, $3, $4, $5
-         WHERE NOT EXISTS (
-           SELECT 1 FROM banners WHERE tenant_id = $1 AND image_url = $2
-         )`,
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT DO NOTHING`,
         [tenantId, banner.imageUrl, banner.title, banner.subtitle, banner.position],
+      );
+      await client.query(
+        `UPDATE banners SET image_url = $2 WHERE tenant_id = $1 AND title = $3`,
+        [tenantId, banner.imageUrl, banner.title],
       );
     }
 
     for (const category of DEMO_CATEGORIES) {
       await client.query(
-        `INSERT INTO categories (tenant_id, slug, name, position)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT (tenant_id, slug) DO NOTHING`,
-        [tenantId, category.slug, category.name, category.position],
+        `INSERT INTO categories (tenant_id, slug, name, position, image_url)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (tenant_id, slug) DO UPDATE SET
+           name = EXCLUDED.name,
+           position = EXCLUDED.position,
+           image_url = EXCLUDED.image_url`,
+        [tenantId, category.slug, category.name, category.position, category.imageUrl],
       );
     }
 

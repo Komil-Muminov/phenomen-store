@@ -32,4 +32,4 @@ export const VariantOptionCodes = {
   color: 'color',
 } as const;
 
-export const ProductPlaceholderImage = 'https://placehold.co/600x800/f6f6f7/6b7280?text=PHENOMEN';
+export const ProductPlaceholderImage = 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop';

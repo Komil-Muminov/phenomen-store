@@ -1,4 +1,4 @@
-import { Router } from 'react-express-types' ? require('express') : require('express');
+import { Router } from 'express';
 import {
   clearAllNotifications,
   deleteNotification,

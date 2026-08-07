@@ -52,7 +52,7 @@ const issueToken = (user: IUserRow): string => {
     role: (user.role as TUserRole) ?? UserRoles.customer,
   };
 
-  return jwt.sign(payload, Env.jwtSecret, { expiresIn: Env.jwtExpiresIn });
+  return jwt.sign(payload, Env.jwtSecret, { expiresIn: Env.jwtExpiresIn as any });
 };
 
 export const loginWithPassword = async (

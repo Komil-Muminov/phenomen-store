@@ -11,6 +11,9 @@ import {
   selectOptionFacets,
   replaceVariants,
   updateProductAttributes,
+  selectProductVariants,
+  selectStockRows,
+  updateVariantStock,
   IVariantInput,
   selectProductById,
   selectProducts,
@@ -333,6 +336,73 @@ export const updateProduct = async (
   await rememberUsedValues(tenant.id, attributes, variants);
 
   return mapProduct(await requireProduct(tenant, id));
+};
+
+export const listStock = async (
+  tenant: ITenantContext,
+  page: number,
+  limit: number,
+  offset: number,
+) => {
+  const { items, total } = await selectStockRows(tenant.id, limit, offset);
+
+  return {
+    items: items.map((row) => ({
+      id: row.id,
+      sku: row.sku,
+      options: row.options ?? {},
+      stock: row.stock,
+      price: Number(row.price),
+      productId: row.product_id,
+      productName: row.product_name,
+      isActive: row.is_active,
+    })),
+    total,
+    page,
+    limit,
+  };
+};
+
+export const changeStock = async (
+  tenant: ITenantContext,
+  variantId: string,
+  rawStock: unknown,
+) => {
+  const stock = Number(rawStock);
+
+  if (!Number.isFinite(stock) || stock < 0) {
+    throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
+  }
+
+  await updateVariantStock(tenant.id, variantId, Math.floor(stock));
+
+  return { id: variantId, stock: Math.floor(stock) };
+};
+
+export const duplicateProduct = async (tenant: ITenantContext, id: string) => {
+  const source = await requireProduct(tenant, id);
+  const name = `${source.name} (копия)`;
+  const slug = await buildUniqueSlug(tenant.id, name);
+  const created = await insertProduct(
+    tenant.id,
+    slug,
+    name,
+    Number(source.base_price),
+    source.category_id,
+    source.description,
+    source.brand,
+    source.attributes ?? {},
+  );
+  const variants = (await selectProductVariants(tenant.id, id)).map((variant) => ({
+    ...variant,
+    sku: buildSku(slug, variant.options),
+  }));
+
+  if (variants.length > 0) {
+    await replaceVariants(tenant.id, created.id, variants);
+  }
+
+  return mapProduct(await requireProduct(tenant, created.id));
 };
 
 export const deactivateProduct = async (tenant: ITenantContext, id: string) => {

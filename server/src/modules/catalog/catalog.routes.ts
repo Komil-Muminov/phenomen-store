@@ -5,8 +5,11 @@ import { IAppRequest } from '@/shared/types';
 import { AppError, parsePagination, requireUuid, sendCreated, sendList, sendOk } from '@/shared/utils';
 import {
   buildSearchParams,
+  changeStock,
   createProduct,
   deactivateProduct,
+  duplicateProduct,
+  listStock,
   getCategories,
   getFacets,
   getProduct,
@@ -18,6 +21,12 @@ import {
 const FACETS_ACTION = '/facets';
 
 const MANAGE_SEARCH_ACTION = '/manage/search';
+
+const STOCK_SEARCH_ACTION = '/stock/search';
+
+const STOCK_UPDATE_ACTION = '/stock/update/:id';
+
+const DUPLICATE_ACTION = '/duplicate/:id';
 
 const STAFF_ROLES = [UserRoles.manager, UserRoles.admin, UserRoles.owner, UserRoles.platform];
 
@@ -67,6 +76,51 @@ productRouter.get(
       const { page, limit, offset } = parsePagination(req.query as Record<string, unknown>);
 
       sendList(res, await listManagedProducts(requireTenant(req), page, limit, offset));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+productRouter.get(
+  STOCK_SEARCH_ACTION,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const { page, limit, offset } = parsePagination(req.query as Record<string, unknown>);
+
+      sendList(res, await listStock(requireTenant(req), page, limit, offset));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+productRouter.patch(
+  STOCK_UPDATE_ACTION,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+
+      sendOk(res, await changeStock(requireTenant(req), id, req.body?.stock));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+productRouter.post(
+  DUPLICATE_ACTION,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+
+      sendCreated(res, await duplicateProduct(requireTenant(req), id));
     } catch (error) {
       next(error);
     }

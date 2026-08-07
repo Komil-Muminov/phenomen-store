@@ -7,4 +7,4 @@ export interface ICategory {
   position: number;
 }
 
-export const CategoryPlaceholderImage = 'https://placehold.co/300x300/f6f6f7/6b7280?text=%20';
+export const CategoryPlaceholderImage = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=600&auto=format&fit=crop';
