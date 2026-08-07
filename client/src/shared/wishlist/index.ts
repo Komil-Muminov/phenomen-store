@@ -55,13 +55,19 @@ export const useWishlist = () => {
   const [ids, setIds] = useState<string[]>(globalWishlistIds);
 
   useEffect(() => {
-    loadWishlistFromStorage();
+    let isMounted = true;
 
-    const handler = (newIds: string[]) => setIds(newIds);
+    const handler = (newIds: string[]) => {
+      if (isMounted) {
+        setIds(newIds);
+      }
+    };
 
     listeners.add(handler);
+    loadWishlistFromStorage();
 
     return () => {
+      isMounted = false;
       listeners.delete(handler);
     };
   }, []);

@@ -23,6 +23,7 @@ export const ApiRoutes = {
   shopProductUpdate: '/products/update',
   shopProductDeactivate: '/products/deactivate',
   shopCategoriesSearch: '/categories/search',
+  shopAttributesSearch: '/attributes/search',
 } as const;
 
 export const QueryKeys = {
@@ -30,6 +31,7 @@ export const QueryKeys = {
   shopOrders: 'shop-orders',
   shopProducts: 'shop-products',
   shopCategories: 'shop-categories',
+  shopAttributes: 'shop-attributes',
 } as const;
 
 export const StorageKeys = {

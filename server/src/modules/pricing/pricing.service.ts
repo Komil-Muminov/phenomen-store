@@ -19,7 +19,7 @@ export const buildRules = (config: {
   delivery: Record<string, unknown>;
   orderRules: Record<string, unknown>;
 }): IPricingRules => ({
-  currency: typeof config.locale.currency === 'string' ? config.locale.currency : 'RUB',
+  currency: typeof config.locale.currency === 'string' ? config.locale.currency : 'TJS',
   deliveryBasePrice: Number(config.delivery.basePrice ?? 0),
   deliveryFreeFrom: config.delivery.freeFrom === null || config.delivery.freeFrom === undefined
     ? null

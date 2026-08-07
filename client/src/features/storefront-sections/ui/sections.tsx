@@ -88,9 +88,10 @@ export const ProductRail = ({ products, currencySymbol, onPress }: IProductsProp
     data={products}
     keyExtractor={(item) => item.id}
     showsHorizontalScrollIndicator={false}
-    contentContainerClassName="gap-3.5 px-4"
+    contentContainerStyle={{ paddingHorizontal: 16 }}
+    ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
     renderItem={({ item }) => (
-      <ProductCard product={item} currencySymbol={currencySymbol} onPress={onPress} />
+      <ProductCard product={item} currencySymbol={currencySymbol} onPress={onPress} width="card" />
     )}
   />
 );

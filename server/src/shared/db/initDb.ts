@@ -193,7 +193,7 @@ const seedDemoTenant = async (): Promise<void> => {
         tenantId,
         JSON.stringify({ title: 'PHENOMEN Fashion', logoUrl: null, slogan: 'Одежда, которая работает на вас' }),
         JSON.stringify(DEMO_THEME),
-        JSON.stringify({ language: 'ru', currency: 'RUB', currencySymbol: '₽', timezone: 'Europe/Moscow' }),
+        JSON.stringify({ language: 'ru', currency: 'TJS', currencySymbol: 'смн', timezone: 'Asia/Dushanbe' }),
         JSON.stringify({ minOrderTotal: 1500, maxItemsPerOrder: 50, guestCheckout: true }),
         JSON.stringify({ methods: ['card_online', 'cash_on_delivery'], provider: 'manual' }),
         JSON.stringify({ methods: ['courier', 'pickup'], freeFrom: 5000, basePrice: 390 }),

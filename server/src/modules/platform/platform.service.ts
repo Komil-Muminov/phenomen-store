@@ -5,6 +5,7 @@ import { IListResult, IPlatformContext } from '@/shared/types';
 import { AppError, pickString } from '@/shared/utils';
 import { invalidateTenantCache } from '@/modules/tenant';
 import { loginWithPassword } from '@/modules/auth';
+import { applyVerticalPreset } from '@/modules/attributes';
 import {
   countTenants,
   existsStaffLogin,
@@ -226,6 +227,7 @@ export const createTenant = async (
   );
 
   await insertDefaultConfig(tenant.id);
+  await applyVerticalPreset(tenant.id, tenant.vertical);
   await insertAuditEntry({
     actorId: actor.id,
     actorLogin: actor.login,

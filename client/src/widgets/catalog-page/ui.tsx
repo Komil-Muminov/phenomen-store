@@ -2,17 +2,20 @@ import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ICart, countCartItems } from '@/entities/cart';
 import { IProduct } from '@/entities/product';
 import { ITenantConfig } from '@/entities/tenant';
 import { CatalogFilters, TFacets, TSelectedFacets, serializeFacets, toggleFacetValue } from '@/features/catalog-filters';
 import { CatalogGrid } from '@/features/catalog-grid';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { formatItemCount } from '@/shared/lib';
-import { useGetQuery } from '@/shared/hooks';
+import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { BottomBar, Icon, If, SkeletonProductGrid, StateView } from '@/shared/ui';
 
 const DEFAULT_SORT = 'popular';
 const PAGE_SIZE = 20;
+
+const QUICK_SEARCH_TAGS = ['Худи', 'Джинсы', 'Бомбер', 'Куртки', 'Футболки', 'Кроссовки'];
 
 interface IProductList {
   items: IProduct[];
@@ -55,9 +58,58 @@ export const CatalogPage = () => {
     { params, staleTime: StaleTimeMs.short },
   );
 
+  const { data: cart } = useGetQuery<ICart>(
+    [QueryKeys.cart],
+    ApiRoutes.cartGet,
+    { staleTime: StaleTimeMs.short },
+  );
+
+  const updateCart = useMutationQuery<any, ICart>(
+    ApiRoutes.cartUpdate,
+    { invalidate: [[QueryKeys.cart]] },
+  );
+
   const handleProductPress = useCallback((product: IProduct) => {
     router.push(`${AppRoutes.product}/${product.id}`);
   }, [router]);
+
+  const handleAddToCart = useCallback((product: IProduct) => {
+    const defaultVariant = product?.variants?.[0];
+
+    if (!defaultVariant) {
+      router.push(`${AppRoutes.product}/${product.id}`);
+      return;
+    }
+
+    const currentItems = cart?.items ?? [];
+    const existingIndex = currentItems.findIndex((i) => i.variantId === defaultVariant.id);
+    let nextItems;
+
+    if (existingIndex >= 0) {
+      nextItems = currentItems.map((item, idx) => (
+        idx === existingIndex ? { ...item, quantity: item.quantity + 1 } : item
+      ));
+    } else {
+      nextItems = [
+        ...currentItems,
+        {
+          variantId: defaultVariant.id,
+          productId: product.id,
+          name: product.name,
+          sku: defaultVariant.sku,
+          options: defaultVariant.options,
+          quantity: 1,
+          price: defaultVariant.price,
+          oldPrice: defaultVariant.oldPrice,
+          total: defaultVariant.price,
+          stock: defaultVariant.stock,
+          media: product.media[0] ?? null,
+        },
+      ];
+    }
+
+    updateCart.mutate({ items: nextItems });
+  }, [cart?.items, router, updateCart]);
 
   const handleFacetToggle = useCallback((code: string, value: string) => {
     setSelectedFacets((current) => toggleFacetValue(current, code, value));
@@ -74,73 +126,68 @@ export const CatalogPage = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
-      <View className="flex-row items-center gap-3 px-4 py-2">
+      <View className="flex-row items-center gap-3 px-4 py-2 border-b border-line">
         <Pressable
           onPress={() => router.back()}
           className="h-10 w-10 items-center justify-center rounded-xl border border-line bg-background active:border-primary active:bg-surface"
         >
-          <Icon name="arrow-left" size={20} />
+          <Icon name="chevronLeft" size={18} color="#171717" />
         </Pressable>
-        <Text className="flex-1 text-lg font-semibold text-content">Каталог</Text>
-        <If condition={activeFilterCount > 0}>
-          <Pressable
-            onPress={handleResetFilters}
-            className="rounded-full bg-primary/10 px-2.5 py-1"
-          >
-            <Text className="text-xs font-semibold text-primary">Сбросить ({activeFilterCount})</Text>
-          </Pressable>
-        </If>
-        <Text className="text-xs font-semibold text-muted">{formatItemCount(data?.total ?? 0)}</Text>
-      </View>
 
-      <View className="px-4 py-1.5 pb-3">
-        <View className="relative justify-center">
-          <View className="absolute left-3 z-10">
-            <Icon name="search" size={16} color="#737373" />
-          </View>
+        {/* Быстрый инпут поиска */}
+        <View className="flex-1 flex-row items-center rounded-xl bg-surface px-3 py-1.5 border border-line">
+          <Icon name="search" size={16} color="#a3a3a3" />
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Поиск по каталогу..."
+            placeholder="Поиск одежды, обуви..."
             placeholderTextColor="#a3a3a3"
             style={{ paddingVertical: 0 }}
             textAlignVertical="center"
-            className="h-12 rounded-2xl border border-line bg-surface pl-9 pr-9 text-sm font-medium text-content"
+            className="flex-1 text-sm font-semibold text-content ml-2"
           />
-          <If condition={searchQuery.length > 0}>
-            <Pressable
-              onPress={() => setSearchQuery('')}
-              className="absolute right-3 h-5 w-5 items-center justify-center rounded-full bg-line"
-            >
-              <Icon name="cross" size={12} color="#737373" />
+          <If condition={Boolean(searchQuery)}>
+            <Pressable onPress={() => setSearchQuery('')}>
+              <Icon name="close" size={16} color="#a3a3a3" />
             </Pressable>
           </If>
         </View>
+      </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pt-2.5">
-          {['Худи', 'Джинсы', 'Куртки', 'Футболки', 'Аксессуары'].map((tag) => (
-            <Pressable
-              key={tag}
-              onPress={() => setSearchQuery(searchQuery === tag ? '' : tag)}
-              className={`rounded-full px-3 py-1 border ${searchQuery === tag ? 'border-primary bg-primary' : 'border-line bg-surface/60'
-                }`}
-            >
-              <Text className={`text-xs font-semibold ${searchQuery === tag ? 'text-white' : 'text-muted'}`}>
-                {tag}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
+      {/* Быстрые теги подсказок поиска */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8, gap: 8 }}
+      >
+        {QUICK_SEARCH_TAGS.map((tag) => (
+          <Pressable
+            key={tag}
+            onPress={() => setSearchQuery(searchQuery === tag ? '' : tag)}
+            className={`rounded-full px-3 py-1 border ${
+              searchQuery === tag ? 'border-primary bg-primary' : 'border-line bg-surface/60'
+            }`}
+          >
+            <Text className={`text-xs font-semibold ${searchQuery === tag ? 'text-white' : 'text-muted'}`}>
+              {tag}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+
+      <View className="flex-row items-center justify-between px-4 py-2">
+        <Text className="text-xl font-extrabold tracking-tight text-content">Каталог</Text>
+        <Text className="text-xs font-semibold text-muted">
+          {formatItemCount(data?.total ?? 0)}
+        </Text>
       </View>
 
       <If
-        condition={Boolean(data)}
+        condition={!isLoading}
         fallback={
-          <StateView
-            loading={isLoading}
-            skeleton={<SkeletonProductGrid />}
-            errorMessage={error?.message ?? null}
-            onRetry={handleRetry}
+          <SkeletonProductGrid
+            count={6}
+            currencySymbol={config?.locale.currencySymbol ?? ''}
           />
         }
       >
@@ -156,10 +203,13 @@ export const CatalogPage = () => {
             products={data?.items ?? []}
             currencySymbol={config?.locale.currencySymbol ?? ''}
             onProductPress={handleProductPress}
+            onAddToCart={handleAddToCart}
+            loadingAddToCartId={updateCart.isPending ? updateCart.variables?.productId : null}
           />
         </ScrollView>
       </If>
-      <BottomBar />
+
+      <BottomBar cartCount={countCartItems(cart)} />
     </SafeAreaView>
   );
 };

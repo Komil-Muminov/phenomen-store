@@ -1,7 +1,7 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { setAuthToken, setOnUnauthorizedHandler } from '@/shared/api';
 import { QueryKeys } from '@/shared/config';
+import { setAuthToken, setOnUnauthorizedHandler } from '@/shared/api';
 import { clearAuthToken, loadAuthToken, saveAuthToken } from '@/shared/session';
 
 interface IAuthContext {
@@ -12,31 +12,33 @@ interface IAuthContext {
   logout: () => Promise<void>;
 }
 
-interface IProps {
-  children: ReactNode;
-}
-
 const AuthContext = createContext<IAuthContext>({
   token: null,
   ready: false,
   isAuthorized: false,
-  login: async () => undefined,
-  logout: async () => undefined,
+  login: async () => {},
+  logout: async () => {},
 });
 
-export const useAuth = (): IAuthContext => useContext(AuthContext);
-
-export const AuthProvider = ({ children }: IProps) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
   const [token, setToken] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+
     loadAuthToken().then((stored) => {
-      setAuthToken(stored);
-      setToken(stored);
-      setReady(true);
+      if (isMounted) {
+        setAuthToken(stored);
+        setToken(stored);
+        setReady(true);
+      }
     });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = useCallback(async (nextToken: string) => {
@@ -69,3 +71,5 @@ export const AuthProvider = ({ children }: IProps) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+export const useAuth = () => useContext(AuthContext);

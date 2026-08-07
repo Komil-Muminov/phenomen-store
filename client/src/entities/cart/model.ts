@@ -38,7 +38,7 @@ export const DEFAULT_CART_TOTALS: ICartTotals = {
   deliveryTotal: 0,
   taxTotal: 0,
   grandTotal: 0,
-  currency: 'RUB',
+  currency: 'TJS',
 };
 
 export const DeliveryMethods = {

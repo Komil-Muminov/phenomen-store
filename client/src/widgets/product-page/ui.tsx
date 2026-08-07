@@ -135,7 +135,7 @@ export const ProductPage = () => {
           />
         }
       >
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
           <ProductDetails
             product={product as IProduct}
             currencySymbol={currencySymbol}

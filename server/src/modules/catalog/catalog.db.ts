@@ -136,16 +136,86 @@ export const insertProduct = async (
   categoryId: string | null,
   description: string | null,
   brand: string | null,
+  attributes: Record<string, unknown> = {},
 ): Promise<{ id: string }> => {
   const rows = await tenantQuery<{ id: string }>(
     tenantId,
-    `INSERT INTO products (tenant_id, slug, name, base_price, category_id, description, brand)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO products
+       (tenant_id, slug, name, base_price, category_id, description, brand, attributes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)
      RETURNING id`,
-    [tenantId, slug, name, basePrice, categoryId, description, brand],
+    [tenantId, slug, name, basePrice, categoryId, description, brand, JSON.stringify(attributes)],
   );
 
   return rows[0];
+};
+
+export const updateProductAttributes = async (
+  tenantId: string,
+  id: string,
+  attributes: Record<string, unknown>,
+): Promise<void> => {
+  await tenantQuery(
+    tenantId,
+    `UPDATE products SET attributes = $3::jsonb, updated_at = now()
+     WHERE tenant_id = $1 AND id = $2`,
+    [tenantId, id, JSON.stringify(attributes)],
+  );
+};
+
+export interface IVariantInput {
+  sku: string;
+  options: Record<string, string>;
+  price: number;
+  oldPrice: number | null;
+  stock: number;
+}
+
+export const replaceVariants = async (
+  tenantId: string,
+  productId: string,
+  variants: IVariantInput[],
+): Promise<void> => {
+  await withTenant(tenantId, async (client) => {
+    const keep = variants.map((variant) => variant.sku);
+
+    await client.query(
+      `DELETE FROM product_variants
+       WHERE tenant_id = $1 AND product_id = $2 AND NOT (sku = ANY($3::text[]))`,
+      [tenantId, productId, keep],
+    );
+
+    for (const variant of variants) {
+      await client.query(
+        `INSERT INTO product_variants
+           (tenant_id, product_id, sku, options, price, old_price, stock)
+         VALUES ($1, $2, $3, $4::jsonb, $5, $6, $7)
+         ON CONFLICT (tenant_id, sku) DO UPDATE
+           SET options = $4::jsonb, price = $5, old_price = $6, stock = $7, is_active = true`,
+        [
+          tenantId,
+          productId,
+          variant.sku,
+          JSON.stringify(variant.options),
+          variant.price,
+          variant.oldPrice,
+          variant.stock,
+        ],
+      );
+    }
+  });
+};
+
+export const updateVariantStock = async (
+  tenantId: string,
+  variantId: string,
+  stock: number,
+): Promise<void> => {
+  await tenantQuery(
+    tenantId,
+    'UPDATE product_variants SET stock = $3 WHERE tenant_id = $1 AND id = $2',
+    [tenantId, variantId, stock],
+  );
 };
 
 export const updateProductFields = async (

@@ -9,7 +9,7 @@ interface IHandlers {
   onToggle: (product: IShopProduct) => void;
 }
 
-const formatPrice = (value: number): string => `${value.toLocaleString('ru-RU')} ₽`;
+const formatPrice = (value: number): string => `${value.toLocaleString('ru-RU')} смн`;
 
 export const buildProductColumns = ({ onEdit, onToggle }: IHandlers): ColumnsType<IShopProduct> => [
   {

@@ -3,14 +3,19 @@ import { Alert, App as AntApp, Button, Typography } from 'antd';
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/shared/api';
-import { ApiRoutes, QueryKeys } from '@/shared/config';
+import { ApiRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { If } from '@/shared/ui/If';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { ProductsTable } from '@/features/products-table';
-import { ProductForm, IProductFormValues } from '@/features/product-form';
+import { ProductForm, IProductPayload } from '@/features/product-form';
 import { ShopShell } from '@/widgets/shop-shell';
-import type { IShopCategory, IShopProduct, IShopProductList } from '@/entities/shop';
+import type {
+  IShopAttribute,
+  IShopCategory,
+  IShopProduct,
+  IShopProductList,
+} from '@/entities/shop';
 
 export const ShopProductsPage = () => {
   const { message } = AntApp.useApp();
@@ -28,13 +33,18 @@ export const ShopProductsPage = () => {
     ApiRoutes.shopCategoriesSearch,
     { scope: 'shop' },
   );
+  const attributesQuery = useGetQuery<IShopAttribute[]>(
+    [QueryKeys.shopAttributes],
+    ApiRoutes.shopAttributesSearch,
+    { scope: 'shop', staleTime: StaleTimeMs.long },
+  );
 
   const invalidate = [[QueryKeys.shopProducts]];
-  const createMutation = useMutationQuery<IProductFormValues, IShopProduct>(
+  const createMutation = useMutationQuery<IProductPayload, IShopProduct>(
     ApiRoutes.shopProductCreate,
     { scope: 'shop', invalidate },
   );
-  const updateMutation = useMutationQuery<IProductFormValues & { id: string }, IShopProduct>(
+  const updateMutation = useMutationQuery<IProductPayload & { id: string }, IShopProduct>(
     (body) => `${ApiRoutes.shopProductUpdate}/${body.id}`,
     { scope: 'shop', method: 'patch', invalidate },
   );
@@ -69,7 +79,7 @@ export const ShopProductsPage = () => {
     });
   }, [toggleMutation, message]);
 
-  const handleSubmit = useCallback((values: IProductFormValues) => {
+  const handleSubmit = useCallback((values: IProductPayload) => {
     const onError = (error: Error) => message.error(extractErrorMessage(error));
 
     if (editing) {
@@ -149,6 +159,7 @@ export const ShopProductsPage = () => {
         open={formOpen}
         editing={editing}
         categories={categoriesQuery.data ?? []}
+        attributes={attributesQuery.data ?? []}
         isSaving={createMutation.isPending || updateMutation.isPending}
         onSubmit={handleSubmit}
         onCancel={closeForm}

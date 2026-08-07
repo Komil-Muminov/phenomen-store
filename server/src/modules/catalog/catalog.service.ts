@@ -1,6 +1,7 @@
 import { ErrorMessages, HttpStatus, Pagination } from '@/shared/config';
 import { ITenantContext, IListResult } from '@/shared/types';
-import { AppError } from '@/shared/utils';
+import { AppError, isPlainObject, pickString } from '@/shared/utils';
+import { rememberValue } from '@/modules/attributes';
 import {
   existsProductSlug,
   insertProduct,
@@ -8,6 +9,9 @@ import {
   selectManagedProductById,
   selectManagedProducts,
   selectOptionFacets,
+  replaceVariants,
+  updateProductAttributes,
+  IVariantInput,
   selectProductById,
   selectProducts,
   updateProductFields,
@@ -113,6 +117,13 @@ export const getProduct = async (tenant: ITenantContext, id: string) => {
 
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 
+const SLUG_TRANSLIT: Record<string, string> = {
+  а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i',
+  й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't',
+  у: 'u', ф: 'f', х: 'h', ц: 'c', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '',
+  э: 'e', ю: 'yu', я: 'ya',
+};
+
 const PRODUCT_EDITABLE_FIELDS = [
   'name',
   'description',
@@ -144,28 +155,139 @@ export const listManagedProducts = async (
   return { items: items.map(mapProduct), total, page, limit };
 };
 
+const buildSlug = (source: string): string => {
+  const base = source
+    .toLowerCase()
+    .split('')
+    .map((char) => SLUG_TRANSLIT[char] ?? char)
+    .join('')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return base || `item-${Date.now()}`;
+};
+
+const buildUniqueSlug = async (tenantId: string, name: string): Promise<string> => {
+  const base = buildSlug(name);
+  let candidate = base;
+  let suffix = 2;
+
+  while (await existsProductSlug(tenantId, candidate)) {
+    candidate = `${base}-${suffix}`;
+    suffix += 1;
+  }
+
+  return candidate;
+};
+
+const buildSku = (slug: string, options: Record<string, string>): string => {
+  const parts = Object.keys(options)
+    .sort()
+    .map((key) => buildSlug(String(options[key])))
+    .filter(Boolean);
+
+  return [slug, ...parts].join('-').toUpperCase();
+};
+
+const readAttributes = (payload: Record<string, unknown>): Record<string, string> => {
+  const source = isPlainObject(payload.attributes) ? payload.attributes : {};
+  const result: Record<string, string> = {};
+
+  Object.entries(source).forEach(([code, value]) => {
+    const text = pickString(value);
+
+    if (text) {
+      result[code] = text;
+    }
+  });
+
+  return result;
+};
+
+const readVariants = (
+  payload: Record<string, unknown>,
+  slug: string,
+  basePrice: number,
+): IVariantInput[] => {
+  const source = Array.isArray(payload.variants) ? payload.variants : [];
+
+  return source.filter(isPlainObject).map((raw) => {
+    const options: Record<string, string> = {};
+
+    if (isPlainObject(raw.options)) {
+      Object.entries(raw.options).forEach(([code, value]) => {
+        const text = pickString(value);
+
+        if (text) {
+          options[code] = text;
+        }
+      });
+    }
+
+    const price = Number(raw.price);
+    const stock = Number(raw.stock);
+
+    return {
+      sku: pickString(raw.sku) || buildSku(slug, options),
+      options,
+      price: Number.isFinite(price) && price > 0 ? price : basePrice,
+      oldPrice: Number.isFinite(Number(raw.oldPrice)) ? Number(raw.oldPrice) : null,
+      stock: Number.isFinite(stock) && stock >= 0 ? Math.floor(stock) : 0,
+    };
+  });
+};
+
+const rememberUsedValues = async (
+  tenantId: string,
+  attributes: Record<string, string>,
+  variants: IVariantInput[],
+): Promise<void> => {
+  for (const [code, value] of Object.entries(attributes)) {
+    await rememberValue(tenantId, code, value);
+  }
+
+  for (const variant of variants) {
+    for (const [code, value] of Object.entries(variant.options)) {
+      await rememberValue(tenantId, code, value);
+    }
+  }
+};
+
 export const createProduct = async (tenant: ITenantContext, payload: Record<string, unknown>) => {
-  const slug = String(payload.slug ?? '').trim().toLowerCase();
-  const name = String(payload.name ?? '').trim();
+  const name = pickString(payload.name);
   const basePrice = Number(payload.basePrice);
 
-  if (!SLUG_PATTERN.test(slug) || !name || !Number.isFinite(basePrice) || basePrice < 0) {
+  if (!name || !Number.isFinite(basePrice) || basePrice < 0) {
     throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
   }
+
+  const requested = pickString(payload.slug).toLowerCase();
+  const slug = SLUG_PATTERN.test(requested)
+    ? requested
+    : await buildUniqueSlug(tenant.id, name);
 
   if (await existsProductSlug(tenant.id, slug)) {
     throw new AppError('Товар с таким ключом уже существует', HttpStatus.conflict);
   }
 
+  const attributes = readAttributes(payload);
+  const variants = readVariants(payload, slug, basePrice);
   const created = await insertProduct(
     tenant.id,
     slug,
     name,
     basePrice,
-    typeof payload.categoryId === 'string' && payload.categoryId ? payload.categoryId : null,
-    typeof payload.description === 'string' ? payload.description : null,
-    typeof payload.brand === 'string' ? payload.brand : null,
+    pickString(payload.categoryId) || null,
+    pickString(payload.description) || null,
+    pickString(payload.brand) || null,
+    attributes,
   );
+
+  if (variants.length > 0) {
+    await replaceVariants(tenant.id, created.id, variants);
+  }
+
+  await rememberUsedValues(tenant.id, attributes, variants);
 
   return mapProduct(await requireProduct(tenant, created.id));
 };
@@ -175,8 +297,7 @@ export const updateProduct = async (
   id: string,
   payload: Record<string, unknown>,
 ) => {
-  await requireProduct(tenant, id);
-
+  const existing = await requireProduct(tenant, id);
   const patch: Record<string, unknown> = {};
 
   PRODUCT_EDITABLE_FIELDS.forEach((field) => {
@@ -185,11 +306,31 @@ export const updateProduct = async (
     }
   });
 
-  if (Object.keys(patch).length === 0) {
+  const hasAttributes = isPlainObject(payload.attributes);
+  const hasVariants = Array.isArray(payload.variants);
+
+  if (Object.keys(patch).length === 0 && !hasAttributes && !hasVariants) {
     throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
   }
 
-  await updateProductFields(tenant.id, id, patch);
+  if (Object.keys(patch).length > 0) {
+    await updateProductFields(tenant.id, id, patch);
+  }
+
+  const attributes = hasAttributes ? readAttributes(payload) : {};
+
+  if (hasAttributes) {
+    await updateProductAttributes(tenant.id, id, attributes);
+  }
+
+  const basePrice = Number(patch.basePrice ?? existing.base_price);
+  const variants = hasVariants ? readVariants(payload, existing.slug, basePrice) : [];
+
+  if (hasVariants) {
+    await replaceVariants(tenant.id, id, variants);
+  }
+
+  await rememberUsedValues(tenant.id, attributes, variants);
 
   return mapProduct(await requireProduct(tenant, id));
 };

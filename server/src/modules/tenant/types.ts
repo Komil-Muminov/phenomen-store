@@ -72,8 +72,8 @@ export const DEFAULT_THEME = {
 
 export const DEFAULT_LOCALE = {
   language: 'ru',
-  currency: 'RUB',
-  currencySymbol: '₽',
+  currency: 'TJS',
+  currencySymbol: 'смн',
   timezone: 'Europe/Moscow',
 };
 

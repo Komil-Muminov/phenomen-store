@@ -3,6 +3,8 @@ export type {
   IOrderItem,
   IOrderList,
   IShopProduct,
+  IProductVariant,
+  IShopAttribute,
   IShopProductList,
   IShopCategory,
   IShopSession,

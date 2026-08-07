@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS products (
   unit TEXT NOT NULL DEFAULT 'piece',
   base_price NUMERIC(12, 2) NOT NULL DEFAULT 0,
   old_price NUMERIC(12, 2),
-  currency TEXT NOT NULL DEFAULT 'RUB',
+  currency TEXT NOT NULL DEFAULT 'TJS',
   tax_rate NUMERIC(5, 2) NOT NULL DEFAULT 20,
   attributes JSONB NOT NULL DEFAULT '{}'::jsonb,
   rating NUMERIC(3, 2) NOT NULL DEFAULT 0,

@@ -26,6 +26,15 @@ export interface IOrderList {
   total: number;
 }
 
+export interface IProductVariant {
+  id: string;
+  sku: string;
+  options: Record<string, string>;
+  price: number;
+  oldPrice: number | null;
+  stock: number;
+}
+
 export interface IShopProduct {
   id: string;
   slug: string;
@@ -36,6 +45,18 @@ export interface IShopProduct {
   oldPrice: number | null;
   categoryId: string | null;
   inStock: boolean;
+  attributes: Record<string, string>;
+  variants: IProductVariant[];
+}
+
+export interface IShopAttribute {
+  id: string;
+  code: string;
+  name: string;
+  isVariantOption: boolean;
+  isFilterable: boolean;
+  position: number;
+  values: string[];
 }
 
 export interface IShopProductList {

@@ -40,15 +40,17 @@ export const WishlistPage = () => {
     wishlistIds.includes(p.id)
   ));
 
-  const leftColumn = wishlistedProducts.filter((_, idx) => idx % 2 === 0);
-  const rightColumn = wishlistedProducts.filter((_, idx) => idx % 2 === 1);
+  const productRows: IProduct[][] = [];
+  for (let i = 0; i < wishlistedProducts.length; i += 2) {
+    productRows.push(wishlistedProducts.slice(i, i + 2));
+  }
 
   const handleProductPress = useCallback((product: IProduct) => {
     router.push(`${AppRoutes.product}/${product.id}`);
   }, [router]);
 
   const handleAddToCart = useCallback((product: IProduct) => {
-    const defaultVariant = product.variants[0];
+    const defaultVariant = product?.variants?.[0];
 
     if (!defaultVariant) {
       router.push(`${AppRoutes.product}/${product.id}`);
@@ -115,47 +117,26 @@ export const WishlistPage = () => {
         >
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 150 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 160 }}
             showsVerticalScrollIndicator={false}
           >
-            <View className="flex-row justify-between gap-3">
-              <View className="flex-1 gap-4">
-                {leftColumn.map((product) => (
-                  <View key={product.id} className="gap-2">
-                    <ProductCard
-                      product={product}
-                      currencySymbol="₽"
-                      onPress={handleProductPress}
-                      width="full"
-                    />
-                    <Button
-                      title="В корзину"
-                      size="sm"
-                      loading={updateCart.isPending}
-                      onPress={() => handleAddToCart(product)}
-                    />
-                  </View>
-                ))}
-              </View>
-
-              <View className="flex-1 gap-4">
-                {rightColumn.map((product) => (
-                  <View key={product.id} className="gap-2">
-                    <ProductCard
-                      product={product}
-                      currencySymbol="₽"
-                      onPress={handleProductPress}
-                      width="full"
-                    />
-                    <Button
-                      title="В корзину"
-                      size="sm"
-                      loading={updateCart.isPending}
-                      onPress={() => handleAddToCart(product)}
-                    />
-                  </View>
-                ))}
-              </View>
+            <View className="gap-5">
+              {productRows.map((row, rowIndex) => (
+                <View key={rowIndex} className="flex-row justify-between gap-3 items-stretch">
+                  {row.map((product) => (
+                    <View key={product.id} className="flex-1">
+                      <ProductCard
+                        product={product}
+                        currencySymbol="смн"
+                        onPress={handleProductPress}
+                        onAddToCart={handleAddToCart}
+                        width="full"
+                      />
+                    </View>
+                  ))}
+                  {row.length === 1 && <View className="flex-1" />}
+                </View>
+              ))}
             </View>
           </ScrollView>
         </If>
