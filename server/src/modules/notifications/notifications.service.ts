@@ -13,8 +13,8 @@ export interface INotificationItem {
 const INITIAL_NOTIFICATIONS: Omit<INotificationItem, 'tenantId'>[] = [
   {
     id: 'n1',
-    title: '🔥 Закрытая распродажа PHENOMEN',
-    text: 'Эксклюзивная скидка 15% на всю новую осеннюю коллекцию оверсайз курок и худи. Промокод: PHENOMEN15',
+    title: 'Закрытая распродажа PHENOMEN',
+    text: 'Эксклюзивная скидка 15% на всю новую осеннюю коллекцию оверсайз курток и худи. Промокод: PHENOMEN15',
     time: '15 минут назад',
     kind: 'promo',
     unread: true,
@@ -23,8 +23,8 @@ const INITIAL_NOTIFICATIONS: Omit<INotificationItem, 'tenantId'>[] = [
   },
   {
     id: 'n2',
-    title: '📦 Статус заказа #9821 обновлен',
-    text: 'Ваш заказ передан в курьерскую службу службы доставки. Ожидайте звонка курьера за 30 минут.',
+    title: 'Статус заказа #9821 обновлен',
+    text: 'Ваш заказ передан в курьерскую службу доставки. Ожидайте звонка курьера за 30 минут.',
     time: '2 часа назад',
     kind: 'order',
     unread: true,
@@ -33,7 +33,7 @@ const INITIAL_NOTIFICATIONS: Omit<INotificationItem, 'tenantId'>[] = [
   },
   {
     id: 'n3',
-    title: '🛡️ Безопасный вход в профиль',
+    title: 'Безопасный вход в профиль',
     text: 'Вы успешно авторизовались с нового устройства. Если это были не вы, немедленно свяжитесь с поддержкой.',
     time: 'Вчера, 18:40',
     kind: 'system',
@@ -42,7 +42,7 @@ const INITIAL_NOTIFICATIONS: Omit<INotificationItem, 'tenantId'>[] = [
   },
   {
     id: 'n4',
-    title: '✨ Новое поступление: Кроссовки Street',
+    title: 'Новое поступление: Кроссовки Street',
     text: 'Ограниченная серия премиальных кожаных кроссовок уже в наличии в каталоге.',
     time: '3 дня назад',
     kind: 'promo',

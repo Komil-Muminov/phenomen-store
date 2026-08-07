@@ -21,6 +21,11 @@ export const StoreIntro = ({
 }: IProps) => {
   const router = useRouter();
 
+  const displayTitle = (config?.brand?.title || 'PHENOMEN').replace(/\s*fashion/i, '').trim();
+  const displaySlogan = config?.brand?.slogan && !config.brand.slogan.includes('работает')
+    ? config.brand.slogan
+    : 'Твой стиль';
+
   return (
     <View className="gap-3 px-4 pb-3 pt-2">
       <View className="flex-row items-center gap-2.5">
@@ -33,13 +38,11 @@ export const StoreIntro = ({
         </If>
         <View className="flex-1 shrink">
           <Text numberOfLines={1} className="text-xl font-extrabold tracking-tight text-content">
-            {config.brand.title}
+            {displayTitle}
           </Text>
-          <If condition={Boolean(config.brand.slogan)}>
-            <Text numberOfLines={1} className="text-xs text-muted">
-              {config.brand.slogan}
-            </Text>
-          </If>
+          <Text numberOfLines={1} className="text-xs font-semibold text-muted">
+            {displaySlogan}
+          </Text>
         </View>
 
         <Pressable

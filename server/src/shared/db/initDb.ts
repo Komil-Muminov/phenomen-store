@@ -206,7 +206,7 @@ const seedDemoTenant = async (): Promise<void> => {
        ON CONFLICT (tenant_id) DO NOTHING`,
       [
         tenantId,
-        JSON.stringify({ title: 'PHENOMEN Fashion', logoUrl: null, slogan: 'Одежда, которая работает на вас' }),
+        JSON.stringify({ title: 'PHENOMEN', logoUrl: null, slogan: 'Твой стиль' }),
         JSON.stringify(DEMO_THEME),
         JSON.stringify({ language: 'ru', currency: 'TJS', currencySymbol: 'смн', timezone: 'Asia/Dushanbe' }),
         JSON.stringify({ minOrderTotal: 1500, maxItemsPerOrder: 50, guestCheckout: true }),

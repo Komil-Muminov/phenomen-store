@@ -154,17 +154,17 @@ export const CatalogPage = () => {
         </View>
       </View>
 
-      {/* Быстрые теги подсказок поиска */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8, gap: 8 }}
+        className="h-10 flex-grow-0"
+        contentContainerStyle={{ alignItems: 'center', paddingHorizontal: 16, gap: 8 }}
       >
         {QUICK_SEARCH_TAGS.map((tag) => (
           <Pressable
             key={tag}
             onPress={() => setSearchQuery(searchQuery === tag ? '' : tag)}
-            className={`rounded-full px-3 py-1 border ${
+            className={`rounded-full px-3.5 py-1.5 border items-center justify-center ${
               searchQuery === tag ? 'border-primary bg-primary' : 'border-line bg-surface/60'
             }`}
           >
