@@ -9,5 +9,6 @@ export type {
   IStockList,
   IShopProductList,
   IShopCategory,
+  IShopBanner,
   IShopSession,
 } from '@/entities/shop/model';

@@ -92,6 +92,19 @@ export interface IShopCategory {
   isActive?: boolean;
 }
 
+export interface IShopBanner {
+  id: string;
+  imageUrl: string;
+  title: string | null;
+  subtitle: string | null;
+  actionType: string;
+  actionValue: string | null;
+  position: number;
+  startsAt: string | null;
+  endsAt: string | null;
+  isActive: boolean;
+}
+
 export interface IShopSession {
   token: string;
   user: {

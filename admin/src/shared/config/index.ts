@@ -8,6 +8,7 @@ export const AppRoutes = {
   shopStock: '/shop/stock',
   shopAttributes: '/shop/attributes',
   shopCategories: '/shop/categories',
+  shopBanners: '/shop/banners',
   shopSettings: '/shop/settings',
   root: '/',
 } as const;
@@ -42,6 +43,10 @@ export const ApiRoutes = {
   shopCategoryCreate: '/categories/create',
   shopCategoryUpdate: '/categories/update',
   shopCategoryDeactivate: '/categories/deactivate',
+  shopBannersManage: '/banners/manage/search',
+  shopBannerCreate: '/banners/create',
+  shopBannerUpdate: '/banners/update',
+  shopBannerDeactivate: '/banners/deactivate',
   shopConfig: '/tenants/config',
   shopAttributeDelete: '/attributes/delete',
   shopMediaUpload: '/media/upload',
@@ -53,6 +58,7 @@ export const QueryKeys = {
   shopOrders: 'shop-orders',
   shopProducts: 'shop-products',
   shopCategories: 'shop-categories',
+  shopBanners: 'shop-banners',
   shopAttributes: 'shop-attributes',
   shopStock: 'shop-stock',
   shopConfig: 'shop-config',
@@ -87,6 +93,32 @@ export const PaymentMethods = [
   { value: 'card_online', label: 'Картой онлайн' },
   { value: 'cash_on_delivery', label: 'Наличными при получении' },
 ] as const;
+
+export const BannerActionTypes = {
+  none: 'none',
+  category: 'category',
+  product: 'product',
+  link: 'link',
+} as const;
+
+export const BannerActionOptions = [
+  { value: BannerActionTypes.none, label: 'Без перехода' },
+  { value: BannerActionTypes.category, label: 'В категорию' },
+  { value: BannerActionTypes.product, label: 'На товар' },
+  { value: BannerActionTypes.link, label: 'На внешнюю ссылку' },
+] as const;
+
+export const BannerActionLabels: Record<string, string> = {
+  none: 'без перехода',
+  category: 'в категорию',
+  product: 'на товар',
+  link: 'внешняя ссылка',
+};
+
+export const BannerDefaults = {
+  position: 100,
+  positionStep: 10,
+} as const;
 
 export const StorageKeys = {
   token: 'phenomen_platform_token',
@@ -161,6 +193,10 @@ export const UiMessages = {
   createdOwner: 'Владелец добавлен',
   emptyTenants: 'Магазинов пока нет',
   required: 'Обязательное поле',
+  createdBanner: 'Баннер создан',
+  updatedBanner: 'Баннер обновлён',
+  hiddenBanner: 'Баннер скрыт',
+  emptyBanners: 'Баннеров пока нет',
 } as const;
 
 export const Env = {

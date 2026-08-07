@@ -1,21 +1,17 @@
 import { useCallback } from 'react';
 import { Platform, RefreshControl, ScrollView, StatusBar, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { openURL } from 'expo-linking';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ICart, countCartItems } from '@/entities/cart';
 import { ICategory } from '@/entities/category';
 import { IProduct } from '@/entities/product';
 import { DEFAULT_TENANT_CONFIG, ITenantConfig } from '@/entities/tenant';
 import { StoreIntro } from '@/features/store-intro';
-import { IBanner, IStorefrontSection, StorefrontSections } from '@/features/storefront-sections';
+import { BannerActionTypes, IBanner, IStorefrontSection, StorefrontSections } from '@/features/storefront-sections';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery } from '@/shared/hooks';
 import { BottomBar, If, SkeletonBanner, SkeletonProductGrid, StateView } from '@/shared/ui';
-
-const BannerActions = {
-  category: 'category',
-  product: 'product',
-} as const;
 
 export const Home = () => {
   const router = useRouter();
@@ -57,17 +53,21 @@ export const Home = () => {
   }, [router]);
 
   const handleBannerPress = useCallback((banner: IBanner) => {
-    if (banner?.actionType === BannerActions.category && banner.actionValue) {
+    if (banner?.actionType === BannerActionTypes.category && banner.actionValue) {
       router.push(`${AppRoutes.catalog}?categoryId=${banner.actionValue}`);
       return;
     }
 
-    if (banner?.actionType === BannerActions.product && banner.actionValue) {
+    if (banner?.actionType === BannerActionTypes.product && banner.actionValue) {
       router.push(`${AppRoutes.product}/${banner.actionValue}`);
       return;
     }
 
-    // Универсальный переход в каталог с сортировкой по скидкам для любых баннеров акций и коллекций
+    if (banner?.actionType === BannerActionTypes.link && banner.actionValue) {
+      openURL(banner.actionValue).catch(() => router.push(AppRoutes.catalog));
+      return;
+    }
+
     router.push(`${AppRoutes.catalog}?sort=discount`);
   }, [router]);
 
@@ -118,6 +118,7 @@ export const Home = () => {
           <StorefrontSections
             sections={sections ?? []}
             currencySymbol={config?.locale.currencySymbol ?? ''}
+            brandTitle={config?.brand.title ?? DEFAULT_TENANT_CONFIG.brand.title}
             onProductPress={handleProductPress}
             onCategoryPress={handleCategoryPress}
             onBannerPress={handleBannerPress}

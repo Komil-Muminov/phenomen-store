@@ -6,6 +6,7 @@ import {
   DatabaseOutlined,
   FolderOutlined,
   LogoutOutlined,
+  PictureOutlined,
   SettingOutlined,
   ShoppingOutlined,
   TagsOutlined,
@@ -61,6 +62,10 @@ export const ShopShell = ({ children }: IProps) => {
               <NavLink to={AppRoutes.shopAttributes} className={buildLinkClass}>
                 <ApartmentOutlined aria-hidden="true" />
                 Характеристики
+              </NavLink>
+              <NavLink to={AppRoutes.shopBanners} className={buildLinkClass}>
+                <PictureOutlined aria-hidden="true" />
+                Баннеры
               </NavLink>
               <NavLink to={AppRoutes.shopSettings} className={buildLinkClass}>
                 <SettingOutlined aria-hidden="true" />

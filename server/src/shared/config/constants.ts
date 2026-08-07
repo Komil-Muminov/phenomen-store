@@ -4,6 +4,7 @@ export const ApiRoutes = {
   storefront: '/storefront',
   catalog: '/products',
   categories: '/categories',
+  banners: '/banners',
   attributes: '/attributes',
   media: '/media',
   cart: '/cart',

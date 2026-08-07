@@ -6,6 +6,7 @@ import { IBanner, ISectionHandlers } from '@/features/storefront-sections/model'
 
 interface IBannerProps {
   banners: IBanner[];
+  brandTitle: string;
   onPress: ISectionHandlers['onBannerPress'];
 }
 
@@ -20,7 +21,7 @@ interface IProductsProps {
   onPress: ISectionHandlers['onProductPress'];
 }
 
-export const BannerCarousel = ({ banners, onPress }: IBannerProps) => {
+export const BannerCarousel = ({ banners, brandTitle, onPress }: IBannerProps) => {
   const { width: screenWidth } = useWindowDimensions();
   const bannerWidth = Math.max(280, Math.min(screenWidth - 48, 340));
 
@@ -46,7 +47,7 @@ export const BannerCarousel = ({ banners, onPress }: IBannerProps) => {
           <View className="flex-row items-center justify-between">
             <View className="rounded-full bg-black/40 px-3 py-1 backdrop-blur-md border border-white/10">
               <Text className="text-[11px] font-bold text-white uppercase tracking-wider">
-                Phenomen
+                {brandTitle}
               </Text>
             </View>
           </View>

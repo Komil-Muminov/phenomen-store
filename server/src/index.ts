@@ -8,6 +8,7 @@ import { categoryRouter, productRouter, seedDemoCatalog } from '@/modules/catalo
 import { applyVerticalPreset, attributeRouter } from '@/modules/attributes';
 import { ensureUploadsRoot, mediaRouter, UPLOADS_ROUTE } from '@/modules/media';
 import { storefrontRouter } from '@/modules/storefront';
+import { bannerRouter } from '@/modules/banner';
 import { cartRouter } from '@/modules/cart';
 import { orderRouter } from '@/modules/order';
 import { authRouter } from '@/modules/auth';
@@ -34,6 +35,7 @@ app.use(ApiRoutes.tenants, tenantRouter);
 app.use(ApiRoutes.storefront, storefrontRouter);
 app.use(ApiRoutes.catalog, productRouter);
 app.use(ApiRoutes.categories, categoryRouter);
+app.use(ApiRoutes.banners, bannerRouter);
 app.use(ApiRoutes.attributes, attributeRouter);
 app.use(ApiRoutes.media, mediaRouter);
 app.use(ApiRoutes.cart, cartRouter);

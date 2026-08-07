@@ -17,7 +17,13 @@ interface IProps extends ISectionHandlers {
 
 const renderSection = (section: IStorefrontSection, handlers: ISectionHandlers) => {
   if (section.type === SectionTypes.bannerCarousel) {
-    return <BannerCarousel banners={section.items as IBanner[]} onPress={handlers.onBannerPress} />;
+    return (
+      <BannerCarousel
+        banners={section.items as IBanner[]}
+        brandTitle={handlers.brandTitle}
+        onPress={handlers.onBannerPress}
+      />
+    );
   }
 
   if (section.type === SectionTypes.categoryGrid) {

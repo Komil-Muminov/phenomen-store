@@ -10,6 +10,15 @@ export const SectionTypes = {
 
 export type TSectionType = (typeof SectionTypes)[keyof typeof SectionTypes];
 
+export const BannerActionTypes = {
+  none: 'none',
+  category: 'category',
+  product: 'product',
+  link: 'link',
+} as const;
+
+export type TBannerActionType = (typeof BannerActionTypes)[keyof typeof BannerActionTypes];
+
 export interface IBanner {
   id: string;
   imageUrl: string;
@@ -29,6 +38,7 @@ export interface IStorefrontSection {
 
 export interface ISectionHandlers {
   currencySymbol: string;
+  brandTitle: string;
   onProductPress: (product: IProduct) => void;
   onCategoryPress: (category: ICategory) => void;
   onBannerPress: (banner: IBanner) => void;
