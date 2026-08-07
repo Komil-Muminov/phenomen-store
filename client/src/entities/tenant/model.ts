@@ -58,3 +58,43 @@ export interface ITenantConfig {
   features: ITenantFeatures;
   contacts: Record<string, string>;
 }
+
+export const DEFAULT_TENANT_CONFIG: ITenantConfig = {
+  id: 'demo',
+  key: 'demo-fashion',
+  name: 'PHENOMEN',
+  vertical: 'fashion',
+  brand: {
+    title: 'PHENOMEN',
+    logoUrl: null,
+    slogan: 'Твой стиль',
+  },
+  theme: {
+    colors: {
+      primary: '#171717',
+      onPrimary: '#ffffff',
+      accent: '#ef4444',
+      background: '#ffffff',
+      surface: '#f5f5f5',
+      text: '#171717',
+      muted: '#737373',
+      border: '#e5e5e5',
+      danger: '#ef4444',
+      success: '#10b981',
+    },
+    radius: { sm: 8, md: 12, lg: 16 },
+    density: 'compact',
+    cardStyle: 'elevated',
+  },
+  locale: {
+    language: 'ru',
+    currency: 'TJS',
+    currencySymbol: 'смн',
+    timezone: 'Asia/Dushanbe',
+  },
+  orderRules: {},
+  payment: {},
+  delivery: {},
+  features: { favorites: true, reviews: true, promoCodes: true, sizeGuide: true },
+  contacts: {},
+};

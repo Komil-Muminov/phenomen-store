@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
-import { Form, Input, Modal, Select } from 'antd';
+import { Alert, Divider, Form, Input, Modal, Select } from 'antd';
+import { If } from '@/shared/ui/If';
 import { TenantPlans, TenantVerticals, UiMessages } from '@/shared/config';
+
+const OWNER_PASSWORD_MIN = 8;
 import type { ITenant } from '@/entities/tenant';
 
 export interface ITenantFormValues {
@@ -9,6 +12,9 @@ export interface ITenantFormValues {
   vertical: string;
   plan: string;
   bundleId?: string;
+  ownerLogin?: string;
+  ownerName?: string;
+  ownerPassword?: string;
 }
 
 interface IProps {
@@ -32,6 +38,9 @@ export const TenantForm = ({ open, editing, isSaving, onSubmit, onCancel }: IPro
         vertical: editing?.vertical ?? TenantVerticals[0],
         plan: editing?.plan ?? TenantPlans[0],
         bundleId: editing?.bundleId ?? '',
+        ownerLogin: '',
+        ownerName: '',
+        ownerPassword: '',
       });
     }
   }, [open, editing, form]);
@@ -78,6 +87,44 @@ export const TenantForm = ({ open, editing, isSaving, onSubmit, onCancel }: IPro
         <Form.Item name="bundleId" label="Bundle ID">
           <Input placeholder="store.phenomen.myshop" className="font-mono!" />
         </Form.Item>
+
+        <If condition={!editing}>
+          <Divider className="mt-2! mb-4!">Доступ администратора магазина</Divider>
+
+          <Alert
+            type="info"
+            showIcon
+            className="mb-4!"
+            message="Эти данные владелец магазина будет вводить на той же странице входа"
+          />
+
+          <Form.Item
+            name="ownerName"
+            label="Имя"
+            rules={[{ required: true, message: UiMessages.required }]}
+          >
+            <Input placeholder="Иван Иванов" />
+          </Form.Item>
+
+          <Form.Item
+            name="ownerLogin"
+            label="Логин — email или телефон"
+            rules={[{ required: true, message: UiMessages.required }]}
+          >
+            <Input placeholder="owner@shop.ru" autoComplete="off" />
+          </Form.Item>
+
+          <Form.Item
+            name="ownerPassword"
+            label="Пароль"
+            rules={[
+              { required: true, message: UiMessages.required },
+              { min: OWNER_PASSWORD_MIN, message: `Минимум ${OWNER_PASSWORD_MIN} символов` },
+            ]}
+          >
+            <Input.Password autoComplete="new-password" />
+          </Form.Item>
+        </If>
       </Form>
     </Modal>
   );

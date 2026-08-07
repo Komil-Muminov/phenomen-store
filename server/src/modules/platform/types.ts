@@ -4,12 +4,12 @@ export const PlatformPaths = {
   tenantCreate: '/tenants/create',
   tenantUpdate: '/tenants/update/:id',
   tenantDeactivate: '/tenants/deactivate/:id',
+  tenantActivate: '/tenants/activate/:id',
   ownerCreate: '/tenants/owner/create/:id',
   passwordUpdate: '/auth/password/update',
   signin: '/auth/signin',
   auditSearch: '/audit/search',
-  userSearch: '/users/search',
-  userCreate: '/users/create',
+  auditActions: '/audit/actions',
 } as const;
 
 export const PlatformActions = {
@@ -17,9 +17,9 @@ export const PlatformActions = {
   tenantCreate: 'tenant.create',
   tenantUpdate: 'tenant.update',
   tenantDeactivate: 'tenant.deactivate',
+  tenantActivate: 'tenant.activate',
   ownerCreate: 'tenant.owner.create',
   passwordUpdate: 'auth.password.update',
-  userCreate: 'platform.user.create',
 } as const;
 
 export const PlatformErrors = {
@@ -70,6 +70,9 @@ export interface ICreateTenantPayload {
   vertical?: string;
   plan?: string;
   bundleId?: string;
+  ownerLogin?: string;
+  ownerName?: string;
+  ownerPassword?: string;
 }
 
 export interface ICreateOwnerPayload {

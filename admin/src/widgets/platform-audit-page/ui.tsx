@@ -1,53 +1,88 @@
-import { useCallback } from 'react';
-import { Alert, Button, Typography } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, Pagination as AntPagination, Typography } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/shared/api';
-import { ApiRoutes, QueryKeys } from '@/shared/config';
+import { ApiRoutes, Pagination, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery } from '@/shared/hooks';
 import { If } from '@/shared/ui/If';
-import { Tooltip } from '@/shared/ui/Tooltip';
 import { AuditTable } from '@/features/audit-table';
 import { PlatformShell } from '@/widgets/platform-shell';
-import type { IAuditList } from '@/entities/tenant';
-
-const AUDIT_LIMIT = 100;
+import { RenderFilters } from '@/widgets/platform-audit-page/ui/renderFilters';
+import {
+  buildParams,
+  IAuditQuery,
+  INITIAL_QUERY,
+  SEARCH_DEBOUNCE_MS,
+} from '@/widgets/platform-audit-page/model';
+import type { IAuditList, ITenantList } from '@/entities/tenant';
 
 export const PlatformAuditPage = () => {
   const queryClient = useQueryClient();
+  const [query, setQuery] = useState<IAuditQuery>(INITIAL_QUERY);
+  const [applied, setApplied] = useState<IAuditQuery>(INITIAL_QUERY);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setApplied(query), SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const auditQuery = useGetQuery<IAuditList>(
-    [QueryKeys.audit],
+    [QueryKeys.audit, applied.page, applied.search, applied.action ?? null, applied.tenantKey ?? null],
     ApiRoutes.platformAudit,
-    { params: { limit: AUDIT_LIMIT } },
+    { params: buildParams(applied, Pagination.auditLimit) },
   );
+  const actionsQuery = useGetQuery<string[]>(
+    [QueryKeys.audit, 'actions'],
+    ApiRoutes.platformAuditActions,
+    { staleTime: StaleTimeMs.long },
+  );
+  const tenantsQuery = useGetQuery<ITenantList>([QueryKeys.tenants], ApiRoutes.tenantsSearch);
 
   const handleRefresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: [QueryKeys.audit] });
   }, [queryClient]);
 
+  const handleSearch = useCallback((search: string) => {
+    setQuery((current) => ({ ...current, search, page: 1 }));
+  }, []);
+
+  const handleAction = useCallback((action: string | undefined) => {
+    setQuery((current) => ({ ...current, action, page: 1 }));
+  }, []);
+
+  const handleTenant = useCallback((tenantKey: string | undefined) => {
+    setQuery((current) => ({ ...current, tenantKey, page: 1 }));
+  }, []);
+
+  const handlePage = useCallback((page: number) => {
+    setQuery((current) => ({ ...current, page }));
+    setApplied((current) => ({ ...current, page }));
+  }, []);
+
+  const total = auditQuery.data?.total ?? 0;
+
   return (
     <PlatformShell>
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <Typography.Title level={3} className="mb-0! text-brand-text!">
-            Журнал действий
-          </Typography.Title>
-          <Typography.Text type="secondary">
-            Записей: {auditQuery.data?.total ?? 0} · показаны последние {AUDIT_LIMIT}
-          </Typography.Text>
-        </div>
-
-        <Tooltip title="Обновить">
-          <Button
-            aria-label="Обновить журнал"
-            icon={<ReloadOutlined />}
-            loading={auditQuery.isFetching}
-            onClick={handleRefresh}
-            className="cursor-pointer!"
-          />
-        </Tooltip>
+      <header className="mb-4">
+        <Typography.Title level={3} className="mb-0! text-brand-text!">
+          Журнал действий
+        </Typography.Title>
+        <Typography.Text type="secondary">Найдено записей: {total}</Typography.Text>
       </header>
+
+      <RenderFilters
+        search={query.search}
+        action={query.action}
+        tenantKey={query.tenantKey}
+        actions={actionsQuery.data ?? []}
+        tenants={tenantsQuery.data?.items ?? []}
+        isFetching={auditQuery.isFetching}
+        onSearch={handleSearch}
+        onAction={handleAction}
+        onTenant={handleTenant}
+        onRefresh={handleRefresh}
+      />
 
       <If condition={Boolean(auditQuery.error)}>
         <Alert
@@ -61,6 +96,18 @@ export const PlatformAuditPage = () => {
       <section className="rounded-xl border border-violet-200 bg-white p-2 shadow-sm">
         <AuditTable items={auditQuery.data?.items ?? []} isLoading={auditQuery.isLoading} />
       </section>
+
+      <If condition={total > Pagination.auditLimit}>
+        <div className="mt-4 flex justify-end">
+          <AntPagination
+            current={applied.page}
+            pageSize={Pagination.auditLimit}
+            total={total}
+            showSizeChanger={false}
+            onChange={handlePage}
+          />
+        </div>
+      </If>
     </PlatformShell>
   );
 };

@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
-import { RefreshControl, ScrollView, } from 'react-native';
+import { Platform, RefreshControl, ScrollView, StatusBar, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ICart, countCartItems } from '@/entities/cart';
 import { ICategory } from '@/entities/category';
 import { IProduct } from '@/entities/product';
-import { ITenantConfig } from '@/entities/tenant';
+import { DEFAULT_TENANT_CONFIG, ITenantConfig } from '@/entities/tenant';
 import { StoreIntro } from '@/features/store-intro';
 import { IBanner, IStorefrontSection, StorefrontSections } from '@/features/storefront-sections';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
@@ -81,17 +81,18 @@ export const Home = () => {
 
   const cartCount = countCartItems(cart);
 
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
+
   return (
-    <SafeAreaView className="flex-1 bg-background relative" edges={['top', 'left', 'right']}>
-      <If condition={Boolean(config)}>
-        <StoreIntro
-          config={config as ITenantConfig}
-          cartCount={cartCount}
-          onCartPress={handleCartPress}
-          onProfilePress={handleProfilePress}
-          onSearchPress={handleSearchPress}
-        />
-      </If>
+    <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
+      <StoreIntro
+        config={config ?? DEFAULT_TENANT_CONFIG}
+        cartCount={cartCount}
+        onCartPress={handleCartPress}
+        onProfilePress={handleProfilePress}
+        onSearchPress={handleSearchPress}
+      />
       <If
         condition={Boolean(sections)}
         fallback={
@@ -125,6 +126,6 @@ export const Home = () => {
       </If>
 
       <BottomBar cartCount={cartCount} />
-    </SafeAreaView>
+    </View>
   );
 };

@@ -18,7 +18,7 @@ export const StateView = ({ loading = false, errorMessage = null, skeleton, onRe
   }
 
   return (
-    <View className="flex-1 items-center justify-center gap-4 px-8 py-12">
+    <View className="flex-1 items-center pt-16 gap-4 px-8 pb-12">
       <If
         condition={loading}
         fallback={(

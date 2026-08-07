@@ -17,10 +17,10 @@ import {
   insertPlatformUser,
   insertTenant,
   insertTenantOwner,
+  selectAuditActions,
   selectAuditEntries,
   selectPlatformUserById,
   selectPlatformUserByLogin,
-  selectPlatformUsers,
   selectTenantById,
   selectTenants,
   setTenantStatus,
@@ -193,12 +193,20 @@ export const signIn = async (
   return { scope: 'shop', tenantKey: tenant.key, tenantName: tenant.name, ...session };
 };
 
+export const listAuditActions = async (): Promise<string[]> => selectAuditActions();
+
 export const listAudit = async (
+  query: Record<string, unknown>,
   page: number,
   limit: number,
   offset: number,
 ): Promise<IListResult<Record<string, unknown>>> => {
-  const { items, total } = await selectAuditEntries(limit, offset);
+  const filters = {
+    action: pickString(query.action) || null,
+    tenantKey: pickString(query.tenantKey) || null,
+    search: pickString(query.search) || null,
+  };
+  const { items, total } = await selectAuditEntries(filters, limit, offset);
 
   return {
     items: items.map((row) => ({
@@ -214,54 +222,6 @@ export const listAudit = async (
     page,
     limit,
   };
-};
-
-export const listPlatformUsers = async (): Promise<Record<string, unknown>[]> => (
-  (await selectPlatformUsers()).map((row) => ({
-    id: row.id,
-    login: row.login,
-    name: row.name,
-    role: row.role,
-    status: row.status,
-  }))
-);
-
-export const createPlatformUser = async (
-  actor: IPlatformContext,
-  payload: Record<string, unknown>,
-  ip: string | null,
-): Promise<Record<string, unknown>> => {
-  const login = pickString(payload.login).toLowerCase();
-  const name = pickString(payload.name);
-  const password = typeof payload.password === 'string' ? payload.password : '';
-
-  if (!login || !name || password.length < PASSWORD_MIN_LENGTH) {
-    throw new AppError(PlatformErrors.passwordTooShort, HttpStatus.badRequest);
-  }
-
-  if (await selectPlatformUserByLogin(login)) {
-    throw new AppError(PlatformErrors.loginTaken, HttpStatus.conflict);
-  }
-
-  const role = payload.role === PlatformRoles.superadmin
-    ? PlatformRoles.superadmin
-    : PlatformRoles.operator;
-  const created = await insertPlatformUser(
-    login,
-    await bcrypt.hash(password, SALT_ROUNDS),
-    name,
-    role,
-  );
-
-  await insertAuditEntry({
-    actorId: actor.id,
-    actorLogin: actor.login,
-    action: PlatformActions.userCreate,
-    payload: { login, role },
-    ip,
-  });
-
-  return { id: created.id, login: created.login, name: created.name, role: created.role };
 };
 
 export const listTenants = async (
@@ -309,6 +269,23 @@ export const createTenant = async (
     payload: { key, name },
     ip,
   });
+
+  const ownerLogin = pickString(payload.ownerLogin);
+  const ownerPassword = typeof payload.ownerPassword === 'string' ? payload.ownerPassword : '';
+
+  if (ownerLogin && ownerPassword) {
+    await createTenantOwner(
+      actor,
+      tenant.id,
+      {
+        name: pickString(payload.ownerName, name),
+        password: ownerPassword,
+        email: ownerLogin.includes('@') ? ownerLogin : undefined,
+        phone: ownerLogin.includes('@') ? undefined : ownerLogin,
+      },
+      ip,
+    );
+  }
 
   return tenant;
 };
@@ -361,6 +338,27 @@ export const deactivateTenant = async (
     actorId: actor.id,
     actorLogin: actor.login,
     action: PlatformActions.tenantDeactivate,
+    tenantId: id,
+    payload: { key: tenant.key },
+    ip,
+  });
+
+  return requireTenantRow(id);
+};
+
+export const activateTenant = async (
+  actor: IPlatformContext,
+  id: string,
+  ip: string | null,
+): Promise<ITenantSummary> => {
+  const tenant = await requireTenantRow(id);
+
+  await setTenantStatus(id, TenantStatuses.active);
+  invalidateTenantCache(tenant.key);
+  await insertAuditEntry({
+    actorId: actor.id,
+    actorLogin: actor.login,
+    action: PlatformActions.tenantActivate,
     tenantId: id,
     payload: { key: tenant.key },
     ip,

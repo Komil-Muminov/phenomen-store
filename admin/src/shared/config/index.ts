@@ -2,7 +2,6 @@ export const AppRoutes = {
   login: '/login',
   tenants: '/tenants',
   audit: '/audit',
-  platformUsers: '/users',
   shopLogin: '/shop/login',
   shopOrders: '/shop/orders',
   shopProducts: '/shop/products',
@@ -20,10 +19,10 @@ export const ApiRoutes = {
   tenantsCreate: '/platform/tenants/create',
   tenantsUpdate: '/platform/tenants/update',
   tenantsDeactivate: '/platform/tenants/deactivate',
+  tenantsActivate: '/platform/tenants/activate',
   tenantsOwnerCreate: '/platform/tenants/owner/create',
   platformAudit: '/platform/audit/search',
-  platformUsers: '/platform/users/search',
-  platformUserCreate: '/platform/users/create',
+  platformAuditActions: '/platform/audit/actions',
   shopLogin: '/auth/login',
   shopOrdersSearch: '/orders/manage/search',
   shopOrderStatus: '/orders/status',
@@ -51,7 +50,6 @@ export const ApiRoutes = {
 export const QueryKeys = {
   tenants: 'tenants',
   audit: 'audit',
-  platformUsers: 'platform-users',
   shopOrders: 'shop-orders',
   shopProducts: 'shop-products',
   shopCategories: 'shop-categories',
@@ -132,7 +130,18 @@ export const AuthScheme = 'Bearer ';
 export const Pagination = {
   defaultPage: 1,
   defaultLimit: 20,
+  auditLimit: 10,
 } as const;
+
+export const AuditActionLabels: Record<string, string> = {
+  'auth.login': 'вход',
+  'auth.password.update': 'смена пароля',
+  'tenant.create': 'создан магазин',
+  'tenant.update': 'изменён магазин',
+  'tenant.deactivate': 'магазин отключён',
+  'tenant.activate': 'магазин включён',
+  'tenant.owner.create': 'добавлен владелец',
+};
 
 export const TenantStatuses = {
   active: 'active',

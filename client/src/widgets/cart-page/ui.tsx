@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StatusBar, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CartItemRow, DEFAULT_CART_TOTALS, ICart, ICartItem, countCartItems } from '@/entities/cart';
 import { ITenantConfig } from '@/entities/tenant';
 import { CartSummary } from '@/features/cart-summary';
@@ -12,6 +12,8 @@ import { BottomBar, Button, Icon, If, StateView } from '@/shared/ui';
 
 export const CartPage = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
   const { data: config } = useGetQuery<ITenantConfig>(
     [QueryKeys.tenantConfig],
     ApiRoutes.tenantConfig,
@@ -51,7 +53,7 @@ export const CartPage = () => {
   const busy = updateItem.isPending || applyPromo.isPending;
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+    <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
       <View className="flex-row items-center gap-3 px-4 py-2">
         <Pressable
           onPress={() => router.back()}
@@ -67,7 +69,23 @@ export const CartPage = () => {
 
       <If
         condition={Boolean(cart)}
-        fallback={<StateView loading={isLoading} errorMessage={error?.message ?? null} onRetry={handleRetry} />}
+        fallback={
+          isLoading ? (
+            <View className="flex-1 px-4 pt-3 gap-3">
+              {[1, 2].map((i) => (
+                <View key={i} className="h-28 rounded-2xl bg-surface/60 border border-line/40 p-4 gap-3 flex-row items-center">
+                  <View className="h-20 w-20 rounded-xl bg-muted/20" />
+                  <View className="flex-1 gap-2">
+                    <View className="h-4 w-3/4 rounded bg-muted/20" />
+                    <View className="h-4 w-1/3 rounded bg-muted/10" />
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <StateView errorMessage={error?.message ?? null} onRetry={handleRetry} />
+          )
+        }
       >
         <If
           condition={(cart?.items.length ?? 0) > 0}
@@ -118,6 +136,6 @@ export const CartPage = () => {
         </If>
       </If>
       <BottomBar cartCount={countCartItems(cart)} />
-    </SafeAreaView>
+    </View>
   );
 };

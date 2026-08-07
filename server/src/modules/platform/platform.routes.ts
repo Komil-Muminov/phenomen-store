@@ -12,13 +12,13 @@ import {
   sendOk,
 } from '@/shared/utils';
 import {
+  activateTenant,
   authenticatePlatform,
   changePlatformPassword,
-  createPlatformUser,
   createTenant,
   createTenantOwner,
   listAudit,
-  listPlatformUsers,
+  listAuditActions,
   deactivateTenant,
   listTenants,
   signIn,
@@ -91,9 +91,10 @@ platformRouter.get(
   PlatformPaths.auditSearch,
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
-      const { page, limit, offset } = parsePagination(req.query as Record<string, unknown>);
+      const params = req.query as Record<string, unknown>;
+      const { page, limit, offset } = parsePagination(params);
 
-      sendList(res, await listAudit(page, limit, offset));
+      sendList(res, await listAudit(params, page, limit, offset));
     } catch (error) {
       next(error);
     }
@@ -101,26 +102,10 @@ platformRouter.get(
 );
 
 platformRouter.get(
-  PlatformPaths.userSearch,
-  platformRoleMiddleware([PlatformRoles.superadmin]),
+  PlatformPaths.auditActions,
   async (_req: IAppRequest, res: Response, next: NextFunction) => {
     try {
-      sendOk(res, await listPlatformUsers());
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-platformRouter.post(
-  PlatformPaths.userCreate,
-  platformRoleMiddleware([PlatformRoles.superadmin]),
-  async (req: IAppRequest, res: Response, next: NextFunction) => {
-    try {
-      const body = (req.body ?? {}) as Record<string, unknown>;
-
-      requireFields(body, ['login', 'name', 'password']);
-      sendCreated(res, await createPlatformUser(requireActor(req), body, readIp(req)));
+      sendOk(res, await listAuditActions());
     } catch (error) {
       next(error);
     }
@@ -180,6 +165,20 @@ platformRouter.patch(
       const id = requireUuid(req.params.id, 'id');
 
       sendOk(res, await deactivateTenant(requireActor(req), id, readIp(req)));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+platformRouter.patch(
+  PlatformPaths.tenantActivate,
+  platformRoleMiddleware([PlatformRoles.superadmin]),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+
+      sendOk(res, await activateTenant(requireActor(req), id, readIp(req)));
     } catch (error) {
       next(error);
     }

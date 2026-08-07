@@ -10,12 +10,20 @@ interface IProps {
   onEdit: (tenant: ITenant) => void;
   onAddOwner: (tenant: ITenant) => void;
   onDeactivate: (tenant: ITenant) => void;
+  onActivate: (tenant: ITenant) => void;
 }
 
-export const TenantsTable = ({ items, isLoading, onEdit, onAddOwner, onDeactivate }: IProps) => {
+export const TenantsTable = ({
+  items,
+  isLoading,
+  onEdit,
+  onAddOwner,
+  onDeactivate,
+  onActivate,
+}: IProps) => {
   const columns = useMemo(
-    () => buildTenantColumns({ onEdit, onAddOwner, onDeactivate }),
-    [onEdit, onAddOwner, onDeactivate],
+    () => buildTenantColumns({ onEdit, onAddOwner, onDeactivate, onActivate }),
+    [onEdit, onAddOwner, onDeactivate, onActivate],
   );
 
   return (

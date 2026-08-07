@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Button, Typography } from 'antd';
-import { HistoryOutlined, LogoutOutlined, ShopOutlined, TeamOutlined } from '@ant-design/icons';
+import { HistoryOutlined, LogoutOutlined, ShopOutlined } from '@ant-design/icons';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { AppRoutes } from '@/shared/config';
 import { useAuth } from '@/shared/auth';
@@ -37,10 +37,6 @@ export const PlatformShell = ({ children }: IProps) => {
               <NavLink to={AppRoutes.tenants} className={buildLinkClass}>
                 <ShopOutlined aria-hidden="true" />
                 Магазины
-              </NavLink>
-              <NavLink to={AppRoutes.platformUsers} className={buildLinkClass}>
-                <TeamOutlined aria-hidden="true" />
-                Администраторы
               </NavLink>
               <NavLink to={AppRoutes.audit} className={buildLinkClass}>
                 <HistoryOutlined aria-hidden="true" />

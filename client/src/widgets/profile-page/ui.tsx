@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StatusBar, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IOrder } from '@/entities/order';
 import { AuthPhone, AuthSteps, RESEND_DELAY_SEC, TAuthStep } from '@/features/auth-phone';
 import { ProfileOrders } from '@/features/profile-orders';
 import { ApiRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useAuth } from '@/shared/auth';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { BottomBar, Icon, If, StateView } from '@/shared/ui';
+import { BottomBar, Icon, If } from '@/shared/ui';
 
 interface IProfile {
   id: string;
@@ -24,6 +24,8 @@ interface IOrderList {
 
 export const ProfilePage = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
   const { isAuthorized, ready, login, logout } = useAuth();
   const [step, setStep] = useState<TAuthStep>(AuthSteps.phone);
   const [phone, setPhone] = useState('');
@@ -112,7 +114,7 @@ export const ProfilePage = () => {
   }, [cancelOrder]);
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+    <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
       <View className="flex-row items-center gap-3 px-4 py-2">
         <Pressable
           onPress={() => router.back()}
@@ -132,9 +134,14 @@ export const ProfilePage = () => {
 
       <If
         condition={ready}
-        fallback={<StateView loading />}
+        fallback={(
+          <View className="flex-1 px-4 pt-4 gap-4">
+            <View className="h-28 rounded-2xl bg-surface/60 border border-line/40 p-4 gap-2" />
+            <View className="h-40 rounded-2xl bg-surface/60 border border-line/40 p-4 gap-2" />
+          </View>
+        )}
       >
-        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 150 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 76 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <If
             condition={isAuthorized}
             fallback={(
@@ -154,7 +161,15 @@ export const ProfilePage = () => {
               />
             )}
           >
-            <If condition={!isLoading} fallback={<StateView loading />}>
+            <If
+              condition={!isLoading}
+              fallback={(
+                <View className="px-4 pt-4 gap-4">
+                  <View className="h-28 rounded-2xl bg-surface/60 border border-line/40 p-4 gap-2" />
+                  <View className="h-40 rounded-2xl bg-surface/60 border border-line/40 p-4 gap-2" />
+                </View>
+              )}
+            >
               <ProfileOrders
                 phone={profile?.phone ?? null}
                 values={values}
@@ -171,6 +186,6 @@ export const ProfilePage = () => {
         </ScrollView>
       </If>
       <BottomBar />
-    </SafeAreaView>
+    </View>
   );
 };

@@ -1,6 +1,6 @@
 import { Button, Space, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { EditOutlined, StopOutlined, UserAddOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, EditOutlined, StopOutlined, UserAddOutlined } from '@ant-design/icons';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { If } from '@/shared/ui/If';
 import { TenantStatuses } from '@/shared/config';
@@ -10,6 +10,7 @@ interface IHandlers {
   onEdit: (tenant: ITenant) => void;
   onAddOwner: (tenant: ITenant) => void;
   onDeactivate: (tenant: ITenant) => void;
+  onActivate: (tenant: ITenant) => void;
 }
 
 const PLAN_COLORS: Record<string, string> = {
@@ -24,6 +25,7 @@ export const buildTenantColumns = ({
   onEdit,
   onAddOwner,
   onDeactivate,
+  onActivate,
 }: IHandlers): ColumnsType<ITenant> => [
   {
     title: 'Ключ',
@@ -90,7 +92,20 @@ export const buildTenantColumns = ({
           />
         </Tooltip>
 
-        <If condition={tenant.status === TenantStatuses.active}>
+        <If
+          condition={tenant.status === TenantStatuses.active}
+          fallback={(
+            <Tooltip title="Включить">
+              <Button
+                type="text"
+                aria-label="Включить магазин"
+                icon={<CheckCircleOutlined />}
+                onClick={() => onActivate(tenant)}
+                className="cursor-pointer!"
+              />
+            </Tooltip>
+          )}
+        >
           <Tooltip title="Отключить">
             <Button
               type="text"

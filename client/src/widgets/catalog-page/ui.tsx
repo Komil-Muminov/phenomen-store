@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StatusBar, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ICart, countCartItems } from '@/entities/cart';
 import { IProduct } from '@/entities/product';
@@ -25,6 +26,8 @@ interface IProductList {
 export const CatalogPage = () => {
   const router = useRouter();
   const { categoryId } = useLocalSearchParams<{ categoryId?: string }>();
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
   const [sort, setSort] = useState(DEFAULT_SORT);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFacets, setSelectedFacets] = useState<TSelectedFacets>({});
@@ -127,7 +130,7 @@ export const CatalogPage = () => {
   }, [refetch]);
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+    <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
       <View className="flex-row items-center gap-3 px-4 py-2 border-b border-line">
         <Pressable
           onPress={() => router.back()}
@@ -185,26 +188,26 @@ export const CatalogPage = () => {
         </Text>
       </View>
 
-      <If
-        condition={!isLoading && !error}
-        fallback={(
-          <StateView
-            loading={isLoading}
-            errorMessage={error ? error.message : null}
-            skeleton={<SkeletonProductGrid count={6} />}
-            onRetry={handleRetry}
-          />
-        )}
-      >
-        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 76 }} showsVerticalScrollIndicator={false}>
-          <CatalogFilters
-            facets={facets ?? {}}
-            selectedFacets={selectedFacets}
-            sort={sort}
-            onSortChange={setSort}
-            onFacetToggle={handleFacetToggle}
-          />
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 76 }} showsVerticalScrollIndicator={false}>
+        <CatalogFilters
+          facets={facets ?? {}}
+          selectedFacets={selectedFacets}
+          sort={sort}
+          onSortChange={setSort}
+          onFacetToggle={handleFacetToggle}
+        />
 
+        <If
+          condition={!isLoading && !error}
+          fallback={(
+            <StateView
+              loading={isLoading}
+              errorMessage={error ? error.message : null}
+              skeleton={<SkeletonProductGrid count={6} />}
+              onRetry={handleRetry}
+            />
+          )}
+        >
           <If condition={(data?.items?.length ?? 0) === 0}>
             <View className="items-center gap-3 px-6 py-16">
               <Text className="text-base font-bold text-content">Ничего не найдено</Text>
@@ -228,10 +231,10 @@ export const CatalogPage = () => {
             onAddToCart={handleAddToCart}
             loadingAddToCartId={updateCart.isPending ? updateCart.variables?.productId : null}
           />
-        </ScrollView>
-      </If>
+        </If>
+      </ScrollView>
 
       <BottomBar cartCount={countCartItems(cart)} />
-    </SafeAreaView>
+    </View>
   );
 };

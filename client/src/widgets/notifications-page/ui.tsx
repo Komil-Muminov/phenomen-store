@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StatusBar, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { Button, Icon, If, StateView } from '@/shared/ui';
+import { Button, Icon, If } from '@/shared/ui';
 
 interface INotification {
   id: string;
@@ -74,10 +74,11 @@ export const NotificationsPage = () => {
     clearAll.mutate(undefined);
   }, [clearAll]);
 
-  const items = data?.items ?? [];
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+    <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
       {/* Шапка экрана с минималистичной кнопкой очистки */}
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-line">
         <View className="flex-row items-center gap-3">
@@ -141,7 +142,16 @@ export const NotificationsPage = () => {
       {/* Список минималистичных карточек */}
       <If
         condition={!isLoading}
-        fallback={<StateView loading />}
+        fallback={(
+          <View className="flex-1 px-4 pt-2 gap-3">
+            {[1, 2, 3].map((i) => (
+              <View key={i} className="h-24 rounded-2xl bg-surface/60 border border-line/40 p-4 gap-2">
+                <View className="h-4 w-1/2 rounded bg-muted/20" />
+                <View className="h-3 w-3/4 rounded bg-muted/10" />
+              </View>
+            ))}
+          </View>
+        )}
       >
         <If
           condition={items.length > 0}
@@ -262,6 +272,6 @@ export const NotificationsPage = () => {
           </ScrollView>
         </If>
       </If>
-    </SafeAreaView>
+    </View>
   );
 };

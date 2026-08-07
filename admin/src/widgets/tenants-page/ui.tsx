@@ -4,7 +4,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/shared/api';
 import { ApiRoutes, QueryKeys, UiMessages } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { useAuth } from '@/shared/auth';
 import { If } from '@/shared/ui/If';
 import { TenantsTable } from '@/features/tenants-table';
 import { TenantForm, ITenantFormValues } from '@/features/tenant-form';
@@ -15,7 +14,6 @@ import { INITIAL_STATE, buildUpdateUrl } from '@/widgets/tenants-page/model';
 import type { ITenant, ITenantList } from '@/entities/tenant';
 
 export const TenantsPage = () => {
-  const { admin, signOut } = useAuth();
   const { message } = AntApp.useApp();
   const queryClient = useQueryClient();
   const [state, setState] = useState(INITIAL_STATE);
@@ -33,6 +31,10 @@ export const TenantsPage = () => {
   );
   const deactivateMutation = useMutationQuery<{ id: string }, ITenant>(
     (body) => buildUpdateUrl(ApiRoutes.tenantsDeactivate, body.id),
+    { method: 'patch', invalidate },
+  );
+  const activateMutation = useMutationQuery<{ id: string }, ITenant>(
+    (body) => buildUpdateUrl(ApiRoutes.tenantsActivate, body.id),
     { method: 'patch', invalidate },
   );
   const ownerMutation = useMutationQuery<IOwnerFormValues & { id: string }, { id: string }>(
@@ -64,6 +66,13 @@ export const TenantsPage = () => {
       onError: (error) => message.error(extractErrorMessage(error)),
     });
   }, [deactivateMutation, message]);
+
+  const handleActivate = useCallback((tenant: ITenant) => {
+    activateMutation.mutate({ id: tenant.id }, {
+      onSuccess: () => message.success('Магазин включён'),
+      onError: (error) => message.error(extractErrorMessage(error)),
+    });
+  }, [activateMutation, message]);
 
   const handleFormSubmit = useCallback((values: ITenantFormValues) => {
     const onError = (error: Error) => message.error(extractErrorMessage(error));
@@ -102,12 +111,10 @@ export const TenantsPage = () => {
   return (
     <PlatformShell>
       <RenderHeader
-        adminName={admin?.name ?? ''}
         total={tenantsQuery.data?.total ?? 0}
         isFetching={tenantsQuery.isFetching}
         onCreate={handleCreate}
         onRefresh={handleRefresh}
-        onSignOut={signOut}
       />
 
       <If condition={Boolean(tenantsQuery.error)}>
@@ -126,6 +133,7 @@ export const TenantsPage = () => {
           onEdit={handleEdit}
           onAddOwner={handleAddOwner}
           onDeactivate={handleDeactivate}
+          onActivate={handleActivate}
         />
       </section>
 

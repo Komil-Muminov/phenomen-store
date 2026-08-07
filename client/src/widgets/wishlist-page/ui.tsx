@@ -1,13 +1,13 @@
 import { useCallback } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Platform, ScrollView, StatusBar, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ICart, countCartItems } from '@/entities/cart';
 import { IProduct, ProductCard } from '@/entities/product';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { formatItemCount, initialQuantity, roundQuantity, unitStep } from '@/shared/lib';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { BottomBar, Button, Icon, If, StateView } from '@/shared/ui';
+import { BottomBar, Button, Icon, If, SkeletonProductGrid } from '@/shared/ui';
 import { useWishlist } from '@/shared/wishlist';
 
 interface IProductList {
@@ -17,6 +17,8 @@ interface IProductList {
 
 export const WishlistPage = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
   const { wishlistIds, count } = useWishlist();
 
   const { data: catalog, isLoading } = useGetQuery<IProductList>(
@@ -90,7 +92,7 @@ export const WishlistPage = () => {
   }, [cart?.items, router, updateCart]);
 
   return (
-    <SafeAreaView className="flex-1 bg-background relative" edges={['top', 'left', 'right']}>
+    <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-line">
         <Text className="text-xl font-extrabold tracking-tight text-content">Избранное</Text>
         <Text className="text-xs font-semibold text-muted">{formatItemCount(count)}</Text>
@@ -98,7 +100,7 @@ export const WishlistPage = () => {
 
       <If
         condition={!isLoading}
-        fallback={<StateView loading />}
+        fallback={<SkeletonProductGrid count={4} />}
       >
         <If
           condition={count > 0 && wishlistedProducts.length > 0}
@@ -145,6 +147,6 @@ export const WishlistPage = () => {
       </If>
 
       <BottomBar cartCount={countCartItems(cart)} />
-    </SafeAreaView>
+    </View>
   );
 };

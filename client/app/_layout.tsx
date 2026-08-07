@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { AuthProvider } from '@/shared/auth';
 import { AppShell } from '@/widgets/app-shell';
 import '../global.css';
@@ -15,11 +15,18 @@ const queryClient = new QueryClient({
 
 const RootLayout = () => (
   <GestureHandlerRootView className="flex-1">
-    <SafeAreaProvider>
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <AppShell>
-            <Stack screenOptions={{ headerShown: false }} />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                animation: 'none',
+                animationDuration: 0,
+                contentStyle: { backgroundColor: '#ffffff' },
+              }}
+            />
           </AppShell>
         </AuthProvider>
         <StatusBar style="dark" />

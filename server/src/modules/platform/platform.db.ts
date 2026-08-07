@@ -221,30 +221,51 @@ export interface IAuditRow {
   created_at: string;
 }
 
+export interface IAuditFilters {
+  action: string | null;
+  tenantKey: string | null;
+  search: string | null;
+}
+
+const AUDIT_FROM = `
+  FROM platform_audit_log a
+  LEFT JOIN tenants t ON t.id = a.tenant_id
+  WHERE ($1::text IS NULL OR a.action = $1::text)
+    AND ($2::text IS NULL OR t.key = $2::text)
+    AND ($3::text IS NULL OR a.actor_login ILIKE '%' || $3::text || '%'
+         OR a.payload::text ILIKE '%' || $3::text || '%'
+         OR t.key ILIKE '%' || $3::text || '%')
+`;
+
 export const selectAuditEntries = async (
+  filters: IAuditFilters,
   limit: number,
   offset: number,
 ): Promise<{ items: IAuditRow[]; total: number }> => {
+  const values = [filters.action, filters.tenantKey, filters.search];
   const items = await query<IAuditRow>(
     `SELECT a.id, a.actor_login, a.action, a.tenant_id, t.key AS tenant_key,
             a.payload, a.ip, a.created_at::text AS created_at
-     FROM platform_audit_log a
-     LEFT JOIN tenants t ON t.id = a.tenant_id
+     ${AUDIT_FROM}
      ORDER BY a.created_at DESC
-     LIMIT $1 OFFSET $2`,
-    [limit, offset],
+     LIMIT $4 OFFSET $5`,
+    [...values, limit, offset],
   );
   const counted = await query<{ total: string }>(
-    'SELECT COUNT(*)::text AS total FROM platform_audit_log',
+    `SELECT COUNT(*)::text AS total ${AUDIT_FROM}`,
+    values,
   );
 
   return { items, total: Number(counted[0]?.total ?? 0) };
 };
 
-export const selectPlatformUsers = async (): Promise<IPlatformUserRow[]> => query<IPlatformUserRow>(
-  `SELECT id, login, password_hash, name, role, status
-   FROM platform_users ORDER BY created_at`,
-);
+export const selectAuditActions = async (): Promise<string[]> => {
+  const rows = await query<{ action: string }>(
+    'SELECT DISTINCT action FROM platform_audit_log ORDER BY action',
+  );
+
+  return rows.map((row) => row.action);
+};
 
 export const insertAuditEntry = async (entry: IAuditEntry): Promise<void> => {
   await query(

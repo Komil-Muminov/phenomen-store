@@ -1,32 +1,21 @@
 import { Button, Typography } from 'antd';
-import { LogoutOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { Tooltip } from '@/shared/ui/Tooltip';
 
 interface IProps {
-  adminName: string;
   total: number;
   isFetching: boolean;
   onCreate: () => void;
   onRefresh: () => void;
-  onSignOut: () => void;
 }
 
-export const RenderHeader = ({
-  adminName,
-  total,
-  isFetching,
-  onCreate,
-  onRefresh,
-  onSignOut,
-}: IProps) => (
+export const RenderHeader = ({ total, isFetching, onCreate, onRefresh }: IProps) => (
   <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
     <div>
       <Typography.Title level={3} className="mb-0! text-brand-text!">
         Магазины
       </Typography.Title>
-      <Typography.Text type="secondary">
-        Всего: {total} · вы вошли как {adminName}
-      </Typography.Text>
+      <Typography.Text type="secondary">Всего магазинов: {total}</Typography.Text>
     </div>
 
     <div className="flex items-center gap-2">
@@ -48,15 +37,6 @@ export const RenderHeader = ({
       >
         Новый магазин
       </Button>
-
-      <Tooltip title="Выйти">
-        <Button
-          aria-label="Выйти"
-          icon={<LogoutOutlined />}
-          onClick={onSignOut}
-          className="cursor-pointer!"
-        />
-      </Tooltip>
     </div>
   </header>
 );
