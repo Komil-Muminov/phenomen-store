@@ -2,12 +2,13 @@ import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StatusBar, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { ICart, countCartItems } from '@/entities/cart';
 import { IProduct } from '@/entities/product';
 import { ITenantConfig } from '@/entities/tenant';
 import { CatalogFilters, TFacets, TSelectedFacets, serializeFacets, toggleFacetValue } from '@/features/catalog-filters';
 import { CatalogGrid } from '@/features/catalog-grid';
+import { QuickAddModal } from '@/features/quick-add';
+import { SearchHistoryView, addSearchTerm, addRecentlyViewed } from '@/features/search-history';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { formatItemCount, initialQuantity, roundQuantity, unitStep } from '@/shared/lib';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
@@ -31,6 +32,8 @@ export const CatalogPage = () => {
   const [sort, setSort] = useState(DEFAULT_SORT);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFacets, setSelectedFacets] = useState<TSelectedFacets>({});
+  const [quickAddProduct, setQuickAddProduct] = useState<IProduct | null>(null);
+  const [showToast, setShowToast] = useState(false);
 
   const activeFilterCount = useMemo(
     () => Object.values(selectedFacets).reduce((acc, items) => acc + items.length, 0),
@@ -72,49 +75,14 @@ export const CatalogPage = () => {
     { invalidate: [[QueryKeys.cart]] },
   );
 
-  const handleProductPress = useCallback((product: IProduct) => {
-    router.push(`${AppRoutes.product}/${product.id}`);
+  const handleProductPress = useCallback((item: IProduct) => {
+    addRecentlyViewed(item);
+    router.push(`${AppRoutes.product}/${item.id}`);
   }, [router]);
 
-  const handleAddToCart = useCallback((product: IProduct) => {
-    const defaultVariant = product?.variants?.[0];
-
-    if (!defaultVariant) {
-      router.push(`${AppRoutes.product}/${product.id}`);
-      return;
-    }
-
-    const currentItems = cart?.items ?? [];
-    const existingIndex = currentItems.findIndex((i) => i.variantId === defaultVariant.id);
-    let nextItems;
-
-    if (existingIndex >= 0) {
-      nextItems = currentItems.map((item, idx) => (
-        idx === existingIndex
-          ? { ...item, quantity: roundQuantity(item.quantity + unitStep(product.unit)) }
-          : item
-      ));
-    } else {
-      nextItems = [
-        ...currentItems,
-        {
-          variantId: defaultVariant.id,
-          productId: product.id,
-          name: product.name,
-          sku: defaultVariant.sku,
-          options: defaultVariant.options,
-          quantity: initialQuantity(product.unit),
-          price: defaultVariant.price,
-          oldPrice: defaultVariant.oldPrice,
-          total: defaultVariant.price,
-          stock: defaultVariant.stock,
-          media: product.media[0] ?? null,
-        },
-      ];
-    }
-
-    updateCart.mutate({ items: nextItems });
-  }, [cart?.items, router, updateCart]);
+  const handleAddToCart = useCallback((item: IProduct) => {
+    setQuickAddProduct(item);
+  }, []);
 
   const handleFacetToggle = useCallback((code: string, value: string) => {
     setSelectedFacets((current) => toggleFacetValue(current, code, value));
@@ -169,7 +137,13 @@ export const CatalogPage = () => {
         {QUICK_SEARCH_TAGS.map((tag) => (
           <Pressable
             key={tag}
-            onPress={() => setSearchQuery(searchQuery === tag ? '' : tag)}
+            onPress={() => {
+              const nextTag = searchQuery === tag ? '' : tag;
+              setSearchQuery(nextTag);
+              if (nextTag) {
+                addSearchTerm(nextTag);
+              }
+            }}
             className={`rounded-full px-3.5 py-1.5 border items-center justify-center ${
               searchQuery === tag ? 'border-primary bg-primary' : 'border-line bg-surface/60'
             }`}
@@ -181,6 +155,24 @@ export const CatalogPage = () => {
         ))}
       </ScrollView>
 
+      {/* Всплывающий красивый тост успешного добавления в корзину */}
+      <If condition={showToast}>
+        <View className="mx-4 my-1 flex-row items-center gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-3 shadow-sm">
+          <View className="h-6 w-6 items-center justify-center rounded-full bg-emerald-600">
+            <Icon name="check" size={12} color="#ffffff" />
+          </View>
+          <Text className="flex-1 text-xs font-bold text-emerald-800">
+            Товар добавлен в корзину! 🛍️
+          </Text>
+          <Pressable
+            onPress={() => router.push(AppRoutes.cart)}
+            className="flex-row items-center gap-1 rounded-xl bg-emerald-600 px-3 py-1.5 active:bg-emerald-700"
+          >
+            <Text className="text-xs font-bold text-white">В корзину</Text>
+          </Pressable>
+        </View>
+      </If>
+
       <View className="flex-row items-center justify-between px-4 py-2">
         <Text className="text-xl font-extrabold tracking-tight text-content">Каталог</Text>
         <Text className="text-xs font-semibold text-muted">
@@ -189,6 +181,16 @@ export const CatalogPage = () => {
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 76 }} showsVerticalScrollIndicator={false}>
+        {/* История недавних поисков и недавно просмотренные товары */}
+        <SearchHistoryView
+          onSelectTerm={(term) => {
+            setSearchQuery(term);
+            addSearchTerm(term);
+          }}
+          onSelectProduct={handleProductPress}
+          currencySymbol={config?.locale.currencySymbol ?? ''}
+        />
+
         <CatalogFilters
           facets={facets ?? {}}
           selectedFacets={selectedFacets}
@@ -233,6 +235,17 @@ export const CatalogPage = () => {
           />
         </If>
       </ScrollView>
+
+      {/* Быстрая шторка выбора размера и цвета */}
+      <QuickAddModal
+        product={quickAddProduct}
+        currencySymbol={config?.locale.currencySymbol ?? ''}
+        onClose={() => setQuickAddProduct(null)}
+        onSuccess={() => {
+          setShowToast(true);
+          setTimeout(() => setShowToast(false), 3000);
+        }}
+      />
 
       <BottomBar cartCount={countCartItems(cart)} />
     </View>

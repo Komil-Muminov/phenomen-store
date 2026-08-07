@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Platform, Pressable, ScrollView, StatusBar, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,6 +6,7 @@ import { IProduct } from '@/entities/product';
 import { ITenantConfig } from '@/entities/tenant';
 import { ICart } from '@/entities/cart';
 import { ISelectedOptions, ProductDetails, findVariant } from '@/features/product-details';
+import { addRecentlyViewed } from '@/features/search-history';
 import { ProductRail } from '@/features/storefront-sections/ui/sections';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
@@ -42,6 +43,12 @@ export const ProductPage = () => {
   );
 
   const recommendedProducts = (catalog?.items ?? []).filter((p) => p.id !== id).slice(0, 6);
+
+  useEffect(() => {
+    if (product) {
+      addRecentlyViewed(product);
+    }
+  }, [product]);
 
   const addToCart = useMutationQuery<{ variantId: string; quantity: number }, ICart>(
     ApiRoutes.cartUpdate,
