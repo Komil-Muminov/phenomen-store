@@ -1,4 +1,4 @@
-import { Client, Pool } from 'pg';
+import { Client, PoolClient } from 'pg';
 import { createAdminPool, pool, closePool } from '@/shared/db';
 import { Env } from '@/shared/config';
 import { CORE_SCHEMA_SQL } from '@/shared/db/schema.core';
@@ -117,8 +117,10 @@ const ensureDatabase = async (): Promise<void> => {
 
 const IDENTIFIER_PATTERN = /^[a-z_][a-z0-9_]*$/;
 
+const INIT_LOCK_KEY = 815223;
+
 const runFormatted = async (
-  admin: Pool,
+  admin: PoolClient,
   template: string,
   params: string[],
 ): Promise<void> => {
@@ -131,7 +133,7 @@ const runFormatted = async (
   await admin.query(built.rows[0].sql);
 };
 
-const applyRowLevelSecurity = async (admin: Pool): Promise<void> => {
+const applyRowLevelSecurity = async (admin: PoolClient): Promise<void> => {
   for (const table of TENANT_TABLES) {
     await admin.query(`ALTER TABLE ${table} ENABLE ROW LEVEL SECURITY`);
     await admin.query(`ALTER TABLE ${table} FORCE ROW LEVEL SECURITY`);
@@ -144,7 +146,7 @@ const applyRowLevelSecurity = async (admin: Pool): Promise<void> => {
   }
 };
 
-const ensureAppRole = async (admin: Pool): Promise<void> => {
+const ensureAppRole = async (admin: PoolClient): Promise<void> => {
   const role = Env.db.appUser;
 
   if (!IDENTIFIER_PATTERN.test(role)) {
@@ -162,7 +164,7 @@ const ensureAppRole = async (admin: Pool): Promise<void> => {
   await runFormatted(admin, 'ALTER ROLE %I NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', [role]);
 };
 
-const grantAppPrivileges = async (admin: Pool): Promise<void> => {
+const grantAppPrivileges = async (admin: PoolClient): Promise<void> => {
   const role = Env.db.appUser;
 
   await runFormatted(admin, 'GRANT CONNECT ON DATABASE %I TO %I', [Env.db.database, role]);
@@ -279,9 +281,11 @@ const seedDemoTenant = async (): Promise<void> => {
 export const initDb = async (): Promise<void> => {
   await ensureDatabase();
 
-  const admin = createAdminPool();
+  const pool = createAdminPool();
+  const admin = await pool.connect();
 
   try {
+    await admin.query('SELECT pg_advisory_lock($1)', [INIT_LOCK_KEY]);
     await admin.query(CORE_SCHEMA_SQL);
     await admin.query(CATALOG_SCHEMA_SQL);
     await admin.query(SALES_SCHEMA_SQL);
@@ -290,7 +294,9 @@ export const initDb = async (): Promise<void> => {
     await ensureAppRole(admin);
     await grantAppPrivileges(admin);
   } finally {
-    await admin.end();
+    await admin.query('SELECT pg_advisory_unlock($1)', [INIT_LOCK_KEY]);
+    admin.release();
+    await pool.end();
   }
 
   await seedDemoTenant();

@@ -3,8 +3,10 @@ export interface ICategoryRow {
   parent_id: string | null;
   slug: string;
   name: string;
+  description?: string | null;
   image_url: string | null;
   position: number;
+  is_active?: boolean;
 }
 
 export interface IVariantRow {

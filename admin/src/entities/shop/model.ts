@@ -84,6 +84,10 @@ export interface IShopCategory {
   id: string;
   slug: string;
   name: string;
+  parentId?: string | null;
+  imageUrl?: string | null;
+  position?: number;
+  isActive?: boolean;
 }
 
 export interface IShopSession {

@@ -6,6 +6,7 @@ export const AppRoutes = {
   shopProducts: '/shop/products',
   shopStock: '/shop/stock',
   shopAttributes: '/shop/attributes',
+  shopCategories: '/shop/categories',
   root: '/',
 } as const;
 
@@ -31,6 +32,10 @@ export const ApiRoutes = {
   shopProductDuplicate: '/products/duplicate',
   shopAttributeCreate: '/attributes/create',
   shopAttributeUpdate: '/attributes/update',
+  shopCategoriesManage: '/categories/manage/search',
+  shopCategoryCreate: '/categories/create',
+  shopCategoryUpdate: '/categories/update',
+  shopCategoryDeactivate: '/categories/deactivate',
 } as const;
 
 export const QueryKeys = {

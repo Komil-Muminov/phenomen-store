@@ -14,6 +14,12 @@ import {
   selectProductVariants,
   selectStockRows,
   updateVariantStock,
+  selectManagedCategories,
+  selectCategoryById,
+  existsCategorySlug,
+  insertCategory,
+  updateCategoryFields,
+  countCategoryProducts,
   IVariantInput,
   selectProductById,
   selectProducts,
@@ -416,6 +422,95 @@ export const getCategories = async (tenant: ITenantContext) => {
   const rows = await selectCategories(tenant.id);
 
   return rows.map(mapCategory);
+};
+
+export const listManagedCategories = async (tenant: ITenantContext) => (
+  (await selectManagedCategories(tenant.id)).map((row) => ({
+    ...mapCategory(row),
+    isActive: row.is_active !== false,
+  }))
+);
+
+const requireCategory = async (tenant: ITenantContext, id: string) => {
+  const row = await selectCategoryById(tenant.id, id);
+
+  if (!row) {
+    throw new AppError(ErrorMessages.notFound, HttpStatus.notFound);
+  }
+
+  return row;
+};
+
+export const createCategory = async (
+  tenant: ITenantContext,
+  payload: Record<string, unknown>,
+) => {
+  const name = pickString(payload.name);
+
+  if (!name) {
+    throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
+  }
+
+  const requested = pickString(payload.slug).toLowerCase();
+  let slug = SLUG_PATTERN.test(requested) ? requested : buildSlug(name);
+  let suffix = 2;
+
+  while (await existsCategorySlug(tenant.id, slug)) {
+    slug = `${buildSlug(name)}-${suffix}`;
+    suffix += 1;
+  }
+
+  const created = await insertCategory(
+    tenant.id,
+    slug,
+    name,
+    pickString(payload.parentId) || null,
+    pickString(payload.imageUrl) || null,
+    Number.isFinite(Number(payload.position)) ? Number(payload.position) : 100,
+  );
+
+  return { ...mapCategory(await requireCategory(tenant, created.id)), isActive: true };
+};
+
+export const updateCategory = async (
+  tenant: ITenantContext,
+  id: string,
+  payload: Record<string, unknown>,
+) => {
+  await requireCategory(tenant, id);
+
+  await updateCategoryFields(
+    tenant.id,
+    id,
+    pickString(payload.name) || null,
+    pickString(payload.parentId) || null,
+    pickString(payload.imageUrl) || null,
+    Number.isFinite(Number(payload.position)) ? Number(payload.position) : null,
+    typeof payload.isActive === 'boolean' ? payload.isActive : null,
+  );
+
+  const row = await requireCategory(tenant, id);
+
+  return { ...mapCategory(row), isActive: row.is_active !== false };
+};
+
+export const deactivateCategory = async (tenant: ITenantContext, id: string) => {
+  await requireCategory(tenant, id);
+
+  const used = await countCategoryProducts(tenant.id, id);
+
+  if (used > 0) {
+    throw new AppError(
+      `Категория используется в ${used} товарах. Сначала перенесите их в другую категорию`,
+      HttpStatus.conflict,
+    );
+  }
+
+  await updateCategoryFields(tenant.id, id, null, null, null, null, false);
+
+  const row = await requireCategory(tenant, id);
+
+  return { ...mapCategory(row), isActive: false };
 };
 
 export const getFacets = async (tenant: ITenantContext, categoryId: string | null) => {

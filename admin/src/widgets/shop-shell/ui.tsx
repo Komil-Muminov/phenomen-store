@@ -4,6 +4,7 @@ import { Button, Typography } from 'antd';
 import {
   ApartmentOutlined,
   DatabaseOutlined,
+  FolderOutlined,
   LogoutOutlined,
   ShoppingOutlined,
   TagsOutlined,
@@ -47,6 +48,10 @@ export const ShopShell = ({ children }: IProps) => {
               <NavLink to={AppRoutes.shopProducts} className={buildLinkClass}>
                 <TagsOutlined aria-hidden="true" />
                 Товары
+              </NavLink>
+              <NavLink to={AppRoutes.shopCategories} className={buildLinkClass}>
+                <FolderOutlined aria-hidden="true" />
+                Категории
               </NavLink>
               <NavLink to={AppRoutes.shopStock} className={buildLinkClass}>
                 <DatabaseOutlined aria-hidden="true" />

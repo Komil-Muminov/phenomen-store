@@ -43,6 +43,90 @@ export const selectCategories = async (tenantId: string): Promise<ICategoryRow[]
   [tenantId],
 );
 
+const CATEGORY_COLUMNS = 'id, parent_id, slug, name, description, image_url, position, is_active';
+
+export const selectManagedCategories = async (tenantId: string): Promise<ICategoryRow[]> => (
+  tenantQuery<ICategoryRow>(
+    tenantId,
+    `SELECT ${CATEGORY_COLUMNS} FROM categories WHERE tenant_id = $1 ORDER BY position, name`,
+    [tenantId],
+  )
+);
+
+export const selectCategoryById = async (
+  tenantId: string,
+  id: string,
+): Promise<ICategoryRow | null> => {
+  const rows = await tenantQuery<ICategoryRow>(
+    tenantId,
+    `SELECT ${CATEGORY_COLUMNS} FROM categories WHERE tenant_id = $1 AND id = $2 LIMIT 1`,
+    [tenantId, id],
+  );
+
+  return rows[0] ?? null;
+};
+
+export const existsCategorySlug = async (tenantId: string, slug: string): Promise<boolean> => {
+  const rows = await tenantQuery<{ id: string }>(
+    tenantId,
+    'SELECT id FROM categories WHERE tenant_id = $1 AND slug = $2 LIMIT 1',
+    [tenantId, slug],
+  );
+
+  return rows.length > 0;
+};
+
+export const insertCategory = async (
+  tenantId: string,
+  slug: string,
+  name: string,
+  parentId: string | null,
+  imageUrl: string | null,
+  position: number,
+): Promise<{ id: string }> => {
+  const rows = await tenantQuery<{ id: string }>(
+    tenantId,
+    `INSERT INTO categories (tenant_id, slug, name, parent_id, image_url, position)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING id`,
+    [tenantId, slug, name, parentId, imageUrl, position],
+  );
+
+  return rows[0];
+};
+
+export const updateCategoryFields = async (
+  tenantId: string,
+  id: string,
+  name: string | null,
+  parentId: string | null,
+  imageUrl: string | null,
+  position: number | null,
+  isActive: boolean | null,
+): Promise<void> => {
+  await tenantQuery(
+    tenantId,
+    `UPDATE categories
+     SET name = COALESCE($3, name),
+         parent_id = $4,
+         image_url = COALESCE($5, image_url),
+         position = COALESCE($6, position),
+         is_active = COALESCE($7, is_active)
+     WHERE tenant_id = $1 AND id = $2`,
+    [tenantId, id, name, parentId, imageUrl, position, isActive],
+  );
+};
+
+export const countCategoryProducts = async (tenantId: string, id: string): Promise<number> => {
+  const rows = await tenantQuery<{ total: string }>(
+    tenantId,
+    'SELECT COUNT(*)::text AS total FROM products WHERE tenant_id = $1 AND category_id = $2',
+    [tenantId, id],
+  );
+
+  return Number(rows[0]?.total ?? 0);
+};
+
 const buildFilters = (tenantId: string, params: IProductSearchParams) => {
   const values: unknown[] = [tenantId];
   const conditions: string[] = ['p.tenant_id = $1', 'p.is_active'];

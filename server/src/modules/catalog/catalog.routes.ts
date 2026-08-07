@@ -6,10 +6,14 @@ import { AppError, parsePagination, requireUuid, sendCreated, sendList, sendOk }
 import {
   buildSearchParams,
   changeStock,
+  createCategory,
   createProduct,
+  deactivateCategory,
   deactivateProduct,
   duplicateProduct,
+  listManagedCategories,
   listStock,
+  updateCategory,
   getCategories,
   getFacets,
   getProduct,
@@ -187,3 +191,59 @@ categoryRouter.get(ApiActions.search, async (req: IAppRequest, res: Response, ne
     next(error);
   }
 });
+
+categoryRouter.get(
+  MANAGE_SEARCH_ACTION,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      sendOk(res, await listManagedCategories(requireTenant(req)));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+categoryRouter.post(
+  ApiActions.create,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      sendCreated(res, await createCategory(requireTenant(req), req.body ?? {}));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+categoryRouter.patch(
+  ApiActions.update,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+
+      sendOk(res, await updateCategory(requireTenant(req), id, req.body ?? {}));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+categoryRouter.patch(
+  ApiActions.deactivate,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+
+      sendOk(res, await deactivateCategory(requireTenant(req), id));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
