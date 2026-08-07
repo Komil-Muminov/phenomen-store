@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import { CategoryPlaceholderImage, ICategory } from '@/entities/category/model';
 
@@ -14,10 +15,20 @@ const CATEGORY_DEFAULT_IMAGES: Record<string, string> = {
 };
 
 export const CategoryTile = ({ category, onPress }: IProps) => {
-  const customFallback = CATEGORY_DEFAULT_IMAGES[category.name.toLowerCase().trim()];
-  const imageUri = (category.imageUrl && category.imageUrl.trim().length > 0)
+  const nameKey = (category?.name || '').toLowerCase().trim();
+  const customFallback = CATEGORY_DEFAULT_IMAGES[nameKey] ?? (
+    nameKey.includes('мужч') || nameKey.includes('men')
+      ? CATEGORY_DEFAULT_IMAGES['мужчинам']
+      : nameKey.includes('женщ') || nameKey.includes('women')
+        ? CATEGORY_DEFAULT_IMAGES['женщинам']
+        : CategoryPlaceholderImage
+  );
+
+  const initialUri = (category?.imageUrl && category.imageUrl.trim().length > 0)
     ? category.imageUrl
-    : (customFallback ?? CategoryPlaceholderImage);
+    : customFallback;
+
+  const [imageUri, setImageUri] = useState<string>(initialUri);
 
   return (
     <Pressable
@@ -27,6 +38,7 @@ export const CategoryTile = ({ category, onPress }: IProps) => {
       <View className="h-16 w-16 overflow-hidden rounded-full border border-line bg-surface">
         <Image
           source={{ uri: imageUri }}
+          onError={() => setImageUri(customFallback)}
           className="h-full w-full"
           resizeMode="cover"
         />

@@ -22,7 +22,7 @@ notificationsRouter.get('/get', async (req: any, res: any, next: any) => {
   }
 });
 
-notificationsRouter.delete('/delete/:id', async (req: any, res: any, next: any) => {
+notificationsRouter.all('/delete/:id', async (req: any, res: any, next: any) => {
   try {
     const tenantId = req.tenant.id;
     const { id } = req.params;
@@ -34,7 +34,7 @@ notificationsRouter.delete('/delete/:id', async (req: any, res: any, next: any) 
   }
 });
 
-notificationsRouter.delete('/clear-all', async (req: any, res: any, next: any) => {
+notificationsRouter.all('/clear-all', async (req: any, res: any, next: any) => {
   try {
     const tenantId = req.tenant.id;
 
@@ -45,7 +45,7 @@ notificationsRouter.delete('/clear-all', async (req: any, res: any, next: any) =
   }
 });
 
-notificationsRouter.post('/read/:id', async (req: any, res: any, next: any) => {
+notificationsRouter.all('/read/:id', async (req: any, res: any, next: any) => {
   try {
     const tenantId = req.tenant.id;
     const { id } = req.params;

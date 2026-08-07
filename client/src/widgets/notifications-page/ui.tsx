@@ -46,14 +46,20 @@ export const NotificationsPage = () => {
     },
   );
 
-  const deleteOne = useMutationQuery<any, void>(
-    ApiRoutes.notificationsDelete,
-    { invalidate: [[QueryKeys.notifications]] },
+  const deleteOne = useMutationQuery<string, void>(
+    (id: string) => `${ApiRoutes.notificationsDelete}/${id}`,
+    {
+      method: 'delete',
+      invalidate: [[QueryKeys.notifications]],
+    },
   );
 
-  const clearAll = useMutationQuery<any, void>(
+  const clearAll = useMutationQuery<void, void>(
     ApiRoutes.notificationsClearAll,
-    { invalidate: [[QueryKeys.notifications]] },
+    {
+      method: 'delete',
+      invalidate: [[QueryKeys.notifications]],
+    },
   );
 
   const handleBack = useCallback(() => {
@@ -61,13 +67,11 @@ export const NotificationsPage = () => {
   }, [router]);
 
   const handleDeleteOne = useCallback((id: string) => {
-    deleteOne.mutate(undefined, {
-      urlParams: { id },
-    });
+    deleteOne.mutate(id);
   }, [deleteOne]);
 
   const handleClearAll = useCallback(() => {
-    clearAll.mutate();
+    clearAll.mutate(undefined);
   }, [clearAll]);
 
   const items = data?.items ?? [];

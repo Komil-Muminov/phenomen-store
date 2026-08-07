@@ -191,7 +191,7 @@ export const CatalogPage = () => {
           />
         }
       >
-        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 76 }} showsVerticalScrollIndicator={false}>
           <CatalogFilters
             facets={facets ?? {}}
             selectedFacets={selectedFacets}

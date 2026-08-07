@@ -110,7 +110,7 @@ export const Home = () => {
       >
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ paddingBottom: 150 }}
+          contentContainerStyle={{ paddingBottom: 76 }}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={handleRefresh} />}
         >

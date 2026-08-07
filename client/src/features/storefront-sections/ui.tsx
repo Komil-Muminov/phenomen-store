@@ -48,7 +48,7 @@ const renderSection = (section: IStorefrontSection, handlers: ISectionHandlers) 
 };
 
 export const StorefrontSections = ({ sections, ...handlers }: IProps) => (
-  <View className="gap-7 pb-8">
+  <View className="gap-6 pb-2">
     {sections.map((section) => (
       <View key={section.id} className="gap-3.5">
         <If condition={Boolean(section.title)}>
