@@ -29,6 +29,10 @@ export const ApiRoutes = {
   reviewsAdd: '/reviews/add',
   wishlistGet: '/wishlist/get',
   wishlistToggle: '/wishlist/toggle',
+  notificationsGet: '/notifications/get',
+  notificationsDelete: '/notifications/delete',
+  notificationsClearAll: '/notifications/clear-all',
+  notificationsMarkRead: '/notifications/read',
 } as const;
 
 export const AppRoutes = {
@@ -52,6 +56,7 @@ export const QueryKeys = {
   cart: 'cart',
   orders: 'orders',
   profile: 'profile',
+  notifications: 'notifications',
 } as const;
 
 export const TenantHeader = 'X-Tenant-Key';
