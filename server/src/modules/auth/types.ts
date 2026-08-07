@@ -9,6 +9,10 @@ export interface IUserRow {
   created_at: string;
 }
 
+export interface IUserAuthRow extends IUserRow {
+  password_hash: string | null;
+}
+
 export interface IOtpRow {
   id: string;
   code_hash: string;
@@ -24,6 +28,13 @@ export const AuthErrors = {
   codeAttempts: 'Превышено число попыток ввода кода',
   userBlocked: 'Профиль заблокирован',
   profileNotFound: 'Профиль не найден',
+  invalidCredentials: 'Неверный логин или пароль',
+} as const;
+
+export const PasswordSettings = {
+  saltRounds: 10,
+  minLength: 6,
+  dummyHash: '$2a$10$qKgTmfdTEmsyve5nbppwfuorWT/tOb2fYIkjRyRJE1Fd56kSM9kMm',
 } as const;
 
 export const UserStatus = {

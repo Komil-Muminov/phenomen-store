@@ -3,9 +3,17 @@ import { ErrorMessages, GuestHeader, HttpStatus } from '@/shared/config';
 import { authMiddleware } from '@/shared/middlewares';
 import { IAppRequest } from '@/shared/types';
 import { AppError, pickString, sendOk } from '@/shared/utils';
-import { getProfile, registerPushToken, requestCode, updateProfile, verifyCode } from '@/modules/auth/auth.service';
+import {
+  getProfile,
+  loginWithPassword,
+  registerPushToken,
+  requestCode,
+  updateProfile,
+  verifyCode,
+} from '@/modules/auth/auth.service';
 
 const AuthActions = {
+  login: '/login',
   code: '/code',
   verify: '/verify',
   profile: '/profile',
@@ -30,6 +38,16 @@ const requireUserId = (req: IAppRequest): string => {
 };
 
 export const authRouter = Router();
+
+authRouter.post(AuthActions.login, async (req: IAppRequest, res: Response, next: NextFunction) => {
+  try {
+    const body = (req.body ?? {}) as Record<string, unknown>;
+
+    sendOk(res, await loginWithPassword(requireTenant(req), body.login, body.password));
+  } catch (error) {
+    next(error);
+  }
+});
 
 authRouter.post(AuthActions.code, async (req: IAppRequest, res: Response, next: NextFunction) => {
   try {

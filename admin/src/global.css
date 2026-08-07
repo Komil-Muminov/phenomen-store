@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-primary: #7c3aed;
+  --brand-secondary: #a78bfa;
+  --brand-cta: #f97316;
+  --brand-surface: #faf5ff;
+  --brand-text: #4c1d95;
+}
+
+body {
+  margin: 0;
+  font-family: 'Fira Sans', system-ui, sans-serif;
+  background: var(--brand-surface);
+  color: var(--brand-text);
+}
+
+code,
+.font-mono {
+  font-family: 'Fira Code', monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

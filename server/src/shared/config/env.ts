@@ -64,5 +64,7 @@ export const Env = {
     password: readString('PGPASSWORD', 'postgres'),
     database: readString('PGDATABASE', 'phenomen_store'),
     max: readNumber('PG_POOL_MAX', 10),
+    appUser: readString('PGAPPUSER', 'phenomen_app'),
+    appPassword: readString('PGAPPPASSWORD', 'phenomen_app'),
   },
 } as const;

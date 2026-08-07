@@ -7,10 +7,19 @@ const SET_TENANT_SQL = 'SELECT set_config($1, $2, true)';
 export const pool = new Pool({
   host: Env.db.host,
   port: Env.db.port,
+  user: Env.db.appUser,
+  password: Env.db.appPassword,
+  database: Env.db.database,
+  max: Env.db.max,
+});
+
+export const createAdminPool = (): Pool => new Pool({
+  host: Env.db.host,
+  port: Env.db.port,
   user: Env.db.user,
   password: Env.db.password,
   database: Env.db.database,
-  max: Env.db.max,
+  max: 2,
 });
 
 export const query = async <T>(sql: string, params: unknown[] = []): Promise<T[]> => {

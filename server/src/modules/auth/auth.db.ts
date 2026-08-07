@@ -1,7 +1,27 @@
 import { tenantQuery } from '@/shared/db';
-import { IOtpRow, IUserRow, OtpSettings } from '@/modules/auth/types';
+import { IOtpRow, IUserAuthRow, IUserRow, OtpSettings } from '@/modules/auth/types';
 
 const USER_COLUMNS = 'id, tenant_id, phone, email, name, role, status, created_at::text AS created_at';
+
+export const selectUserForPasswordLogin = async (
+  tenantId: string,
+  email: string | null,
+  phone: string | null,
+): Promise<IUserAuthRow | null> => {
+  const rows = await tenantQuery<IUserAuthRow>(
+    tenantId,
+    `SELECT ${USER_COLUMNS}, password_hash FROM users
+     WHERE tenant_id = $1
+       AND (
+         ($2::text IS NOT NULL AND lower(email) = lower($2::text))
+         OR ($3::text IS NOT NULL AND phone = $3::text)
+       )
+     LIMIT 1`,
+    [tenantId, email, phone],
+  );
+
+  return rows[0] ?? null;
+};
 
 export const countRecentCodes = async (tenantId: string, phone: string): Promise<number> => {
   const rows = await tenantQuery<{ total: string }>(

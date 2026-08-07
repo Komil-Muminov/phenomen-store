@@ -12,10 +12,20 @@ import {
   savePushToken,
   selectActiveOtp,
   selectUserById,
+  selectUserForPasswordLogin,
   updateUserProfile,
   upsertUserByPhone,
 } from '@/modules/auth/auth.db';
-import { AuthErrors, IUserRow, OtpSettings, UserStatus, normalizePhone } from '@/modules/auth/types';
+import {
+  AuthErrors,
+  IUserRow,
+  OtpSettings,
+  PasswordSettings,
+  UserStatus,
+  normalizePhone,
+} from '@/modules/auth/types';
+
+const EMAIL_MARKER = '@';
 
 const CODE_BASE = 10;
 
@@ -41,6 +51,39 @@ const issueToken = (user: IUserRow): string => {
   };
 
   return jwt.sign(payload, Env.jwtSecret, { expiresIn: Env.jwtExpiresIn });
+};
+
+export const loginWithPassword = async (
+  tenant: ITenantContext,
+  rawLogin: unknown,
+  rawPassword: unknown,
+) => {
+  const login = pickString(rawLogin);
+  const password = typeof rawPassword === 'string' ? rawPassword : '';
+
+  if (!login || !password) {
+    throw new AppError(AuthErrors.invalidCredentials, HttpStatus.unauthorized);
+  }
+
+  const user = await selectUserForPasswordLogin(
+    tenant.id,
+    login.includes(EMAIL_MARKER) ? login : null,
+    normalizePhone(login),
+  );
+  const matched = await bcrypt.compare(
+    password,
+    user?.password_hash ?? PasswordSettings.dummyHash,
+  );
+
+  if (!user || !user.password_hash || !matched) {
+    throw new AppError(AuthErrors.invalidCredentials, HttpStatus.unauthorized);
+  }
+
+  if (user.status !== UserStatus.active) {
+    throw new AppError(AuthErrors.userBlocked, HttpStatus.forbidden);
+  }
+
+  return { token: issueToken(user), user: mapUser(user) };
 };
 
 export const requestCode = async (tenant: ITenantContext, rawPhone: unknown) => {

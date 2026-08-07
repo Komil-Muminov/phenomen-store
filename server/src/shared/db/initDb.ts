@@ -1,5 +1,5 @@
-import { Client } from 'pg';
-import { pool, closePool } from '@/shared/db';
+import { Client, Pool } from 'pg';
+import { createAdminPool, pool, closePool } from '@/shared/db';
 import { Env } from '@/shared/config';
 import { CORE_SCHEMA_SQL } from '@/shared/db/schema.core';
 import { CATALOG_SCHEMA_SQL } from '@/shared/db/schema.catalog';
@@ -100,17 +100,74 @@ const ensureDatabase = async (): Promise<void> => {
   }
 };
 
-const applyRowLevelSecurity = async (): Promise<void> => {
+const IDENTIFIER_PATTERN = /^[a-z_][a-z0-9_]*$/;
+
+const runFormatted = async (
+  admin: Pool,
+  template: string,
+  params: string[],
+): Promise<void> => {
+  const placeholders = params.map((_value, index) => `$${index + 2}::text`).join(', ');
+  const built = await admin.query<{ sql: string }>(
+    `SELECT format($1::text, ${placeholders}) AS sql`,
+    [template, ...params],
+  );
+
+  await admin.query(built.rows[0].sql);
+};
+
+const applyRowLevelSecurity = async (admin: Pool): Promise<void> => {
   for (const table of TENANT_TABLES) {
-    await pool.query(`ALTER TABLE ${table} ENABLE ROW LEVEL SECURITY`);
-    await pool.query(`ALTER TABLE ${table} FORCE ROW LEVEL SECURITY`);
-    await pool.query(`DROP POLICY IF EXISTS ${table}_tenant_isolation ON ${table}`);
-    await pool.query(`
+    await admin.query(`ALTER TABLE ${table} ENABLE ROW LEVEL SECURITY`);
+    await admin.query(`ALTER TABLE ${table} FORCE ROW LEVEL SECURITY`);
+    await admin.query(`DROP POLICY IF EXISTS ${table}_tenant_isolation ON ${table}`);
+    await admin.query(`
       CREATE POLICY ${table}_tenant_isolation ON ${table}
       USING (tenant_id::text = current_setting('app.tenant_id', true))
       WITH CHECK (tenant_id::text = current_setting('app.tenant_id', true))
     `);
   }
+};
+
+const ensureAppRole = async (admin: Pool): Promise<void> => {
+  const role = Env.db.appUser;
+
+  if (!IDENTIFIER_PATTERN.test(role)) {
+    throw new Error(`Недопустимое имя роли БД: ${role}`);
+  }
+
+  const existing = await admin.query('SELECT 1 FROM pg_roles WHERE rolname = $1', [role]);
+
+  if (existing.rowCount === 0) {
+    await runFormatted(admin, 'CREATE ROLE %I LOGIN PASSWORD %L', [role, Env.db.appPassword]);
+  } else {
+    await runFormatted(admin, 'ALTER ROLE %I LOGIN PASSWORD %L', [role, Env.db.appPassword]);
+  }
+
+  await runFormatted(admin, 'ALTER ROLE %I NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', [role]);
+};
+
+const grantAppPrivileges = async (admin: Pool): Promise<void> => {
+  const role = Env.db.appUser;
+
+  await runFormatted(admin, 'GRANT CONNECT ON DATABASE %I TO %I', [Env.db.database, role]);
+  await runFormatted(admin, 'GRANT USAGE ON SCHEMA public TO %I', [role]);
+  await runFormatted(
+    admin,
+    'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO %I',
+    [role],
+  );
+  await runFormatted(admin, 'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO %I', [role]);
+  await runFormatted(
+    admin,
+    'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO %I',
+    [role],
+  );
+  await runFormatted(
+    admin,
+    'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO %I',
+    [role],
+  );
 };
 
 const seedDemoTenant = async (): Promise<void> => {
@@ -201,11 +258,21 @@ const seedDemoTenant = async (): Promise<void> => {
 
 export const initDb = async (): Promise<void> => {
   await ensureDatabase();
-  await pool.query(CORE_SCHEMA_SQL);
-  await pool.query(CATALOG_SCHEMA_SQL);
-  await pool.query(SALES_SCHEMA_SQL);
-  await pool.query(PLATFORM_SCHEMA_SQL);
-  await applyRowLevelSecurity();
+
+  const admin = createAdminPool();
+
+  try {
+    await admin.query(CORE_SCHEMA_SQL);
+    await admin.query(CATALOG_SCHEMA_SQL);
+    await admin.query(SALES_SCHEMA_SQL);
+    await admin.query(PLATFORM_SCHEMA_SQL);
+    await applyRowLevelSecurity(admin);
+    await ensureAppRole(admin);
+    await grantAppPrivileges(admin);
+  } finally {
+    await admin.end();
+  }
+
   await seedDemoTenant();
 };
 
