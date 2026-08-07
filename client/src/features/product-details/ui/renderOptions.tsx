@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 import { IProduct } from '@/entities/product';
 import { uniqueOptionValues } from '@/shared/lib';
+import { If } from '@/shared/ui';
 import { ISelectedOptions, OptionLabels, isOptionAvailable } from '@/features/product-details/model';
 
 interface IProps {
@@ -8,11 +9,19 @@ interface IProps {
   code: keyof ISelectedOptions;
   selected: ISelectedOptions;
   onSelect: (code: keyof ISelectedOptions, value: string) => void;
+  onSizeGuidePress?: () => void;
 }
 
-export const OptionPicker = ({ product, code, selected, onSelect }: IProps) => (
+export const OptionPicker = ({ product, code, selected, onSelect, onSizeGuidePress }: IProps) => (
   <View className="gap-2.5">
-    <Text className="text-sm font-bold tracking-tight text-content">{OptionLabels[code]}</Text>
+    <View className="flex-row items-center justify-between">
+      <Text className="text-sm font-bold tracking-tight text-content">{OptionLabels[code]}</Text>
+      <If condition={code === 'size' && Boolean(onSizeGuidePress)}>
+        <Pressable onPress={onSizeGuidePress} className="flex-row items-center gap-1 rounded-full bg-primary/10 px-3 py-1 border border-primary/20 active:bg-primary/20">
+          <Text className="text-xs font-extrabold text-primary">📏 Таблица размеров</Text>
+        </Pressable>
+      </If>
+    </View>
     <View className="flex-row flex-wrap gap-2.5">
       {uniqueOptionValues(product.variants, code).map((value) => {
         const available = isOptionAvailable(product, code, value, selected);

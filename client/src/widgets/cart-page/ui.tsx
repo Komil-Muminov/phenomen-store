@@ -8,7 +8,7 @@ import { CartSummary } from '@/features/cart-summary';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { formatItemCount } from '@/shared/lib';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { Button, Icon, If, StateView } from '@/shared/ui';
+import { BottomBar, Button, Icon, If, StateView } from '@/shared/ui';
 
 export const CartPage = () => {
   const router = useRouter();
@@ -117,6 +117,7 @@ export const CartPage = () => {
           </ScrollView>
         </If>
       </If>
+      <BottomBar cartCount={countCartItems(cart)} />
     </SafeAreaView>
   );
 };

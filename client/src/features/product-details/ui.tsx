@@ -117,21 +117,13 @@ export const ProductDetails = ({ product, currencySymbol, selected, onSelect }: 
       </View>
 
       <View className="gap-4 px-4">
-        <View className="gap-1.5">
-          <View className="flex-row items-center justify-between">
-            <Text className="text-xs font-semibold text-muted">Размер</Text>
-            <Pressable onPress={() => setShowSizeGuide(true)}>
-              <Text className="text-xs font-bold text-primary underline">Таблица размеров</Text>
-            </Pressable>
-          </View>
-          <OptionPicker
-            product={product}
-            code={VariantOptionCodes.size}
-            selected={selected}
-            onSelect={onSelect}
-          />
-        </View>
-
+        <OptionPicker
+          product={product}
+          code={VariantOptionCodes.size}
+          selected={selected}
+          onSelect={onSelect}
+          onSizeGuidePress={() => setShowSizeGuide(true)}
+        />
         <OptionPicker
           product={product}
           code={VariantOptionCodes.color}
