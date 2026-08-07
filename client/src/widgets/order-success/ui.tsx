@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
-import { Text, View } from 'react-native';
+import { Platform, StatusBar, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ITenantConfig } from '@/entities/tenant';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery } from '@/shared/hooks';
@@ -32,8 +32,11 @@ export const OrderSuccess = () => {
     router.replace(AppRoutes.catalog);
   }, [router]);
 
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
+
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+    <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
       <View className="flex-1 justify-center gap-6 px-5 py-4">
         <View className="items-center gap-3">
           <View className="h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/30 shadow-lg">
@@ -97,6 +100,6 @@ export const OrderSuccess = () => {
           <Button title="На главную" variant={ButtonVariants.secondary} onPress={handleHome} />
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };

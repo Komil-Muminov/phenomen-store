@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StatusBar, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DEFAULT_CART_TOTALS, ICart } from '@/entities/cart';
 import { ITenantConfig } from '@/entities/tenant';
 import {
@@ -106,8 +106,11 @@ export const CheckoutPage = () => {
     });
   }, [createOrder, form, router]);
 
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
+
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+    <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
       <View className="flex-row items-center gap-3 px-4 py-2">
         <Pressable
           onPress={() => router.back()}
@@ -145,6 +148,6 @@ export const CheckoutPage = () => {
           />
         </ScrollView>
       </If>
-    </SafeAreaView>
+    </View>
   );
 };

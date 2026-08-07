@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StatusBar, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IProduct } from '@/entities/product';
 import { ITenantConfig } from '@/entities/tenant';
 import { ICart } from '@/entities/cart';
@@ -86,8 +86,11 @@ export const ProductPage = () => {
     refetch();
   }, [refetch]);
 
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
+
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+    <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
       <View className="flex-row items-center gap-3 px-4 py-2">
         <Pressable
           onPress={() => router.back()}
@@ -178,6 +181,6 @@ export const ProductPage = () => {
           </View>
         </View>
       </If>
-    </SafeAreaView>
+    </View>
   );
 };
