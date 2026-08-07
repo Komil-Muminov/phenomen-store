@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CartItemRow, DEFAULT_CART_TOTALS, ICart, ICartItem } from '@/entities/cart';
+import { CartItemRow, DEFAULT_CART_TOTALS, ICart, ICartItem, countCartItems } from '@/entities/cart';
 import { ITenantConfig } from '@/entities/tenant';
 import { CartSummary } from '@/features/cart-summary';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';

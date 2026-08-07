@@ -110,8 +110,8 @@ export const WishlistPage = () => {
             </View>
           )}
         >
-          <ScrollView className="flex-1 px-4 pt-3 pb-24" showsVerticalScrollIndicator={false}>
-            <View className="flex-row flex-wrap gap-3 justify-between pb-24">
+          <ScrollView className="flex-1" contentContainerClassName="px-4 pt-3 pb-36" showsVerticalScrollIndicator={false}>
+            <View className="flex-row flex-wrap justify-between gap-y-4">
               {wishlistedProducts.map((product) => (
                 <View key={product.id} className="w-[48%] gap-2">
                   <ProductCard

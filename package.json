@@ -8,7 +8,7 @@
   "scripts": {
     "kill": "node kill-ports.js",
     "predev": "npm run kill && npm run db:init && npm run usb:reverse",
-    "dev": "wt -d . powershell -NoExit -Command \"npm run dev:server\" ; split-pane -d . powershell -NoExit -Command \"npm run usb:mobile\" ; split-pane -H -d . powershell -NoExit -Command \"npm run dev:admin\"",
+    "dev": "wt -d . powershell -NoExit -Command \"npm run dev:server\" ; split-pane -d . powershell -NoExit -Command \"$env:ANDROID_HOME=(Get-Location).Path+'\\.tools'; npm run usb:mobile\" ; split-pane -H -d . powershell -NoExit -Command \"npm run dev:admin\"",
     "predev:wifi": "npm run kill && npm run db:init",
     "dev:wifi": "wt -d . powershell -NoExit -Command \"npm run dev:server\" ; split-pane -d . powershell -NoExit -Command \"npm run dev:mobile\" ; split-pane -H -d . powershell -NoExit -Command \"npm run dev:admin\"",
     "dev:log": "concurrently -k -n server,mobile -c blue,magenta \"npm:dev:server\" \"npm:dev:mobile\"",

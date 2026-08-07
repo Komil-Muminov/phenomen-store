@@ -88,8 +88,13 @@ export const ProductCard = ({ product, currencySymbol, onPress, width = 'card' }
           </View>
         </If>
 
-        <View className="flex-row items-baseline gap-2 pt-0.5">
-          <Text className="text-base font-bold text-content">
+        <View className="flex-row flex-wrap items-baseline gap-x-1.5 gap-y-0.5 pt-0.5">
+          <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+            className="text-base font-bold text-content"
+          >
             {formatPrice(product.price, currencySymbol)}
           </Text>
           <If condition={Boolean(product.oldPrice && product.oldPrice > product.price)}>

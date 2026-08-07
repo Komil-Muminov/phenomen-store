@@ -123,6 +123,13 @@ export const ProfilePage = () => {
         <Text className="flex-1 text-lg font-semibold text-content">Профиль</Text>
       </View>
 
+      <View className="mx-4 mb-3 rounded-2xl bg-red-600 px-4 py-4">
+        <Text className="text-center text-xl font-bold text-white">ТЕСТ 2</Text>
+        <Text className="mt-1 text-center text-sm text-white">
+          Цифра сменилась сама — Fast Refresh работает
+        </Text>
+      </View>
+
       <If
         condition={ready}
         fallback={<StateView loading />}
