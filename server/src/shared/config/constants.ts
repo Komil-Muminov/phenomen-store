@@ -10,6 +10,7 @@ export const ApiRoutes = {
   auth: '/auth',
   reviews: '/reviews',
   wishlist: '/wishlist',
+  notifications: '/notifications',
   health: '/health',
 } as const;
 
