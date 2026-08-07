@@ -91,6 +91,32 @@ export const upsertUserByPhone = async (tenantId: string, phone: string): Promis
   return rows[0];
 };
 
+export const selectUserAuthById = async (
+  tenantId: string,
+  userId: string,
+): Promise<IUserAuthRow | null> => {
+  const rows = await tenantQuery<IUserAuthRow>(
+    tenantId,
+    `SELECT ${USER_COLUMNS}, password_hash FROM users
+     WHERE tenant_id = $1 AND id = $2 LIMIT 1`,
+    [tenantId, userId],
+  );
+
+  return rows[0] ?? null;
+};
+
+export const updateUserPassword = async (
+  tenantId: string,
+  userId: string,
+  passwordHash: string,
+): Promise<void> => {
+  await tenantQuery(
+    tenantId,
+    'UPDATE users SET password_hash = $3, updated_at = now() WHERE tenant_id = $1 AND id = $2',
+    [tenantId, userId, passwordHash],
+  );
+};
+
 export const selectUserById = async (tenantId: string, userId: string): Promise<IUserRow | null> => {
   const rows = await tenantQuery<IUserRow>(
     tenantId,

@@ -4,25 +4,32 @@ import { Env, ErrorMessages, HttpStatus, PlatformRoles, UserRoles } from '@/shar
 import { IListResult, IPlatformContext } from '@/shared/types';
 import { AppError, pickString } from '@/shared/utils';
 import { invalidateTenantCache } from '@/modules/tenant';
+import { loginWithPassword } from '@/modules/auth';
 import {
   countTenants,
+  existsStaffLogin,
   existsTenantKey,
   insertAuditEntry,
+  insertStaffLogin,
+  selectStaffLogin,
   insertDefaultConfig,
   insertPlatformUser,
   insertTenant,
   insertTenantOwner,
+  selectPlatformUserById,
   selectPlatformUserByLogin,
   selectTenantById,
   selectTenants,
   setTenantStatus,
   touchPlatformLogin,
+  updatePlatformPassword,
   updateTenantFields,
 } from '@/modules/platform/platform.db';
 import {
   ICreateOwnerPayload,
   ICreateTenantPayload,
   ITenantSummary,
+  PASSWORD_MIN_LENGTH,
   PlatformActions,
   PlatformErrors,
   SALT_ROUNDS,
@@ -40,6 +47,46 @@ const requireTenantRow = async (id: string): Promise<ITenantSummary> => {
   }
 
   return tenant;
+};
+
+export const changePlatformPassword = async (
+  actor: IPlatformContext,
+  rawCurrent: unknown,
+  rawNext: unknown,
+  ip: string | null,
+): Promise<{ changed: boolean }> => {
+  const current = typeof rawCurrent === 'string' ? rawCurrent : '';
+  const next = typeof rawNext === 'string' ? rawNext : '';
+
+  if (next.length < PASSWORD_MIN_LENGTH) {
+    throw new AppError(PlatformErrors.passwordTooShort, HttpStatus.badRequest);
+  }
+
+  if (next === current) {
+    throw new AppError(PlatformErrors.passwordSame, HttpStatus.badRequest);
+  }
+
+  const user = await selectPlatformUserById(actor.id);
+
+  if (!user) {
+    throw new AppError(ErrorMessages.unauthorized, HttpStatus.unauthorized);
+  }
+
+  const matched = await bcrypt.compare(current, user.password_hash);
+
+  if (!matched) {
+    throw new AppError(PlatformErrors.currentPasswordWrong, HttpStatus.badRequest);
+  }
+
+  await updatePlatformPassword(user.id, await bcrypt.hash(next, SALT_ROUNDS));
+  await insertAuditEntry({
+    actorId: actor.id,
+    actorLogin: actor.login,
+    action: PlatformActions.passwordUpdate,
+    ip,
+  });
+
+  return { changed: true };
 };
 
 export const ensurePlatformAdmin = async (): Promise<void> => {
@@ -102,6 +149,45 @@ export const authenticatePlatform = async (
     name: user.name,
     role: context.role,
   };
+};
+
+export const signIn = async (
+  rawLogin: unknown,
+  rawPassword: unknown,
+  ip: string | null,
+): Promise<Record<string, unknown>> => {
+  const login = pickString(rawLogin);
+  const password = typeof rawPassword === 'string' ? rawPassword : '';
+
+  if (!login || !password) {
+    throw new AppError(PlatformErrors.invalidCredentials, HttpStatus.unauthorized);
+  }
+
+  const platformUser = await selectPlatformUserByLogin(login);
+
+  if (platformUser) {
+    return { scope: 'platform', ...(await authenticatePlatform(login, password, ip)) };
+  }
+
+  const entry = await selectStaffLogin(login);
+
+  if (!entry) {
+    throw new AppError(PlatformErrors.invalidCredentials, HttpStatus.unauthorized);
+  }
+
+  const tenant = await requireTenantRow(entry.tenant_id);
+
+  if (tenant.status !== TenantStatuses.active) {
+    throw new AppError(PlatformErrors.accountDisabled, HttpStatus.forbidden);
+  }
+
+  const session = await loginWithPassword(
+    { id: tenant.id, key: tenant.key, name: tenant.name, status: tenant.status },
+    login,
+    password,
+  );
+
+  return { scope: 'shop', tenantKey: tenant.key, tenantName: tenant.name, ...session };
 };
 
 export const listTenants = async (
@@ -223,6 +309,12 @@ export const createTenantOwner = async (
     throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
   }
 
+  const directoryLogin = (email ?? phone) as string;
+
+  if (await existsStaffLogin(directoryLogin)) {
+    throw new AppError(PlatformErrors.loginTaken, HttpStatus.conflict);
+  }
+
   const ownerId = await insertTenantOwner(
     tenant.id,
     await bcrypt.hash(password, SALT_ROUNDS),
@@ -231,6 +323,12 @@ export const createTenantOwner = async (
     phone,
     email,
   );
+
+  await insertStaffLogin(directoryLogin, tenant.id, ownerId);
+
+  if (email && phone) {
+    await insertStaffLogin(phone, tenant.id, ownerId);
+  }
 
   await insertAuditEntry({
     actorId: actor.id,

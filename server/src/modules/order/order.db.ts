@@ -163,6 +163,26 @@ export const selectOrders = async (
   return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
 });
 
+export const selectTenantOrders = async (
+  tenantId: string,
+  status: string | null,
+  limit: number,
+  offset: number,
+): Promise<{ items: IOrderRow[]; total: number }> => withTenant(tenantId, async (client) => {
+  const filter = 'WHERE tenant_id = $1 AND ($2::text IS NULL OR status = $2::text)';
+  const items = await client.query<IOrderRow>(
+    `SELECT ${ORDER_COLUMNS} FROM orders ${filter}
+     ORDER BY created_at DESC LIMIT $3 OFFSET $4`,
+    [tenantId, status, limit, offset],
+  );
+  const counted = await client.query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total FROM orders ${filter}`,
+    [tenantId, status],
+  );
+
+  return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
+});
+
 export const selectOrderItems = async (tenantId: string, orderId: string): Promise<IOrderItemRow[]> => (
   tenantQuery<IOrderItemRow>(
     tenantId,

@@ -4,6 +4,7 @@ import { authMiddleware } from '@/shared/middlewares';
 import { IAppRequest } from '@/shared/types';
 import { AppError, pickString, sendOk } from '@/shared/utils';
 import {
+  changePassword,
   getProfile,
   loginWithPassword,
   registerPushToken,
@@ -14,6 +15,7 @@ import {
 
 const AuthActions = {
   login: '/login',
+  password: '/password/update',
   code: '/code',
   verify: '/verify',
   profile: '/profile',
@@ -67,6 +69,25 @@ authRouter.post(AuthActions.verify, async (req: IAppRequest, res: Response, next
     next(error);
   }
 });
+
+authRouter.patch(
+  AuthActions.password,
+  authMiddleware,
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const body = (req.body ?? {}) as Record<string, unknown>;
+
+      sendOk(res, await changePassword(
+        requireTenant(req),
+        requireUserId(req),
+        body.currentPassword,
+        body.newPassword,
+      ));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 authRouter.get(
   AuthActions.profile,

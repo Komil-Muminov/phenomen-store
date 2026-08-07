@@ -4,13 +4,22 @@ import { authMiddleware, optionalAuthMiddleware, rbacMiddleware } from '@/shared
 import { IAppRequest } from '@/shared/types';
 import { AppError, parsePagination, pickString, requireUuid, sendCreated, sendList, sendOk } from '@/shared/utils';
 import { requireOwner } from '@/modules/cart';
-import { changeOrderStatus, createOrder, getOrder, getOrders } from '@/modules/order/order.service';
+import {
+  changeOrderStatus,
+  createOrder,
+  getOrder,
+  getOrders,
+  getTenantOrders,
+} from '@/modules/order/order.service';
 import { OrderStatus, TOrderStatus } from '@/modules/order/types';
 
 const OrderActions = {
   cancel: '/cancel/:id',
   status: '/status/:id',
+  manageSearch: '/manage/search',
 } as const;
+
+const STAFF_ROLES = [UserRoles.manager, UserRoles.admin, UserRoles.owner, UserRoles.platform];
 
 const requireTenant = (req: IAppRequest) => {
   if (!req.tenant) {
@@ -54,6 +63,23 @@ orderRouter.get(
 );
 
 orderRouter.get(
+  OrderActions.manageSearch,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const tenant = requireTenant(req);
+      const { page, limit } = parsePagination(req.query as Record<string, unknown>);
+      const status = pickString(req.query.status) || null;
+
+      sendList(res, await getTenantOrders(tenant, status, page, limit));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+orderRouter.get(
   ApiActions.get,
   authMiddleware,
   async (req: IAppRequest, res: Response, next: NextFunction) => {
@@ -83,7 +109,7 @@ orderRouter.post(
 orderRouter.post(
   OrderActions.status,
   authMiddleware,
-  rbacMiddleware([UserRoles.manager, UserRoles.admin, UserRoles.owner, UserRoles.platform]),
+  rbacMiddleware(STAFF_ROLES),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       const tenant = requireTenant(req);

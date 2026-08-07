@@ -11,9 +11,23 @@ interface IProps {
   width?: 'card' | 'full';
 }
 
+const COLOR_MAP: Record<string, string> = {
+  black: '#171717',
+  white: '#f5f5f5',
+  grey: '#9ca3af',
+  red: '#ef4444',
+  blue: '#3b82f6',
+  beige: '#d4b996',
+  green: '#10b981',
+};
+
 export const ProductCard = ({ product, currencySymbol, onPress, width = 'card' }: IProps) => {
   const { isWishlisted, toggleWishlist } = useWishlist();
   const activeWish = isWishlisted(product.id);
+
+  const availableColors = Array.from(
+    new Set(product.variants.map((v) => v.options.color).filter(Boolean)),
+  ).slice(0, 4);
 
   return (
     <Pressable
@@ -44,6 +58,12 @@ export const ProductCard = ({ product, currencySymbol, onPress, width = 'card' }
           <Icon name="heart" size={16} color={activeWish ? '#ef4444' : '#171717'} />
         </Pressable>
 
+        <If condition={product.media.length > 1}>
+          <View className="absolute bottom-2.5 right-2.5 rounded-full bg-black/50 px-2 py-0.5 backdrop-blur-md">
+            <Text className="text-[9px] font-bold text-white">1/{product.media.length}</Text>
+          </View>
+        </If>
+
         <If condition={!product.inStock}>
           <View className="absolute bottom-2.5 left-2.5 rounded-lg bg-surface/90 px-2 py-1">
             <Text className="text-[11px] font-medium text-muted">Нет в наличии</Text>
@@ -55,6 +75,19 @@ export const ProductCard = ({ product, currencySymbol, onPress, width = 'card' }
         <Text numberOfLines={2} className="text-sm font-medium leading-5 text-content">
           {product.name}
         </Text>
+
+        <If condition={availableColors.length > 0}>
+          <View className="flex-row items-center gap-1 py-0.5">
+            {availableColors.map((col) => (
+              <View
+                key={col}
+                className="h-3 w-3 rounded-full border border-neutral-300"
+                style={{ backgroundColor: COLOR_MAP[col.toLowerCase()] ?? '#a3a3a3' }}
+              />
+            ))}
+          </View>
+        </If>
+
         <View className="flex-row items-baseline gap-2 pt-0.5">
           <Text className="text-base font-bold text-content">
             {formatPrice(product.price, currencySymbol)}

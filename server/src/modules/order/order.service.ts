@@ -11,6 +11,7 @@ import {
   selectOrderByIdempotencyKey,
   selectOrderItems,
   selectOrders,
+  selectTenantOrders,
 } from '@/modules/order/order.db';
 import {
   ICustomerPayload,
@@ -133,6 +134,20 @@ export const createOrder = async (
   });
 
   return mapOrder(order, await selectOrderItems(tenant.id, order.id));
+};
+
+export const getTenantOrders = async (
+  tenant: ITenantContext,
+  status: string | null,
+  page: number,
+  limit: number,
+): Promise<IListResult<ReturnType<typeof mapOrder>>> => {
+  const { items, total } = await selectTenantOrders(tenant.id, status, limit, (page - 1) * limit);
+  const mapped = await Promise.all(
+    items.map(async (row) => mapOrder(row, await selectOrderItems(tenant.id, row.id))),
+  );
+
+  return { items: mapped, total, page, limit };
 };
 
 export const getOrders = async (

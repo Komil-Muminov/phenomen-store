@@ -11,8 +11,10 @@ import {
   insertOtpCode,
   savePushToken,
   selectActiveOtp,
+  selectUserAuthById,
   selectUserById,
   selectUserForPasswordLogin,
+  updateUserPassword,
   updateUserProfile,
   upsertUserByPhone,
 } from '@/modules/auth/auth.db';
@@ -84,6 +86,46 @@ export const loginWithPassword = async (
   }
 
   return { token: issueToken(user), user: mapUser(user) };
+};
+
+export const changePassword = async (
+  tenant: ITenantContext,
+  userId: string,
+  rawCurrent: unknown,
+  rawNext: unknown,
+) => {
+  const current = typeof rawCurrent === 'string' ? rawCurrent : '';
+  const next = typeof rawNext === 'string' ? rawNext : '';
+
+  if (next.length < PasswordSettings.minLength) {
+    throw new AppError(AuthErrors.passwordTooShort, HttpStatus.badRequest);
+  }
+
+  if (next === current) {
+    throw new AppError(AuthErrors.passwordSame, HttpStatus.badRequest);
+  }
+
+  const user = await selectUserAuthById(tenant.id, userId);
+
+  if (!user) {
+    throw new AppError(AuthErrors.profileNotFound, HttpStatus.notFound);
+  }
+
+  const matched = user.password_hash
+    ? await bcrypt.compare(current, user.password_hash)
+    : true;
+
+  if (!matched) {
+    throw new AppError(AuthErrors.currentPasswordWrong, HttpStatus.badRequest);
+  }
+
+  await updateUserPassword(
+    tenant.id,
+    user.id,
+    await bcrypt.hash(next, PasswordSettings.saltRounds),
+  );
+
+  return { changed: true };
 };
 
 export const requestCode = async (tenant: ITenantContext, rawPhone: unknown) => {

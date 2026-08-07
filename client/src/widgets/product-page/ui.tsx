@@ -6,12 +6,18 @@ import { IProduct } from '@/entities/product';
 import { ITenantConfig } from '@/entities/tenant';
 import { ICart } from '@/entities/cart';
 import { ISelectedOptions, ProductDetails, findVariant } from '@/features/product-details';
+import { ProductRail } from '@/features/storefront-sections/ui/sections';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { formatPrice } from '@/shared/lib';
 import { Button, Icon, If, SkeletonBox, StateView } from '@/shared/ui';
 
 const EMPTY_SELECTION: ISelectedOptions = { size: null, color: null };
+
+interface IProductList {
+  items: IProduct[];
+  total: number;
+}
 
 export const ProductPage = () => {
   const router = useRouter();
@@ -28,6 +34,14 @@ export const ProductPage = () => {
     `${ApiRoutes.productGet}/${id}`,
     { enabled: Boolean(id), staleTime: StaleTimeMs.medium },
   );
+
+  const { data: catalog } = useGetQuery<IProductList>(
+    [QueryKeys.products, 'recommendations'],
+    ApiRoutes.productsSearch,
+    { staleTime: StaleTimeMs.medium },
+  );
+
+  const recommendedProducts = (catalog?.items ?? []).filter((p) => p.id !== id).slice(0, 6);
 
   const addToCart = useMutationQuery<{ variantId: string; quantity: number }, ICart>(
     ApiRoutes.cartUpdate,
@@ -63,6 +77,10 @@ export const ProductPage = () => {
   const handleSelect = useCallback((code: keyof ISelectedOptions, value: string) => {
     setSelected((current) => ({ ...current, [code]: current[code] === value ? null : value }));
   }, []);
+
+  const handleProductPress = useCallback((item: IProduct) => {
+    router.push(`${AppRoutes.product}/${item.id}`);
+  }, [router]);
 
   const handleRetry = useCallback(() => {
     refetch();
@@ -124,6 +142,19 @@ export const ProductPage = () => {
             selected={selected}
             onSelect={handleSelect}
           />
+
+          <If condition={recommendedProducts.length > 0}>
+            <View className="gap-3 pt-2 pb-8">
+              <Text className="px-4 text-base font-black tracking-tight text-content">
+                Вам также может понравиться
+              </Text>
+              <ProductRail
+                products={recommendedProducts}
+                currencySymbol={currencySymbol}
+                onPress={handleProductPress}
+              />
+            </View>
+          </If>
         </ScrollView>
       </If>
 

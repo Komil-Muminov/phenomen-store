@@ -39,6 +39,8 @@ export const AppRoutes = {
   checkout: '/checkout',
   orderSuccess: '/order-success',
   profile: '/profile',
+  wishlist: '/wishlist',
+  notifications: '/notifications',
 } as const;
 
 export const QueryKeys = {

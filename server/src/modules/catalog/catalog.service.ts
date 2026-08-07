@@ -2,10 +2,15 @@ import { ErrorMessages, HttpStatus, Pagination } from '@/shared/config';
 import { ITenantContext, IListResult } from '@/shared/types';
 import { AppError } from '@/shared/utils';
 import {
+  existsProductSlug,
+  insertProduct,
   selectCategories,
+  selectManagedProductById,
+  selectManagedProducts,
   selectOptionFacets,
   selectProductById,
   selectProducts,
+  updateProductFields,
 } from '@/modules/catalog/catalog.db';
 import { ICategoryRow, IProductRow, IProductSearchParams, ProductSort, ProductSortSql } from '@/modules/catalog/types';
 
@@ -104,6 +109,96 @@ export const getProduct = async (tenant: ITenantContext, id: string) => {
   }
 
   return mapProduct(row);
+};
+
+const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
+
+const PRODUCT_EDITABLE_FIELDS = [
+  'name',
+  'description',
+  'brand',
+  'basePrice',
+  'oldPrice',
+  'categoryId',
+  'isActive',
+] as const;
+
+const requireProduct = async (tenant: ITenantContext, id: string) => {
+  const row = await selectManagedProductById(tenant.id, id);
+
+  if (!row) {
+    throw new AppError(ErrorMessages.notFound, HttpStatus.notFound);
+  }
+
+  return row;
+};
+
+export const listManagedProducts = async (
+  tenant: ITenantContext,
+  page: number,
+  limit: number,
+  offset: number,
+): Promise<IListResult<ReturnType<typeof mapProduct>>> => {
+  const { items, total } = await selectManagedProducts(tenant.id, limit, offset);
+
+  return { items: items.map(mapProduct), total, page, limit };
+};
+
+export const createProduct = async (tenant: ITenantContext, payload: Record<string, unknown>) => {
+  const slug = String(payload.slug ?? '').trim().toLowerCase();
+  const name = String(payload.name ?? '').trim();
+  const basePrice = Number(payload.basePrice);
+
+  if (!SLUG_PATTERN.test(slug) || !name || !Number.isFinite(basePrice) || basePrice < 0) {
+    throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
+  }
+
+  if (await existsProductSlug(tenant.id, slug)) {
+    throw new AppError('Товар с таким ключом уже существует', HttpStatus.conflict);
+  }
+
+  const created = await insertProduct(
+    tenant.id,
+    slug,
+    name,
+    basePrice,
+    typeof payload.categoryId === 'string' && payload.categoryId ? payload.categoryId : null,
+    typeof payload.description === 'string' ? payload.description : null,
+    typeof payload.brand === 'string' ? payload.brand : null,
+  );
+
+  return mapProduct(await requireProduct(tenant, created.id));
+};
+
+export const updateProduct = async (
+  tenant: ITenantContext,
+  id: string,
+  payload: Record<string, unknown>,
+) => {
+  await requireProduct(tenant, id);
+
+  const patch: Record<string, unknown> = {};
+
+  PRODUCT_EDITABLE_FIELDS.forEach((field) => {
+    if (payload[field] !== undefined) {
+      patch[field] = payload[field];
+    }
+  });
+
+  if (Object.keys(patch).length === 0) {
+    throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
+  }
+
+  await updateProductFields(tenant.id, id, patch);
+
+  return mapProduct(await requireProduct(tenant, id));
+};
+
+export const deactivateProduct = async (tenant: ITenantContext, id: string) => {
+  await requireProduct(tenant, id);
+  await updateProductFields(tenant.id, id, { isActive: false });
+
+  return mapProduct(await requireProduct(tenant, id));
 };
 
 export const getCategories = async (tenant: ITenantContext) => {

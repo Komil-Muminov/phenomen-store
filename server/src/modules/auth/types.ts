@@ -29,11 +29,14 @@ export const AuthErrors = {
   userBlocked: 'Профиль заблокирован',
   profileNotFound: 'Профиль не найден',
   invalidCredentials: 'Неверный логин или пароль',
+  currentPasswordWrong: 'Текущий пароль указан неверно',
+  passwordTooShort: 'Пароль должен быть не короче 8 символов',
+  passwordSame: 'Новый пароль совпадает с текущим',
 } as const;
 
 export const PasswordSettings = {
   saltRounds: 10,
-  minLength: 6,
+  minLength: 8,
   dummyHash: '$2a$10$qKgTmfdTEmsyve5nbppwfuorWT/tOb2fYIkjRyRJE1Fd56kSM9kMm',
 } as const;
 

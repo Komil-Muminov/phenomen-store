@@ -10,5 +10,4 @@ export {
   SkeletonBanner,
   SkeletonProductGrid,
 } from './Skeleton';
-
-
+export { BottomBar } from './BottomBar';

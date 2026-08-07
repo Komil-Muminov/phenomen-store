@@ -10,7 +10,7 @@ import { StoreIntro } from '@/features/store-intro';
 import { IBanner, IStorefrontSection, StorefrontSections } from '@/features/storefront-sections';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery } from '@/shared/hooks';
-import { If, SkeletonBanner, SkeletonProductGrid, StateView } from '@/shared/ui';
+import { BottomBar, If, SkeletonBanner, SkeletonProductGrid, StateView } from '@/shared/ui';
 
 const BannerActions = {
   category: 'category',
@@ -70,12 +70,14 @@ export const Home = () => {
     refetch();
   }, [refetch]);
 
+  const cartCount = countCartItems(cart);
+
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+    <SafeAreaView className="flex-1 bg-background relative" edges={['top', 'left', 'right']}>
       <If condition={Boolean(config)}>
         <StoreIntro
           config={config as ITenantConfig}
-          cartCount={countCartItems(cart)}
+          cartCount={cartCount}
           onCartPress={handleCartPress}
           onProfilePress={handleProfilePress}
           onSearchPress={handleSearchPress}
@@ -98,7 +100,7 @@ export const Home = () => {
         }
       >
         <ScrollView
-          className="flex-1"
+          className="flex-1 pb-24"
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={handleRefresh} />}
         >
@@ -111,6 +113,8 @@ export const Home = () => {
           />
         </ScrollView>
       </If>
+
+      <BottomBar cartCount={cartCount} />
     </SafeAreaView>
   );
 };

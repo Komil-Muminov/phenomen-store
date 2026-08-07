@@ -1,16 +1,25 @@
 import { NextFunction, Response, Router } from 'express';
-import { ApiActions, ErrorMessages, HttpStatus } from '@/shared/config';
+import { ApiActions, ErrorMessages, HttpStatus, UserRoles } from '@/shared/config';
+import { authMiddleware, rbacMiddleware } from '@/shared/middlewares';
 import { IAppRequest } from '@/shared/types';
-import { AppError, parsePagination, requireUuid, sendList, sendOk } from '@/shared/utils';
+import { AppError, parsePagination, requireUuid, sendCreated, sendList, sendOk } from '@/shared/utils';
 import {
   buildSearchParams,
+  createProduct,
+  deactivateProduct,
   getCategories,
   getFacets,
   getProduct,
+  listManagedProducts,
   searchProducts,
+  updateProduct,
 } from '@/modules/catalog/catalog.service';
 
 const FACETS_ACTION = '/facets';
+
+const MANAGE_SEARCH_ACTION = '/manage/search';
+
+const STAFF_ROLES = [UserRoles.manager, UserRoles.admin, UserRoles.owner, UserRoles.platform];
 
 const requireTenant = (req: IAppRequest) => {
   if (!req.tenant) {
@@ -48,6 +57,64 @@ productRouter.get(FACETS_ACTION, async (req: IAppRequest, res: Response, next: N
     next(error);
   }
 });
+
+productRouter.get(
+  MANAGE_SEARCH_ACTION,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const { page, limit, offset } = parsePagination(req.query as Record<string, unknown>);
+
+      sendList(res, await listManagedProducts(requireTenant(req), page, limit, offset));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+productRouter.post(
+  ApiActions.create,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      sendCreated(res, await createProduct(requireTenant(req), req.body ?? {}));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+productRouter.patch(
+  ApiActions.update,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+
+      sendOk(res, await updateProduct(requireTenant(req), id, req.body ?? {}));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+productRouter.patch(
+  ApiActions.deactivate,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+
+      sendOk(res, await deactivateProduct(requireTenant(req), id));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 productRouter.get(ApiActions.get, async (req: IAppRequest, res: Response, next: NextFunction) => {
   try {

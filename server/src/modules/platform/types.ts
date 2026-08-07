@@ -5,6 +5,8 @@ export const PlatformPaths = {
   tenantUpdate: '/tenants/update/:id',
   tenantDeactivate: '/tenants/deactivate/:id',
   ownerCreate: '/tenants/owner/create/:id',
+  passwordUpdate: '/auth/password/update',
+  signin: '/auth/signin',
 } as const;
 
 export const PlatformActions = {
@@ -13,6 +15,7 @@ export const PlatformActions = {
   tenantUpdate: 'tenant.update',
   tenantDeactivate: 'tenant.deactivate',
   ownerCreate: 'tenant.owner.create',
+  passwordUpdate: 'auth.password.update',
 } as const;
 
 export const PlatformErrors = {
@@ -21,7 +24,12 @@ export const PlatformErrors = {
   keyTaken: 'Магазин с таким ключом уже существует',
   loginTaken: 'Пользователь с таким логином уже существует',
   tenantMissing: 'Магазин не найден',
+  currentPasswordWrong: 'Текущий пароль указан неверно',
+  passwordTooShort: 'Пароль должен быть не короче 8 символов',
+  passwordSame: 'Новый пароль совпадает с текущим',
 } as const;
+
+export const PASSWORD_MIN_LENGTH = 8;
 
 export const TenantStatuses = {
   active: 'active',

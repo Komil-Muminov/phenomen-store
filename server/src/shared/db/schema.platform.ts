@@ -11,6 +11,15 @@ CREATE TABLE IF NOT EXISTS platform_users (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS staff_logins (
+  login TEXT PRIMARY KEY,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS staff_logins_tenant_idx ON staff_logins(tenant_id);
+
 CREATE TABLE IF NOT EXISTS platform_audit_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   actor_id UUID REFERENCES platform_users(id) ON DELETE SET NULL,

@@ -5,4 +5,5 @@ export type {
   ITenantUpdateBody,
   IOwnerCreateBody,
   IPlatformSession,
+  ISigninResult,
 } from '@/entities/tenant/model';

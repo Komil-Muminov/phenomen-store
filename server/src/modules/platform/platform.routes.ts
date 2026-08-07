@@ -13,10 +13,12 @@ import {
 } from '@/shared/utils';
 import {
   authenticatePlatform,
+  changePlatformPassword,
   createTenant,
   createTenantOwner,
   deactivateTenant,
   listTenants,
+  signIn,
   updateTenant,
 } from '@/modules/platform/platform.service';
 import { ICreateOwnerPayload, ICreateTenantPayload, PlatformPaths } from '@/modules/platform/types';
@@ -47,7 +49,40 @@ platformRouter.post(
   },
 );
 
+platformRouter.post(
+  PlatformPaths.signin,
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const body = (req.body ?? {}) as Record<string, unknown>;
+
+      requireFields(body, ['login', 'password']);
+      sendOk(res, await signIn(body.login, body.password, readIp(req)));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 platformRouter.use(platformAuthMiddleware);
+
+platformRouter.patch(
+  PlatformPaths.passwordUpdate,
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const body = (req.body ?? {}) as Record<string, unknown>;
+
+      requireFields(body, ['currentPassword', 'newPassword']);
+      sendOk(res, await changePlatformPassword(
+        requireActor(req),
+        body.currentPassword,
+        body.newPassword,
+        readIp(req),
+      ));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 platformRouter.get(
   PlatformPaths.tenantSearch,

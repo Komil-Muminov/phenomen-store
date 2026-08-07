@@ -101,10 +101,103 @@ export const selectProducts = async (
   });
 };
 
+export const selectManagedProducts = async (
+  tenantId: string,
+  limit: number,
+  offset: number,
+): Promise<{ items: IProductRow[]; total: number }> => withTenant(tenantId, async (client) => {
+  const items = await client.query<IProductRow>(
+    `${PRODUCT_SELECT} WHERE p.tenant_id = $1 ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`,
+    [tenantId, limit, offset],
+  );
+  const counted = await client.query<{ total: string }>(
+    'SELECT COUNT(*)::text AS total FROM products p WHERE p.tenant_id = $1',
+    [tenantId],
+  );
+
+  return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
+});
+
+const PRODUCT_WRITE_COLUMNS: Record<string, string> = {
+  name: 'name',
+  description: 'description',
+  brand: 'brand',
+  basePrice: 'base_price',
+  oldPrice: 'old_price',
+  categoryId: 'category_id',
+  isActive: 'is_active',
+};
+
+export const insertProduct = async (
+  tenantId: string,
+  slug: string,
+  name: string,
+  basePrice: number,
+  categoryId: string | null,
+  description: string | null,
+  brand: string | null,
+): Promise<{ id: string }> => {
+  const rows = await tenantQuery<{ id: string }>(
+    tenantId,
+    `INSERT INTO products (tenant_id, slug, name, base_price, category_id, description, brand)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING id`,
+    [tenantId, slug, name, basePrice, categoryId, description, brand],
+  );
+
+  return rows[0];
+};
+
+export const updateProductFields = async (
+  tenantId: string,
+  id: string,
+  patch: Record<string, unknown>,
+): Promise<void> => {
+  const entries = Object.entries(patch).filter(([field]) => PRODUCT_WRITE_COLUMNS[field]);
+
+  if (entries.length === 0) {
+    return;
+  }
+
+  const assignments = entries.map(
+    ([field], index) => `${PRODUCT_WRITE_COLUMNS[field]} = $${index + 3}`,
+  );
+
+  await tenantQuery(
+    tenantId,
+    `UPDATE products SET ${assignments.join(', ')}, updated_at = now()
+     WHERE tenant_id = $1 AND id = $2`,
+    [tenantId, id, ...entries.map(([, value]) => value)],
+  );
+};
+
+export const existsProductSlug = async (tenantId: string, slug: string): Promise<boolean> => {
+  const rows = await tenantQuery<{ id: string }>(
+    tenantId,
+    'SELECT id FROM products WHERE tenant_id = $1 AND slug = $2 LIMIT 1',
+    [tenantId, slug],
+  );
+
+  return rows.length > 0;
+};
+
 export const selectProductById = async (tenantId: string, id: string): Promise<IProductRow | null> => {
   const rows = await tenantQuery<IProductRow>(
     tenantId,
     `${PRODUCT_SELECT} WHERE p.tenant_id = $1 AND p.id = $2 AND p.is_active LIMIT 1`,
+    [tenantId, id],
+  );
+
+  return rows[0] ?? null;
+};
+
+export const selectManagedProductById = async (
+  tenantId: string,
+  id: string,
+): Promise<IProductRow | null> => {
+  const rows = await tenantQuery<IProductRow>(
+    tenantId,
+    `${PRODUCT_SELECT} WHERE p.tenant_id = $1 AND p.id = $2 LIMIT 1`,
     [tenantId, id],
   );
 

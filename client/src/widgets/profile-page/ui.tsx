@@ -8,7 +8,7 @@ import { ProfileOrders } from '@/features/profile-orders';
 import { ApiRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useAuth } from '@/shared/auth';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { Icon, If, StateView } from '@/shared/ui';
+import { BottomBar, Icon, If, StateView } from '@/shared/ui';
 
 interface IProfile {
   id: string;
@@ -163,6 +163,7 @@ export const ProfilePage = () => {
           </If>
         </ScrollView>
       </If>
+      <BottomBar />
     </SafeAreaView>
   );
 };

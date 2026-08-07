@@ -1,26 +1,64 @@
 export const AppRoutes = {
   login: '/login',
   tenants: '/tenants',
+  shopLogin: '/shop/login',
+  shopOrders: '/shop/orders',
+  shopProducts: '/shop/products',
   root: '/',
 } as const;
 
 export const ApiRoutes = {
+  signin: '/platform/auth/signin',
   platformLogin: '/platform/auth/login',
   tenantsSearch: '/platform/tenants/search',
   tenantsCreate: '/platform/tenants/create',
   tenantsUpdate: '/platform/tenants/update',
   tenantsDeactivate: '/platform/tenants/deactivate',
   tenantsOwnerCreate: '/platform/tenants/owner/create',
+  shopLogin: '/auth/login',
+  shopOrdersSearch: '/orders/manage/search',
+  shopOrderStatus: '/orders/status',
+  shopProductsSearch: '/products/manage/search',
+  shopProductCreate: '/products/create',
+  shopProductUpdate: '/products/update',
+  shopProductDeactivate: '/products/deactivate',
+  shopCategoriesSearch: '/categories/search',
 } as const;
 
 export const QueryKeys = {
   tenants: 'tenants',
+  shopOrders: 'shop-orders',
+  shopProducts: 'shop-products',
+  shopCategories: 'shop-categories',
 } as const;
 
 export const StorageKeys = {
   token: 'phenomen_platform_token',
   admin: 'phenomen_platform_admin',
+  shopToken: 'phenomen_shop_token',
+  shopUser: 'phenomen_shop_user',
+  shopTenant: 'phenomen_shop_tenant',
 } as const;
+
+export const TenantHeader = 'X-Tenant-Key';
+
+export const OrderStatuses = [
+  'created',
+  'confirmed',
+  'assembling',
+  'delivering',
+  'completed',
+  'cancelled',
+] as const;
+
+export const OrderStatusLabels: Record<string, string> = {
+  created: 'создан',
+  confirmed: 'подтверждён',
+  assembling: 'сборка',
+  delivering: 'доставка',
+  completed: 'выполнен',
+  cancelled: 'отменён',
+};
 
 export const StaleTimeMs = {
   short: 30_000,

@@ -5,10 +5,13 @@ import { App as AntApp, ConfigProvider, Spin } from 'antd';
 import ruRU from 'antd/locale/ru_RU';
 import { AppRoutes } from '@/shared/config';
 import { AuthProvider, useAuth } from '@/shared/auth';
+import { ShopAuthProvider, useShopAuth } from '@/shared/shop-auth';
 import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 
 const Login = lazy(() => import('@/pages/login'));
 const Tenants = lazy(() => import('@/pages/tenants'));
+const ShopOrders = lazy(() => import('@/pages/shop-orders'));
+const ShopProducts = lazy(() => import('@/pages/shop-products'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,8 +34,14 @@ const Fallback = () => (
   </div>
 );
 
-const PrivateRoute = ({ children }: { children: JSX.Element }) => {
+const PlatformRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthorized } = useAuth();
+
+  return isAuthorized ? children : <Navigate to={AppRoutes.login} replace />;
+};
+
+const ShopRoute = ({ children }: { children: JSX.Element }) => {
+  const { isAuthorized } = useShopAuth();
 
   return isAuthorized ? children : <Navigate to={AppRoutes.login} replace />;
 };
@@ -43,13 +52,18 @@ const Router = () => (
       <Route path={AppRoutes.login} element={<Login />} />
       <Route
         path={AppRoutes.tenants}
-        element={(
-          <PrivateRoute>
-            <Tenants />
-          </PrivateRoute>
-        )}
+        element={<PlatformRoute><Tenants /></PlatformRoute>}
       />
-      <Route path="*" element={<Navigate to={AppRoutes.tenants} replace />} />
+      <Route path={AppRoutes.shopLogin} element={<Navigate to={AppRoutes.login} replace />} />
+      <Route
+        path={AppRoutes.shopOrders}
+        element={<ShopRoute><ShopOrders /></ShopRoute>}
+      />
+      <Route
+        path={AppRoutes.shopProducts}
+        element={<ShopRoute><ShopProducts /></ShopRoute>}
+      />
+      <Route path="*" element={<Navigate to={AppRoutes.login} replace />} />
     </Routes>
   </Suspense>
 );
@@ -60,9 +74,11 @@ export const App = () => (
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <BrowserRouter>
-              <Router />
-            </BrowserRouter>
+            <ShopAuthProvider>
+              <BrowserRouter>
+                <Router />
+              </BrowserRouter>
+            </ShopAuthProvider>
           </AuthProvider>
         </QueryClientProvider>
       </ErrorBoundary>

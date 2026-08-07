@@ -46,3 +46,19 @@ export interface IPlatformSession {
   name: string;
   role: string;
 }
+
+export interface ISigninResult {
+  scope: 'platform' | 'shop';
+  token: string;
+  login?: string;
+  name?: string;
+  role?: string;
+  tenantKey?: string;
+  tenantName?: string;
+  user?: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    role: string;
+  };
+}

@@ -50,6 +50,23 @@ export const insertPlatformUser = async (
   return rows[0];
 };
 
+export const selectPlatformUserById = async (id: string): Promise<IPlatformUserRow | null> => {
+  const rows = await query<IPlatformUserRow>(
+    `SELECT id, login, password_hash, name, role, status
+     FROM platform_users WHERE id = $1`,
+    [id],
+  );
+
+  return rows[0] ?? null;
+};
+
+export const updatePlatformPassword = async (id: string, passwordHash: string): Promise<void> => {
+  await query(
+    'UPDATE platform_users SET password_hash = $2, updated_at = now() WHERE id = $1',
+    [id, passwordHash],
+  );
+};
+
 export const touchPlatformLogin = async (id: string): Promise<void> => {
   await query('UPDATE platform_users SET last_login_at = now() WHERE id = $1', [id]);
 };
@@ -159,6 +176,39 @@ export const insertTenantOwner = async (
 
   return result.rows[0].id;
 });
+
+export const insertStaffLogin = async (
+  login: string,
+  tenantId: string,
+  userId: string,
+): Promise<void> => {
+  await query(
+    `INSERT INTO staff_logins (login, tenant_id, user_id)
+     VALUES (lower($1), $2, $3)
+     ON CONFLICT (login) DO UPDATE SET tenant_id = $2, user_id = $3`,
+    [login, tenantId, userId],
+  );
+};
+
+export const selectStaffLogin = async (
+  login: string,
+): Promise<{ tenant_id: string; user_id: string } | null> => {
+  const rows = await query<{ tenant_id: string; user_id: string }>(
+    'SELECT tenant_id, user_id FROM staff_logins WHERE login = lower($1)',
+    [login],
+  );
+
+  return rows[0] ?? null;
+};
+
+export const existsStaffLogin = async (login: string): Promise<boolean> => {
+  const rows = await query<{ login: string }>(
+    'SELECT login FROM staff_logins WHERE login = lower($1)',
+    [login],
+  );
+
+  return rows.length > 0;
+};
 
 export const insertAuditEntry = async (entry: IAuditEntry): Promise<void> => {
   await query(

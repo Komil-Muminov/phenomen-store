@@ -1,4 +1,5 @@
-import { FlatList, Image, Text, View } from 'react-native';
+import { useState } from 'react';
+import { FlatList, Image, Pressable, Text, View } from 'react-native';
 import { IProduct, ProductPlaceholderImage, VariantOptionCodes } from '@/entities/product';
 import { formatDiscount, formatPrice } from '@/shared/lib';
 import { Icon, If } from '@/shared/ui';
@@ -9,6 +10,7 @@ import {
   findVariant,
 } from '@/features/product-details/model';
 import { OptionPicker } from '@/features/product-details/ui/renderOptions';
+import { SizeGuideModal } from '@/features/product-details/ui/SizeGuideModal';
 
 interface IProps {
   product: IProduct;
@@ -35,6 +37,7 @@ const MOCK_REVIEWS = [
 ];
 
 export const ProductDetails = ({ product, currencySymbol, selected, onSelect }: IProps) => {
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
   const variant = findVariant(product, selected);
   const price = variant?.price ?? product.price;
   const oldPrice = variant?.oldPrice ?? product.oldPrice;
@@ -114,12 +117,21 @@ export const ProductDetails = ({ product, currencySymbol, selected, onSelect }: 
       </View>
 
       <View className="gap-4 px-4">
-        <OptionPicker
-          product={product}
-          code={VariantOptionCodes.size}
-          selected={selected}
-          onSelect={onSelect}
-        />
+        <View className="gap-1.5">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-xs font-semibold text-muted">Размер</Text>
+            <Pressable onPress={() => setShowSizeGuide(true)}>
+              <Text className="text-xs font-bold text-primary underline">Таблица размеров</Text>
+            </Pressable>
+          </View>
+          <OptionPicker
+            product={product}
+            code={VariantOptionCodes.size}
+            selected={selected}
+            onSelect={onSelect}
+          />
+        </View>
+
         <OptionPicker
           product={product}
           code={VariantOptionCodes.color}
@@ -170,6 +182,8 @@ export const ProductDetails = ({ product, currencySymbol, selected, onSelect }: 
           ))}
         </View>
       </View>
+
+      <SizeGuideModal visible={showSizeGuide} onClose={() => setShowSizeGuide(false)} />
     </View>
   );
 };

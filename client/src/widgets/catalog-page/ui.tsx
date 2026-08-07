@@ -9,7 +9,7 @@ import { CatalogGrid } from '@/features/catalog-grid';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { formatItemCount } from '@/shared/lib';
 import { useGetQuery } from '@/shared/hooks';
-import { Icon, If, SkeletonProductGrid, StateView } from '@/shared/ui';
+import { BottomBar, Icon, If, SkeletonProductGrid, StateView } from '@/shared/ui';
 
 const DEFAULT_SORT = 'popular';
 const PAGE_SIZE = 20;
@@ -116,6 +116,22 @@ export const CatalogPage = () => {
             </Pressable>
           </If>
         </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pt-2.5">
+          {['Худи', 'Джинсы', 'Куртки', 'Футболки', 'Аксессуары'].map((tag) => (
+            <Pressable
+              key={tag}
+              onPress={() => setSearchQuery(searchQuery === tag ? '' : tag)}
+              className={`rounded-full px-3 py-1 border ${
+                searchQuery === tag ? 'border-primary bg-primary' : 'border-line bg-surface/60'
+              }`}
+            >
+              <Text className={`text-xs font-semibold ${searchQuery === tag ? 'text-white' : 'text-muted'}`}>
+                {tag}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
       </View>
 
       <If
@@ -144,6 +160,7 @@ export const CatalogPage = () => {
           />
         </ScrollView>
       </If>
+      <BottomBar />
     </SafeAreaView>
   );
 };
