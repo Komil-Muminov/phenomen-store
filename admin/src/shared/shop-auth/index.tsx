@@ -1,6 +1,13 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
-import { clearShopSession, readShopTenant, readShopToken, writeShopSession } from '@/shared/api';
-import { StorageKeys } from '@/shared/config';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { App as AntApp } from 'antd';
+import {
+  clearShopSession,
+  readShopTenant,
+  readShopToken,
+  subscribeSessionExpired,
+  writeShopSession,
+} from '@/shared/api';
+import { StorageKeys, UiMessages } from '@/shared/config';
 
 export interface IShopUser {
   id: string;
@@ -32,8 +39,19 @@ const ShopAuthContext = createContext<IShopAuthValue>({
 });
 
 export const ShopAuthProvider = ({ children }: { children: ReactNode }) => {
+  const { message } = AntApp.useApp();
   const [user, setUser] = useState<IShopUser | null>(() => (readShopToken() ? readShopUser() : null));
   const [tenantKey, setTenantKey] = useState<string>(() => readShopTenant() ?? '');
+
+  const handleExpired = useCallback(() => {
+    if (user) {
+      setUser(null);
+      setTenantKey('');
+      message.warning(UiMessages.sessionExpired);
+    }
+  }, [user, message]);
+
+  useEffect(() => subscribeSessionExpired('shop', handleExpired), [handleExpired]);
 
   const signIn = useCallback((token: string, nextTenant: string, nextUser: IShopUser) => {
     writeShopSession(token, nextTenant);

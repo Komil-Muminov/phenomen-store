@@ -1,6 +1,7 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
-import { clearSession, readToken, writeToken } from '@/shared/api';
-import { StorageKeys } from '@/shared/config';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { App as AntApp } from 'antd';
+import { clearSession, readToken, subscribeSessionExpired, writeToken } from '@/shared/api';
+import { StorageKeys, UiMessages } from '@/shared/config';
 
 export interface IPlatformAdmin {
   login: string;
@@ -29,7 +30,17 @@ const AuthContext = createContext<IAuthValue>({
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const { message } = AntApp.useApp();
   const [admin, setAdmin] = useState<IPlatformAdmin | null>(() => (readToken() ? readAdmin() : null));
+
+  const handleExpired = useCallback(() => {
+    if (admin) {
+      setAdmin(null);
+      message.warning(UiMessages.sessionExpired);
+    }
+  }, [admin, message]);
+
+  useEffect(() => subscribeSessionExpired('platform', handleExpired), [handleExpired]);
 
   const signIn = useCallback((token: string, nextAdmin: IPlatformAdmin) => {
     writeToken(token);

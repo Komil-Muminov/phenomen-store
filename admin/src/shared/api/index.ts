@@ -3,13 +3,38 @@ import {
   AuthHeader,
   AuthScheme,
   Env,
+  HttpStatus,
   RequestTimeoutMs,
+  StatusMessages,
   StorageKeys,
   TenantHeader,
+  TimeoutCodes,
   UiMessages,
 } from '@/shared/config';
 
 export type TApiScope = 'platform' | 'shop';
+
+type TSessionListener = () => void;
+
+const sessionListeners: Record<TApiScope, Set<TSessionListener>> = {
+  platform: new Set<TSessionListener>(),
+  shop: new Set<TSessionListener>(),
+};
+
+export const subscribeSessionExpired = (
+  scope: TApiScope,
+  listener: TSessionListener,
+): (() => void) => {
+  sessionListeners[scope].add(listener);
+
+  return () => {
+    sessionListeners[scope].delete(listener);
+  };
+};
+
+const notifySessionExpired = (scope: TApiScope): void => {
+  sessionListeners[scope].forEach((listener) => listener());
+};
 
 export interface IApiResponse<T> {
   success: boolean;
@@ -47,8 +72,9 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
+    if (axios.isAxiosError(error) && error.response?.status === HttpStatus.unauthorized) {
       clearSession();
+      notifySessionExpired('platform');
     }
 
     return Promise.reject(error);
@@ -94,8 +120,9 @@ shopClient.interceptors.request.use((config) => {
 shopClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
+    if (axios.isAxiosError(error) && error.response?.status === HttpStatus.unauthorized) {
       clearShopSession();
+      notifySessionExpired('shop');
     }
 
     return Promise.reject(error);
@@ -106,11 +133,41 @@ const pickClient = (scope: TApiScope): AxiosInstance => (
   scope === 'shop' ? shopClient : apiClient
 );
 
+export const extractErrorMessage = (error: unknown): string => {
+  if (!axios.isAxiosError(error)) {
+    return error instanceof Error && error.message ? error.message : UiMessages.loadError;
+  }
+
+  if (!error.response) {
+    return TimeoutCodes.includes(error.code ?? '')
+      ? UiMessages.timeoutError
+      : UiMessages.networkError;
+  }
+
+  const { status, data } = error.response;
+
+  if (status >= HttpStatus.serverError) {
+    return UiMessages.serverError;
+  }
+
+  const serverMessage = data?.message;
+
+  if (typeof serverMessage === 'string' && serverMessage.length > 0) {
+    return serverMessage;
+  }
+
+  return StatusMessages[status] ?? UiMessages.loadError;
+};
+
 export const requestData = async <T>(
   config: AxiosRequestConfig,
   scope: TApiScope = 'platform',
 ): Promise<T> => {
-  const response = await pickClient(scope).request<IApiResponse<T>>(config);
+  const response = await pickClient(scope)
+    .request<IApiResponse<T>>(config)
+    .catch((error: unknown) => {
+      throw new Error(extractErrorMessage(error));
+    });
 
   if (!response.data?.success) {
     throw new Error(response.data?.message ?? UiMessages.loadError);
@@ -124,19 +181,15 @@ export const uploadFile = async <T>(url: string, file: File): Promise<T> => {
 
   form.append('file', file);
 
-  const response = await shopClient.post<IApiResponse<T>>(url, form);
+  const response = await shopClient
+    .post<IApiResponse<T>>(url, form)
+    .catch((error: unknown) => {
+      throw new Error(extractErrorMessage(error));
+    });
 
   if (!response.data?.success) {
     throw new Error(response.data?.message ?? UiMessages.loadError);
   }
 
   return response.data.data;
-};
-
-export const extractErrorMessage = (error: unknown): string => {
-  if (axios.isAxiosError(error)) {
-    return error.response?.data?.message ?? error.message;
-  }
-
-  return error instanceof Error ? error.message : UiMessages.loadError;
 };

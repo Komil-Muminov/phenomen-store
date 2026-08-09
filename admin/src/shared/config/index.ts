@@ -193,11 +193,32 @@ export const UiMessages = {
   createdOwner: 'Владелец добавлен',
   emptyTenants: 'Магазинов пока нет',
   required: 'Обязательное поле',
+  sessionExpired: 'Сессия истекла, войдите заново',
+  networkError: 'Нет связи с сервером — проверьте интернет и адрес API',
+  timeoutError: 'Сервер не ответил вовремя, попробуйте снова',
+  forbiddenError: 'Недостаточно прав для этого действия',
+  notFoundError: 'Данные не найдены',
+  serverError: 'Ошибка на сервере, попробуйте позже',
   createdBanner: 'Баннер создан',
   updatedBanner: 'Баннер обновлён',
   hiddenBanner: 'Баннер скрыт',
   emptyBanners: 'Баннеров пока нет',
 } as const;
+
+export const HttpStatus = {
+  unauthorized: 401,
+  forbidden: 403,
+  notFound: 404,
+  serverError: 500,
+} as const;
+
+export const TimeoutCodes: string[] = ['ECONNABORTED', 'ETIMEDOUT'];
+
+export const StatusMessages: Record<number, string> = {
+  [HttpStatus.unauthorized]: UiMessages.sessionExpired,
+  [HttpStatus.forbidden]: UiMessages.forbiddenError,
+  [HttpStatus.notFound]: UiMessages.notFoundError,
+};
 
 export const Env = {
   apiUrl: import.meta.env.VITE_API_URL ?? 'http://localhost:4000',

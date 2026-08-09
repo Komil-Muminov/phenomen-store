@@ -1,5 +1,14 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { Env, GuestHeader, RequestTimeoutMs, TenantHeader, UiMessages } from '@/shared/config';
+import {
+  Env,
+  GuestHeader,
+  HttpStatus,
+  RequestTimeoutMs,
+  StatusMessages,
+  TenantHeader,
+  TimeoutCodes,
+  UiMessages,
+} from '@/shared/config';
 import { getGuestKey } from '@/shared/session';
 
 export interface IApiResponse<T> {
@@ -42,7 +51,7 @@ apiClient.interceptors.request.use(async (config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
+    if (axios.isAxiosError(error) && error.response?.status === HttpStatus.unauthorized) {
       if (onUnauthorizedCallback) {
         onUnauthorizedCallback();
       }
@@ -52,20 +61,40 @@ apiClient.interceptors.response.use(
   },
 );
 
+export const extractErrorMessage = (error: unknown): string => {
+  if (!axios.isAxiosError(error)) {
+    return error instanceof Error && error.message ? error.message : UiMessages.loadError;
+  }
+
+  if (!error.response) {
+    return TimeoutCodes.includes(error.code ?? '')
+      ? UiMessages.timeoutError
+      : UiMessages.networkError;
+  }
+
+  const { status, data } = error.response;
+
+  if (status >= HttpStatus.serverError) {
+    return UiMessages.serverError;
+  }
+
+  const serverMessage = data?.message;
+
+  return typeof serverMessage === 'string' && serverMessage.length > 0
+    ? serverMessage
+    : StatusMessages[status] ?? UiMessages.loadError;
+};
+
 export const requestData = async <T>(config: AxiosRequestConfig): Promise<T> => {
-  const response = await apiClient.request<IApiResponse<T>>(config);
+  const response = await apiClient
+    .request<IApiResponse<T>>(config)
+    .catch((error: unknown) => {
+      throw new Error(extractErrorMessage(error));
+    });
 
   if (!response.data?.success) {
     throw new Error(response.data?.message ?? UiMessages.loadError);
   }
 
   return response.data.data;
-};
-
-export const extractErrorMessage = (error: unknown): string => {
-  if (axios.isAxiosError(error)) {
-    return error.response?.data?.message ?? error.message;
-  }
-
-  return error instanceof Error ? error.message : UiMessages.loadError;
 };
