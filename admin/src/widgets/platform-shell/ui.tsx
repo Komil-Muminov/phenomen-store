@@ -1,54 +1,64 @@
-import { ReactNode } from 'react';
+import { ReactNode, useCallback, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Button, Typography } from 'antd';
-import { HistoryOutlined, LogoutOutlined, ShopOutlined } from '@ant-design/icons';
+import { Button, Drawer, Typography } from 'antd';
+import { LogoutOutlined, MenuOutlined } from '@ant-design/icons';
 import { Tooltip } from '@/shared/ui/Tooltip';
-import { AppRoutes } from '@/shared/config';
 import { useAuth } from '@/shared/auth';
+import { PlatformNavItems, buildLinkClass, buildMenuLinkClass } from '@/widgets/platform-shell/lib';
 
 interface IProps {
   children: ReactNode;
 }
 
-const LINK_BASE = 'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors duration-200';
-
-const buildLinkClass = ({ isActive }: { isActive: boolean }): string => (
-  isActive
-    ? `${LINK_BASE} bg-violet-100 font-medium text-violet-800`
-    : `${LINK_BASE} text-slate-600 hover:bg-violet-50 hover:text-violet-700`
-);
+const DRAWER_WIDTH = 272;
 
 export const PlatformShell = ({ children }: IProps) => {
   const { admin, signOut } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const openMenu = useCallback(() => setMenuOpen(true), []);
+
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
 
   return (
     <div className="min-h-screen bg-brand-surface">
       <header className="border-b border-violet-200 bg-white">
-        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-6">
-            <div>
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-6">
+            <span className="sm:hidden">
+              <Tooltip title="Меню">
+                <Button
+                  aria-label="Открыть меню"
+                  icon={<MenuOutlined />}
+                  onClick={openMenu}
+                  className="cursor-pointer!"
+                />
+              </Tooltip>
+            </span>
+
+            <div className="min-w-0">
               <Typography.Text strong className="text-brand-text!">
                 Панель платформы
               </Typography.Text>
               <div className="text-xs text-violet-500">PHENOMEN</div>
             </div>
 
-            <nav className="flex items-center gap-1">
-              <NavLink to={AppRoutes.tenants} className={buildLinkClass}>
-                <ShopOutlined aria-hidden="true" />
-                Магазины
-              </NavLink>
-              <NavLink to={AppRoutes.audit} className={buildLinkClass}>
-                <HistoryOutlined aria-hidden="true" />
-                Журнал
-              </NavLink>
+            <nav className="hidden items-center gap-1 sm:flex">
+              {PlatformNavItems.map((item) => (
+                <NavLink key={item.to} to={item.to} className={buildLinkClass}>
+                  {item.icon}
+                  {item.label}
+                </NavLink>
+              ))}
             </nav>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Typography.Text type="secondary" className="text-sm!">
-              {admin?.name}
-            </Typography.Text>
+          <div className="flex shrink-0 items-center gap-3">
+            <span className="hidden sm:inline">
+              <Typography.Text type="secondary" className="text-sm!">
+                {admin?.name}
+              </Typography.Text>
+            </span>
             <Tooltip title="Выйти">
               <Button
                 aria-label="Выйти"
@@ -60,6 +70,35 @@ export const PlatformShell = ({ children }: IProps) => {
           </div>
         </div>
       </header>
+
+      <Drawer
+        open={menuOpen}
+        placement="left"
+        width={DRAWER_WIDTH}
+        title="Панель платформы"
+        onClose={closeMenu}
+        classNames={{ body: 'p-3!' }}
+      >
+        <nav className="flex flex-col gap-1">
+          {PlatformNavItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={buildMenuLinkClass}
+              onClick={closeMenu}
+            >
+              {item.icon}
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="mt-4 border-t border-violet-100 pt-4">
+          <Typography.Text type="secondary" className="text-sm!">
+            {admin?.name}
+          </Typography.Text>
+        </div>
+      </Drawer>
 
       <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
     </div>
