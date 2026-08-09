@@ -48,6 +48,7 @@ export const ApiRoutes = {
   shopBannerUpdate: '/banners/update',
   shopBannerDeactivate: '/banners/deactivate',
   shopBannerDelete: '/banners/delete',
+  shopBannerReorder: '/banners/reorder',
   shopConfig: '/tenants/config',
   shopAttributeDelete: '/attributes/delete',
   shopMediaUpload: '/media/upload',
@@ -204,6 +205,7 @@ export const UiMessages = {
   updatedBanner: 'Баннер обновлён',
   hiddenBanner: 'Баннер скрыт',
   deletedBanner: 'Баннер удалён',
+  reorderedBanners: 'Порядок баннеров сохранён',
   emptyBanners: 'Баннеров пока нет',
 } as const;
 

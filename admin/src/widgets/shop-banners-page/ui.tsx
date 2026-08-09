@@ -51,6 +51,10 @@ export const ShopBannersPage = () => {
     (body) => `${ApiRoutes.shopBannerDelete}/${body.id}`,
     { scope: 'shop', method: 'delete', invalidate },
   );
+  const reorderMutation = useMutationQuery<{ ids: string[] }, IShopBanner[]>(
+    ApiRoutes.shopBannerReorder,
+    { scope: 'shop', invalidate },
+  );
 
   const closeForm = useCallback(() => {
     setFormOpen(false);
@@ -77,6 +81,13 @@ export const ShopBannersPage = () => {
       onError: (error) => message.error(extractErrorMessage(error)),
     });
   }, [deactivateMutation, message]);
+
+  const handleReorder = useCallback((ids: string[]) => {
+    reorderMutation.mutate({ ids }, {
+      onSuccess: () => message.success(UiMessages.reorderedBanners),
+      onError: (error) => message.error(extractErrorMessage(error)),
+    });
+  }, [reorderMutation, message]);
 
   const handleDelete = useCallback((banner: IShopBanner) => {
     modal.confirm({
@@ -130,7 +141,8 @@ export const ShopBannersPage = () => {
             Баннеры
           </Typography.Title>
           <Typography.Text type="secondary">
-            Карусель на главной приложения — всего: {items.length}
+            Карусель на главной приложения — всего: {items.length}. Порядок меняется
+            перетаскиванием строк
           </Typography.Text>
         </div>
 
@@ -180,10 +192,11 @@ export const ShopBannersPage = () => {
           items={items}
           categories={categoriesQuery.data ?? []}
           products={products}
-          isLoading={bannersQuery.isLoading}
+          isLoading={bannersQuery.isLoading || reorderMutation.isPending}
           onEdit={handleEdit}
           onDeactivate={handleDeactivate}
           onDelete={handleDelete}
+          onReorder={handleReorder}
         />
       </section>
 

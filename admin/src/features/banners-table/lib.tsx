@@ -1,6 +1,12 @@
 import { Button, Space, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { DeleteOutlined, EditOutlined, PictureOutlined, StopOutlined } from '@ant-design/icons';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  HolderOutlined,
+  PictureOutlined,
+  StopOutlined,
+} from '@ant-design/icons';
 import { BannerActionLabels, BannerActionTypes } from '@/shared/config';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { If } from '@/shared/ui/If';
@@ -54,6 +60,16 @@ export const buildBannerColumns = ({
   categoryNames,
   productNames,
 }: IHandlers): ColumnsType<IShopBanner> => [
+  {
+    title: '',
+    key: 'drag',
+    width: 40,
+    render: () => (
+      <Tooltip title="Потяните строку, чтобы поменять порядок">
+        <HolderOutlined className="cursor-grab text-slate-400" aria-hidden="true" />
+      </Tooltip>
+    ),
+  },
   {
     title: 'Картинка',
     dataIndex: 'imageUrl',

@@ -13,6 +13,7 @@ import {
   selectManagedBanners,
   setBannerActive,
   updateBannerFields,
+  updateBannerPositions,
 } from '@/modules/banner/banner.db';
 import {
   BannerActionTypes,
@@ -20,6 +21,7 @@ import {
   BannerErrors,
   IBannerInput,
   IBannerRow,
+  MaxReorderItems,
   MaxTextLength,
   MaxUrlLength,
   TBannerActionType,
@@ -214,6 +216,40 @@ export const deactivateBanner = async (tenant: ITenantContext, id: string) => {
   await requireBanner(tenant, id);
 
   return mapBanner(await setBannerActive(tenant.id, id, false));
+};
+
+export const reorderBanners = async (
+  tenant: ITenantContext,
+  payload: Record<string, unknown>,
+) => {
+  const ids = Array.isArray(payload.ids) ? payload.ids : [];
+
+  if (ids.length === 0 || ids.length > MaxReorderItems) {
+    throw new AppError(BannerErrors.orderInvalid, HttpStatus.badRequest);
+  }
+
+  const ordered = ids.map((id) => {
+    if (typeof id !== 'string' || !UUID_PATTERN.test(id)) {
+      throw new AppError(BannerErrors.orderInvalid, HttpStatus.badRequest);
+    }
+
+    return id;
+  });
+
+  const current = await selectManagedBanners(tenant.id);
+  const known = new Set(current.map((row) => row.id));
+
+  if (ordered.some((id) => !known.has(id))) {
+    throw new AppError(BannerErrors.orderUnknownItem, HttpStatus.badRequest);
+  }
+
+  await updateBannerPositions(
+    tenant.id,
+    ordered,
+    ordered.map((_id, index) => (index + 1) * BannerDefaults.positionStep),
+  );
+
+  return (await selectManagedBanners(tenant.id)).map(mapBanner);
 };
 
 export const removeBanner = async (tenant: ITenantContext, id: string) => {

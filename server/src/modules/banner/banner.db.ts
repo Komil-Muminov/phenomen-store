@@ -108,6 +108,21 @@ export const setBannerActive = async (
   return rows[0];
 };
 
+export const updateBannerPositions = async (
+  tenantId: string,
+  ids: string[],
+  positions: number[],
+): Promise<void> => {
+  await tenantQuery(
+    tenantId,
+    `UPDATE banners AS b
+     SET position = ordered.position
+     FROM (SELECT * FROM unnest($2::uuid[], $3::int[]) AS t(id, position)) AS ordered
+     WHERE b.tenant_id = $1 AND b.id = ordered.id`,
+    [tenantId, ids, positions],
+  );
+};
+
 export const deleteBannerById = async (tenantId: string, id: string): Promise<void> => {
   await tenantQuery(
     tenantId,
