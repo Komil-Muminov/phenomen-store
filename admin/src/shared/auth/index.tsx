@@ -1,20 +1,7 @@
-import {
-  createContext,
-  ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import {
-  clearSession,
-  isTokenExpired,
-  readToken,
-  setOnPlatformUnauthorized,
-  writeToken,
-} from '@/shared/api';
-import { StorageKeys } from '@/shared/config';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { App as AntApp } from 'antd';
+import { clearSession, readToken, subscribeSessionExpired, writeToken } from '@/shared/api';
+import { StorageKeys, UiMessages } from '@/shared/config';
 
 export interface IPlatformAdmin {
   login: string;
@@ -35,16 +22,6 @@ const readAdmin = (): IPlatformAdmin | null => {
   return raw ? (JSON.parse(raw) as IPlatformAdmin) : null;
 };
 
-const readValidAdmin = (): IPlatformAdmin | null => {
-  if (isTokenExpired(readToken())) {
-    clearSession();
-
-    return null;
-  }
-
-  return readAdmin();
-};
-
 const AuthContext = createContext<IAuthValue>({
   admin: null,
   isAuthorized: false,
@@ -53,7 +30,17 @@ const AuthContext = createContext<IAuthValue>({
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [admin, setAdmin] = useState<IPlatformAdmin | null>(readValidAdmin);
+  const { message } = AntApp.useApp();
+  const [admin, setAdmin] = useState<IPlatformAdmin | null>(() => (readToken() ? readAdmin() : null));
+
+  const handleExpired = useCallback(() => {
+    if (admin) {
+      setAdmin(null);
+      message.warning(UiMessages.sessionExpired);
+    }
+  }, [admin, message]);
+
+  useEffect(() => subscribeSessionExpired('platform', handleExpired), [handleExpired]);
 
   const signIn = useCallback((token: string, nextAdmin: IPlatformAdmin) => {
     writeToken(token);
@@ -64,12 +51,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = useCallback(() => {
     clearSession();
     setAdmin(null);
-  }, []);
-
-  useEffect(() => {
-    setOnPlatformUnauthorized(() => setAdmin(null));
-
-    return () => setOnPlatformUnauthorized(null);
   }, []);
 
   const value = useMemo<IAuthValue>(

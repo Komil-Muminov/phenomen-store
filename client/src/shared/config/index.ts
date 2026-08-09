@@ -78,4 +78,25 @@ export const UiMessages = {
   loadError: 'Не удалось загрузить данные',
   retry: 'Повторить',
   emptyList: 'Пока пусто',
+  networkError: 'Нет связи с интернетом. Проверьте подключение и повторите',
+  timeoutError: 'Сервер долго не отвечает. Попробуйте ещё раз',
+  authError: 'Нужно войти в аккаунт, чтобы продолжить',
+  forbiddenError: 'Этот раздел вам недоступен',
+  notFoundError: 'Мы не нашли эти данные',
+  serverError: 'На сервере неполадки. Попробуйте позже',
 } as const;
+
+export const HttpStatus = {
+  unauthorized: 401,
+  forbidden: 403,
+  notFound: 404,
+  serverError: 500,
+} as const;
+
+export const TimeoutCodes: string[] = ['ECONNABORTED', 'ETIMEDOUT'];
+
+export const StatusMessages: Record<number, string> = {
+  [HttpStatus.unauthorized]: UiMessages.authError,
+  [HttpStatus.forbidden]: UiMessages.forbiddenError,
+  [HttpStatus.notFound]: UiMessages.notFoundError,
+};

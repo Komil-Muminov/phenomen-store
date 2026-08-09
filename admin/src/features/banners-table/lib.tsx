@@ -1,6 +1,12 @@
 import { Button, Space, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { EditOutlined, PictureOutlined, StopOutlined } from '@ant-design/icons';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  HolderOutlined,
+  PictureOutlined,
+  StopOutlined,
+} from '@ant-design/icons';
 import { BannerActionLabels, BannerActionTypes } from '@/shared/config';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { If } from '@/shared/ui/If';
@@ -9,6 +15,7 @@ import type { IShopBanner } from '@/entities/shop';
 interface IHandlers {
   onEdit: (banner: IShopBanner) => void;
   onDeactivate: (banner: IShopBanner) => void;
+  onDelete: (banner: IShopBanner) => void;
   categoryNames: Record<string, string>;
   productNames: Record<string, string>;
 }
@@ -49,9 +56,20 @@ const formatTarget = (
 export const buildBannerColumns = ({
   onEdit,
   onDeactivate,
+  onDelete,
   categoryNames,
   productNames,
 }: IHandlers): ColumnsType<IShopBanner> => [
+  {
+    title: '',
+    key: 'drag',
+    width: 40,
+    render: () => (
+      <Tooltip title="Потяните строку, чтобы поменять порядок">
+        <HolderOutlined className="cursor-grab text-slate-400" aria-hidden="true" />
+      </Tooltip>
+    ),
+  },
   {
     title: 'Картинка',
     dataIndex: 'imageUrl',
@@ -132,7 +150,6 @@ export const buildBannerColumns = ({
           <Tooltip title="Скрыть">
             <Button
               type="text"
-              danger
               aria-label="Скрыть баннер"
               icon={<StopOutlined />}
               onClick={() => onDeactivate(banner)}
@@ -140,6 +157,17 @@ export const buildBannerColumns = ({
             />
           </Tooltip>
         </If>
+
+        <Tooltip title="Удалить">
+          <Button
+            type="text"
+            danger
+            aria-label="Удалить баннер"
+            icon={<DeleteOutlined />}
+            onClick={() => onDelete(banner)}
+            className="cursor-pointer!"
+          />
+        </Tooltip>
       </Space>
     ),
   },

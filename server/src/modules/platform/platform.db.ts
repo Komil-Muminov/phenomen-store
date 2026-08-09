@@ -1,5 +1,11 @@
-import { query, withTenant } from '@/shared/db';
-import { IAuditEntry, IPlatformUserRow, ITenantSummary } from '@/modules/platform/types';
+import { query, tenantQuery, withTenant } from '@/shared/db';
+import { UserRoles } from '@/shared/config';
+import {
+  IAuditEntry,
+  IPlatformUserRow,
+  ITenantStaffRow,
+  ITenantSummary,
+} from '@/modules/platform/types';
 
 interface ITenantRawRow {
   id: string;
@@ -176,6 +182,82 @@ export const insertTenantOwner = async (
 
   return result.rows[0].id;
 });
+
+const STAFF_COLUMNS = 'id, name, email, phone, role, status, created_at';
+
+export const selectTenantStaff = async (tenantId: string): Promise<ITenantStaffRow[]> => (
+  tenantQuery<ITenantStaffRow>(
+    tenantId,
+    `SELECT ${STAFF_COLUMNS} FROM users
+     WHERE tenant_id = $1 AND role <> $2
+     ORDER BY created_at`,
+    [tenantId, UserRoles.customer],
+  )
+);
+
+export const selectTenantStaffById = async (
+  tenantId: string,
+  id: string,
+): Promise<ITenantStaffRow | null> => {
+  const rows = await tenantQuery<ITenantStaffRow>(
+    tenantId,
+    `SELECT ${STAFF_COLUMNS} FROM users
+     WHERE tenant_id = $1 AND id = $2 AND role <> $3
+     LIMIT 1`,
+    [tenantId, id, UserRoles.customer],
+  );
+
+  return rows[0] ?? null;
+};
+
+export const countTenantOwners = async (tenantId: string): Promise<number> => {
+  const rows = await tenantQuery<{ total: string }>(
+    tenantId,
+    'SELECT COUNT(*)::text AS total FROM users WHERE tenant_id = $1 AND role = $2',
+    [tenantId, UserRoles.owner],
+  );
+
+  return Number(rows[0]?.total ?? 0);
+};
+
+export const updateTenantStaffFields = async (
+  tenantId: string,
+  id: string,
+  name: string | null,
+  email: string | null,
+  phone: string | null,
+  passwordHash: string | null,
+  status: string | null,
+): Promise<void> => {
+  await tenantQuery(
+    tenantId,
+    `UPDATE users
+     SET name = COALESCE($3, name),
+         email = $4,
+         phone = $5,
+         password_hash = COALESCE($6, password_hash),
+         status = COALESCE($7, status),
+         updated_at = now()
+     WHERE tenant_id = $1 AND id = $2`,
+    [tenantId, id, name, email, phone, passwordHash, status],
+  );
+};
+
+export const deleteTenantStaff = async (tenantId: string, id: string): Promise<void> => {
+  await tenantQuery(
+    tenantId,
+    'DELETE FROM users WHERE tenant_id = $1 AND id = $2',
+    [tenantId, id],
+  );
+};
+
+export const deleteStaffLoginsByUser = async (userId: string): Promise<void> => {
+  await query('DELETE FROM staff_logins WHERE user_id = $1', [userId]);
+};
+
+export const deleteTenantById = async (id: string): Promise<void> => {
+  await query('DELETE FROM tenants WHERE id = $1', [id]);
+};
 
 export const insertStaffLogin = async (
   login: string,

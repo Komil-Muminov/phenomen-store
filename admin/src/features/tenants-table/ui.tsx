@@ -7,24 +7,11 @@ import type { ITenant } from '@/entities/tenant';
 interface IProps {
   items: ITenant[];
   isLoading: boolean;
-  onEdit: (tenant: ITenant) => void;
-  onAddOwner: (tenant: ITenant) => void;
-  onDeactivate: (tenant: ITenant) => void;
-  onActivate: (tenant: ITenant) => void;
+  onOpen: (tenant: ITenant) => void;
 }
 
-export const TenantsTable = ({
-  items,
-  isLoading,
-  onEdit,
-  onAddOwner,
-  onDeactivate,
-  onActivate,
-}: IProps) => {
-  const columns = useMemo(
-    () => buildTenantColumns({ onEdit, onAddOwner, onDeactivate, onActivate }),
-    [onEdit, onAddOwner, onDeactivate, onActivate],
-  );
+export const TenantsTable = ({ items, isLoading, onOpen }: IProps) => {
+  const columns = useMemo(() => buildTenantColumns({ onOpen }), [onOpen]);
 
   return (
     <Table<ITenant>

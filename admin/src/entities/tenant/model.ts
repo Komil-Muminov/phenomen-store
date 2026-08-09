@@ -40,6 +40,16 @@ export interface IOwnerCreateBody {
   password: string;
 }
 
+export interface ITenantStaff {
+  id: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  role: string;
+  status: string;
+  createdAt: string;
+}
+
 export interface IPlatformSession {
   token: string;
   login: string;

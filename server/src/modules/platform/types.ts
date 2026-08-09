@@ -5,7 +5,11 @@ export const PlatformPaths = {
   tenantUpdate: '/tenants/update/:id',
   tenantDeactivate: '/tenants/deactivate/:id',
   tenantActivate: '/tenants/activate/:id',
+  tenantDelete: '/tenants/delete/:id',
   ownerCreate: '/tenants/owner/create/:id',
+  ownerSearch: '/tenants/owner/search/:id',
+  ownerUpdate: '/tenants/owner/update/:id/:staffId',
+  ownerDelete: '/tenants/owner/delete/:id/:staffId',
   passwordUpdate: '/auth/password/update',
   signin: '/auth/signin',
   auditSearch: '/audit/search',
@@ -18,7 +22,10 @@ export const PlatformActions = {
   tenantUpdate: 'tenant.update',
   tenantDeactivate: 'tenant.deactivate',
   tenantActivate: 'tenant.activate',
+  tenantDelete: 'tenant.delete',
   ownerCreate: 'tenant.owner.create',
+  ownerUpdate: 'tenant.owner.update',
+  ownerDelete: 'tenant.owner.delete',
   passwordUpdate: 'auth.password.update',
 } as const;
 
@@ -31,9 +38,33 @@ export const PlatformErrors = {
   currentPasswordWrong: 'Текущий пароль указан неверно',
   passwordTooShort: 'Пароль должен быть не короче 8 символов',
   passwordSame: 'Новый пароль совпадает с текущим',
+  keyMismatch: 'Введите ключ магазина точно так, как он указан в таблице',
+  staffMissing: 'Сотрудник магазина не найден',
+  staffLastOwner: 'Нельзя удалить единственного владельца магазина',
+  staffContactRequired: 'Нужен email или телефон для входа',
 } as const;
 
+export interface ITenantStaffRow {
+  id: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  role: string;
+  status: string;
+  created_at: string;
+}
+
+export interface IUpdateStaffPayload {
+  name?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+  status?: string;
+}
+
 export const PASSWORD_MIN_LENGTH = 8;
+
+export const OWNER_PASSWORD_MIN_LENGTH = 6;
 
 export const TenantStatuses = {
   active: 'active',

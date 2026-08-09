@@ -1,21 +1,13 @@
-import {
-  createContext,
-  ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { App as AntApp } from 'antd';
 import {
   clearShopSession,
-  isTokenExpired,
   readShopTenant,
   readShopToken,
-  setOnShopUnauthorized,
+  subscribeSessionExpired,
   writeShopSession,
 } from '@/shared/api';
-import { StorageKeys } from '@/shared/config';
+import { StorageKeys, UiMessages } from '@/shared/config';
 
 export interface IShopUser {
   id: string;
@@ -38,16 +30,6 @@ const readShopUser = (): IShopUser | null => {
   return raw ? (JSON.parse(raw) as IShopUser) : null;
 };
 
-const readValidShopUser = (): IShopUser | null => {
-  if (isTokenExpired(readShopToken())) {
-    clearShopSession();
-
-    return null;
-  }
-
-  return readShopUser();
-};
-
 const ShopAuthContext = createContext<IShopAuthValue>({
   user: null,
   tenantKey: '',
@@ -57,8 +39,19 @@ const ShopAuthContext = createContext<IShopAuthValue>({
 });
 
 export const ShopAuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<IShopUser | null>(readValidShopUser);
+  const { message } = AntApp.useApp();
+  const [user, setUser] = useState<IShopUser | null>(() => (readShopToken() ? readShopUser() : null));
   const [tenantKey, setTenantKey] = useState<string>(() => readShopTenant() ?? '');
+
+  const handleExpired = useCallback(() => {
+    if (user) {
+      setUser(null);
+      setTenantKey('');
+      message.warning(UiMessages.sessionExpired);
+    }
+  }, [user, message]);
+
+  useEffect(() => subscribeSessionExpired('shop', handleExpired), [handleExpired]);
 
   const signIn = useCallback((token: string, nextTenant: string, nextUser: IShopUser) => {
     writeShopSession(token, nextTenant);
@@ -71,15 +64,6 @@ export const ShopAuthProvider = ({ children }: { children: ReactNode }) => {
     clearShopSession();
     setUser(null);
     setTenantKey('');
-  }, []);
-
-  useEffect(() => {
-    setOnShopUnauthorized(() => {
-      setUser(null);
-      setTenantKey('');
-    });
-
-    return () => setOnShopUnauthorized(null);
   }, []);
 
   const value = useMemo<IShopAuthValue>(

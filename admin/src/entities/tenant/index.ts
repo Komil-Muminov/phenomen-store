@@ -4,6 +4,7 @@ export type {
   ITenantCreateBody,
   ITenantUpdateBody,
   IOwnerCreateBody,
+  ITenantStaff,
   IPlatformSession,
   ISigninResult,
   IAuditEntry,

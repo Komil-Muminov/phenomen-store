@@ -34,12 +34,16 @@ export type TBannerActionType = (typeof BannerActionTypes)[keyof typeof BannerAc
 
 export const BannerPaths = {
   manageSearch: '/manage/search',
+  reorder: '/reorder',
 } as const;
 
 export const BannerDefaults = {
   position: 100,
   sectionPosition: 10,
+  positionStep: 10,
 } as const;
+
+export const MaxReorderItems = 200;
 
 export const BannerErrors = {
   imageRequired: 'Укажите ссылку на картинку баннера',
@@ -49,6 +53,8 @@ export const BannerErrors = {
   targetRequired: 'Выберите категорию или товар для перехода',
   targetNotFound: 'Категория или товар не найдены в этом магазине',
   datesInvalid: 'Дата окончания показа раньше даты начала',
+  orderInvalid: 'Некорректный список баннеров для сортировки',
+  orderUnknownItem: 'В списке сортировки есть баннер из другого магазина',
 } as const;
 
 export const UrlPattern = /^https?:\/\/[^\s]+$/i;

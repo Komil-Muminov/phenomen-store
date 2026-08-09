@@ -1,18 +1,21 @@
 import { useEffect } from 'react';
-import { Form, Input, Modal, Typography } from 'antd';
-import { UiMessages } from '@/shared/config';
-import type { ITenant } from '@/entities/tenant';
+import { Alert, Form, Input, Modal, Select, Typography } from 'antd';
+import { StaffRoleLabels, StaffStatuses, UiMessages } from '@/shared/config';
+import { If } from '@/shared/ui/If';
+import type { ITenant, ITenantStaff } from '@/entities/tenant';
 
 export interface IOwnerFormValues {
   name: string;
-  email: string;
+  email?: string;
   phone?: string;
-  password: string;
+  password?: string;
+  status?: string;
 }
 
 interface IProps {
   open: boolean;
   tenant: ITenant | null;
+  editing: ITenantStaff | null;
   isSaving: boolean;
   onSubmit: (values: IOwnerFormValues) => void;
   onCancel: () => void;
@@ -20,20 +23,38 @@ interface IProps {
 
 const PASSWORD_MIN = 6;
 
-export const OwnerForm = ({ open, tenant, isSaving, onSubmit, onCancel }: IProps) => {
+const STATUS_OPTIONS = [
+  { value: StaffStatuses.active, label: 'активен' },
+  { value: StaffStatuses.disabled, label: 'доступ отключён' },
+];
+
+export const OwnerForm = ({
+  open,
+  tenant,
+  editing,
+  isSaving,
+  onSubmit,
+  onCancel,
+}: IProps) => {
   const [form] = Form.useForm<IOwnerFormValues>();
 
   useEffect(() => {
     if (open) {
-      form.resetFields();
+      form.setFieldsValue({
+        name: editing?.name ?? '',
+        email: editing?.email ?? '',
+        phone: editing?.phone ?? '',
+        password: '',
+        status: editing?.status ?? StaffStatuses.active,
+      });
     }
-  }, [open, form]);
+  }, [open, editing, form]);
 
   return (
     <Modal
       open={open}
-      title="Владелец магазина"
-      okText="Создать"
+      title={editing ? `Сотрудник: ${StaffRoleLabels[editing.role] ?? editing.role}` : 'Новый владелец магазина'}
+      okText="Сохранить"
       cancelText="Отмена"
       confirmLoading={isSaving}
       onOk={() => form.submit()}
@@ -41,8 +62,8 @@ export const OwnerForm = ({ open, tenant, isSaving, onSubmit, onCancel }: IProps
       destroyOnClose
     >
       <Typography.Paragraph type="secondary" className="mb-4!">
-        Магазин: <span className="font-mono">{tenant?.key}</span>. Владелец сможет войти в
-        приложение по email или телефону с этим паролем.
+        Магазин <span className="font-mono">{tenant?.key}</span>. Вход в кабинет и в приложение —
+        по email или телефону с этим паролем.
       </Typography.Paragraph>
 
       <Form form={form} layout="vertical" onFinish={onSubmit} requiredMark={false}>
@@ -51,34 +72,62 @@ export const OwnerForm = ({ open, tenant, isSaving, onSubmit, onCancel }: IProps
           label="Имя"
           rules={[{ required: true, message: UiMessages.required }]}
         >
-          <Input placeholder="Иван Иванов" />
+          <Input placeholder="Иван Иванов" autoFocus />
         </Form.Item>
 
         <Form.Item
           name="email"
           label="Email"
+          dependencies={['phone']}
           rules={[
-            { required: true, message: UiMessages.required },
             { type: 'email', message: 'Некорректный email' },
+            {
+              validator: (_rule, value) => (
+                value || form.getFieldValue('phone')
+                  ? Promise.resolve()
+                  : Promise.reject(new Error('Заполните email или телефон'))
+              ),
+            },
           ]}
         >
           <Input placeholder="owner@shop.ru" autoComplete="off" />
         </Form.Item>
 
         <Form.Item name="phone" label="Телефон">
-          <Input placeholder="+7 900 000-00-00" />
+          <Input placeholder="+992 00 000 0000" autoComplete="off" />
         </Form.Item>
 
         <Form.Item
           name="password"
-          label="Пароль"
+          label={editing ? 'Новый пароль' : 'Пароль'}
+          extra={editing ? 'Оставьте пустым, чтобы не менять пароль' : undefined}
           rules={[
-            { required: true, message: UiMessages.required },
-            { min: PASSWORD_MIN, message: `Минимум ${PASSWORD_MIN} символов` },
+            { required: !editing, message: UiMessages.required },
+            {
+              validator: (_rule, value) => (
+                !value || String(value).length >= PASSWORD_MIN
+                  ? Promise.resolve()
+                  : Promise.reject(new Error(`Минимум ${PASSWORD_MIN} символов`))
+              ),
+            },
           ]}
         >
-          <Input.Password placeholder="Пароль для входа" autoComplete="new-password" />
+          <Input.Password autoComplete="new-password" />
         </Form.Item>
+
+        <If condition={Boolean(editing)}>
+          <Form.Item name="status" label="Доступ">
+            <Select options={STATUS_OPTIONS} />
+          </Form.Item>
+        </If>
+
+        <If condition={!editing}>
+          <Alert
+            type="info"
+            showIcon
+            message="Логин выдаётся сразу — сотрудник заходит на ту же страницу входа, что и вы"
+          />
+        </If>
       </Form>
     </Modal>
   );

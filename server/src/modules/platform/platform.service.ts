@@ -7,12 +7,19 @@ import { invalidateTenantCache } from '@/modules/tenant';
 import { loginWithPassword } from '@/modules/auth';
 import { applyVerticalPreset } from '@/modules/attributes';
 import {
+  countTenantOwners,
   countTenants,
+  deleteStaffLoginsByUser,
+  deleteTenantById,
+  deleteTenantStaff,
   existsStaffLogin,
   existsTenantKey,
   insertAuditEntry,
   insertStaffLogin,
   selectStaffLogin,
+  selectTenantStaff,
+  selectTenantStaffById,
+  updateTenantStaffFields,
   insertDefaultConfig,
   insertPlatformUser,
   insertTenant,
@@ -31,7 +38,10 @@ import {
 import {
   ICreateOwnerPayload,
   ICreateTenantPayload,
+  ITenantStaffRow,
   ITenantSummary,
+  IUpdateStaffPayload,
+  OWNER_PASSWORD_MIN_LENGTH,
   PASSWORD_MIN_LENGTH,
   PlatformActions,
   PlatformErrors,
@@ -378,8 +388,12 @@ export const createTenantOwner = async (
   const email = pickString(payload.email) || null;
   const password = typeof payload.password === 'string' ? payload.password : '';
 
-  if ((!phone && !email) || password.length < 6) {
-    throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
+  if (!phone && !email) {
+    throw new AppError(PlatformErrors.staffContactRequired, HttpStatus.badRequest);
+  }
+
+  if (password.length < OWNER_PASSWORD_MIN_LENGTH) {
+    throw new AppError(PlatformErrors.passwordTooShort, HttpStatus.badRequest);
   }
 
   const directoryLogin = (email ?? phone) as string;
@@ -413,4 +427,157 @@ export const createTenantOwner = async (
   });
 
   return { id: ownerId };
+};
+
+const mapStaff = (row: ITenantStaffRow) => ({
+  id: row.id,
+  name: row.name,
+  email: row.email,
+  phone: row.phone,
+  role: row.role,
+  status: row.status,
+  createdAt: row.created_at,
+});
+
+const requireStaffRow = async (tenantId: string, id: string): Promise<ITenantStaffRow> => {
+  const staff = await selectTenantStaffById(tenantId, id);
+
+  if (!staff) {
+    throw new AppError(PlatformErrors.staffMissing, HttpStatus.notFound);
+  }
+
+  return staff;
+};
+
+const syncStaffLogins = async (
+  tenantId: string,
+  userId: string,
+  email: string | null,
+  phone: string | null,
+): Promise<void> => {
+  await deleteStaffLoginsByUser(userId);
+
+  if (email) {
+    await insertStaffLogin(email, tenantId, userId);
+  }
+
+  if (phone) {
+    await insertStaffLogin(phone, tenantId, userId);
+  }
+};
+
+const requireFreeLogin = async (login: string, userId: string): Promise<void> => {
+  const existing = await selectStaffLogin(login);
+
+  if (existing && existing.user_id !== userId) {
+    throw new AppError(PlatformErrors.loginTaken, HttpStatus.conflict);
+  }
+};
+
+export const listTenantStaff = async (tenantId: string) => {
+  await requireTenantRow(tenantId);
+
+  return (await selectTenantStaff(tenantId)).map(mapStaff);
+};
+
+export const updateTenantStaff = async (
+  actor: IPlatformContext,
+  tenantId: string,
+  staffId: string,
+  payload: IUpdateStaffPayload,
+  ip: string | null,
+) => {
+  const tenant = await requireTenantRow(tenantId);
+  const staff = await requireStaffRow(tenant.id, staffId);
+  const email = payload.email === undefined ? staff.email : pickString(payload.email) || null;
+  const phone = payload.phone === undefined ? staff.phone : pickString(payload.phone) || null;
+  const password = typeof payload.password === 'string' ? payload.password : '';
+
+  if (!email && !phone) {
+    throw new AppError(PlatformErrors.staffContactRequired, HttpStatus.badRequest);
+  }
+
+  if (password && password.length < OWNER_PASSWORD_MIN_LENGTH) {
+    throw new AppError(PlatformErrors.passwordTooShort, HttpStatus.badRequest);
+  }
+
+  await Promise.all(
+    [email, phone].filter((login): login is string => Boolean(login))
+      .map((login) => requireFreeLogin(login, staff.id)),
+  );
+
+  await updateTenantStaffFields(
+    tenant.id,
+    staff.id,
+    pickString(payload.name) || null,
+    email,
+    phone,
+    password ? await bcrypt.hash(password, SALT_ROUNDS) : null,
+    pickString(payload.status) || null,
+  );
+
+  await syncStaffLogins(tenant.id, staff.id, email, phone);
+  await insertAuditEntry({
+    actorId: actor.id,
+    actorLogin: actor.login,
+    action: PlatformActions.ownerUpdate,
+    tenantId: tenant.id,
+    payload: { staffId: staff.id, email, phone, passwordChanged: Boolean(password) },
+    ip,
+  });
+
+  return mapStaff(await requireStaffRow(tenant.id, staff.id));
+};
+
+export const deleteTenantStaffMember = async (
+  actor: IPlatformContext,
+  tenantId: string,
+  staffId: string,
+  ip: string | null,
+) => {
+  const tenant = await requireTenantRow(tenantId);
+  const staff = await requireStaffRow(tenant.id, staffId);
+
+  if (staff.role === UserRoles.owner && await countTenantOwners(tenant.id) < 2) {
+    throw new AppError(PlatformErrors.staffLastOwner, HttpStatus.conflict);
+  }
+
+  await deleteStaffLoginsByUser(staff.id);
+  await deleteTenantStaff(tenant.id, staff.id);
+  await insertAuditEntry({
+    actorId: actor.id,
+    actorLogin: actor.login,
+    action: PlatformActions.ownerDelete,
+    tenantId: tenant.id,
+    payload: { staffId: staff.id, email: staff.email, phone: staff.phone },
+    ip,
+  });
+
+  return { deleted: true };
+};
+
+export const deleteTenant = async (
+  actor: IPlatformContext,
+  id: string,
+  payload: Record<string, unknown>,
+  ip: string | null,
+) => {
+  const tenant = await requireTenantRow(id);
+
+  if (pickString(payload.key).toLowerCase() !== tenant.key) {
+    throw new AppError(PlatformErrors.keyMismatch, HttpStatus.badRequest);
+  }
+
+  await deleteTenantById(tenant.id);
+  invalidateTenantCache(tenant.key);
+  await insertAuditEntry({
+    actorId: actor.id,
+    actorLogin: actor.login,
+    action: PlatformActions.tenantDelete,
+    tenantId: null,
+    payload: { tenantId: tenant.id, key: tenant.key, name: tenant.name },
+    ip,
+  });
+
+  return { deleted: true };
 };
