@@ -13,7 +13,7 @@ import { ShopShell } from '@/widgets/shop-shell';
 import type { IShopBanner, IShopCategory, IShopProductList } from '@/entities/shop';
 
 export const ShopBannersPage = () => {
-  const { message } = AntApp.useApp();
+  const { message, modal } = AntApp.useApp();
   const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<IShopBanner | null>(null);
@@ -47,6 +47,10 @@ export const ShopBannersPage = () => {
     (body) => `${ApiRoutes.shopBannerDeactivate}/${body.id}`,
     { scope: 'shop', method: 'patch', invalidate },
   );
+  const deleteMutation = useMutationQuery<{ id: string }, { deleted: boolean }>(
+    (body) => `${ApiRoutes.shopBannerDelete}/${body.id}`,
+    { scope: 'shop', method: 'delete', invalidate },
+  );
 
   const closeForm = useCallback(() => {
     setFormOpen(false);
@@ -73,6 +77,23 @@ export const ShopBannersPage = () => {
       onError: (error) => message.error(extractErrorMessage(error)),
     });
   }, [deactivateMutation, message]);
+
+  const handleDelete = useCallback((banner: IShopBanner) => {
+    modal.confirm({
+      title: banner.title ? `Удалить баннер «${banner.title}»?` : 'Удалить баннер?',
+      content: 'Баннер пропадёт из карусели навсегда. Чтобы убрать его временно, используйте «Скрыть».',
+      okText: 'Удалить',
+      okButtonProps: { danger: true },
+      cancelText: 'Отмена',
+      onOk: () => new Promise<void>((resolve) => {
+        deleteMutation.mutate({ id: banner.id }, {
+          onSuccess: () => message.success(UiMessages.deletedBanner),
+          onError: (error) => message.error(extractErrorMessage(error)),
+          onSettled: () => resolve(),
+        });
+      }),
+    });
+  }, [deleteMutation, modal, message]);
 
   const handleSubmit = useCallback((values: IBannerFormValues) => {
     const onError = (error: Error) => message.error(extractErrorMessage(error));
@@ -162,6 +183,7 @@ export const ShopBannersPage = () => {
           isLoading={bannersQuery.isLoading}
           onEdit={handleEdit}
           onDeactivate={handleDeactivate}
+          onDelete={handleDelete}
         />
       </section>
 

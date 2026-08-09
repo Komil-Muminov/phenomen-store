@@ -108,6 +108,14 @@ export const setBannerActive = async (
   return rows[0];
 };
 
+export const deleteBannerById = async (tenantId: string, id: string): Promise<void> => {
+  await tenantQuery(
+    tenantId,
+    'DELETE FROM banners WHERE tenant_id = $1 AND id = $2',
+    [tenantId, id],
+  );
+};
+
 export const existsTenantCategory = async (tenantId: string, id: string): Promise<boolean> => {
   const rows = await tenantQuery<{ id: string }>(
     tenantId,

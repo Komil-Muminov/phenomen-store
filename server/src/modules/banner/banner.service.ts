@@ -4,6 +4,7 @@ import { AppError, pickString } from '@/shared/utils';
 import { SectionTypes } from '@/modules/storefront';
 import {
   activateCarouselSection,
+  deleteBannerById,
   ensureCarouselSection,
   existsTenantCategory,
   existsTenantProduct,
@@ -213,4 +214,11 @@ export const deactivateBanner = async (tenant: ITenantContext, id: string) => {
   await requireBanner(tenant, id);
 
   return mapBanner(await setBannerActive(tenant.id, id, false));
+};
+
+export const removeBanner = async (tenant: ITenantContext, id: string) => {
+  await requireBanner(tenant, id);
+  await deleteBannerById(tenant.id, id);
+
+  return { deleted: true };
 };

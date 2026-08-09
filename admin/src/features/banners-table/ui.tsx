@@ -11,6 +11,7 @@ interface IProps {
   isLoading: boolean;
   onEdit: (banner: IShopBanner) => void;
   onDeactivate: (banner: IShopBanner) => void;
+  onDelete: (banner: IShopBanner) => void;
 }
 
 const buildNames = (items: { id: string; name: string }[]): Record<string, string> => (
@@ -24,12 +25,13 @@ export const BannersTable = ({
   isLoading,
   onEdit,
   onDeactivate,
+  onDelete,
 }: IProps) => {
   const categoryNames = useMemo(() => buildNames(categories), [categories]);
   const productNames = useMemo(() => buildNames(products), [products]);
   const columns = useMemo(
-    () => buildBannerColumns({ onEdit, onDeactivate, categoryNames, productNames }),
-    [onEdit, onDeactivate, categoryNames, productNames],
+    () => buildBannerColumns({ onEdit, onDeactivate, onDelete, categoryNames, productNames }),
+    [onEdit, onDeactivate, onDelete, categoryNames, productNames],
   );
 
   return (

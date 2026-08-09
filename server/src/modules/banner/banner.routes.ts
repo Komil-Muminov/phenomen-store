@@ -7,6 +7,7 @@ import {
   createBanner,
   deactivateBanner,
   listBanners,
+  removeBanner,
   updateBanner,
 } from '@/modules/banner/banner.service';
 import { BannerPaths } from '@/modules/banner/types';
@@ -73,6 +74,21 @@ bannerRouter.patch(
       const id = requireUuid(req.params.id, 'id');
 
       sendOk(res, await deactivateBanner(requireTenant(req), id));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+bannerRouter.delete(
+  ApiActions.delete,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+
+      sendOk(res, await removeBanner(requireTenant(req), id));
     } catch (error) {
       next(error);
     }
