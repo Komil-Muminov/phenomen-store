@@ -17,14 +17,25 @@ import {
   changePlatformPassword,
   createTenant,
   createTenantOwner,
+  deleteTenant,
+  deleteTenantStaffMember,
   listAudit,
   listAuditActions,
+  listTenantStaff,
   deactivateTenant,
   listTenants,
   signIn,
   updateTenant,
+  updateTenantStaff,
 } from '@/modules/platform/platform.service';
-import { ICreateOwnerPayload, ICreateTenantPayload, PlatformPaths } from '@/modules/platform/types';
+import {
+  ICreateOwnerPayload,
+  ICreateTenantPayload,
+  IUpdateStaffPayload,
+  PlatformPaths,
+} from '@/modules/platform/types';
+
+const STAFF_ID_PARAM = 'staffId';
 
 const requireActor = (req: IAppRequest): IPlatformContext => {
   if (!req.platform) {
@@ -203,6 +214,74 @@ platformRouter.post(
           readIp(req),
         ),
       );
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+platformRouter.get(
+  PlatformPaths.ownerSearch,
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+
+      sendOk(res, await listTenantStaff(id));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+platformRouter.patch(
+  PlatformPaths.ownerUpdate,
+  platformRoleMiddleware([PlatformRoles.superadmin]),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+      const staffId = requireUuid(req.params[STAFF_ID_PARAM], STAFF_ID_PARAM);
+
+      sendOk(res, await updateTenantStaff(
+        requireActor(req),
+        id,
+        staffId,
+        (req.body ?? {}) as IUpdateStaffPayload,
+        readIp(req),
+      ));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+platformRouter.delete(
+  PlatformPaths.ownerDelete,
+  platformRoleMiddleware([PlatformRoles.superadmin]),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+      const staffId = requireUuid(req.params[STAFF_ID_PARAM], STAFF_ID_PARAM);
+
+      sendOk(res, await deleteTenantStaffMember(requireActor(req), id, staffId, readIp(req)));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+platformRouter.delete(
+  PlatformPaths.tenantDelete,
+  platformRoleMiddleware([PlatformRoles.superadmin]),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+
+      sendOk(res, await deleteTenant(
+        requireActor(req),
+        id,
+        (req.body ?? {}) as Record<string, unknown>,
+        readIp(req),
+      ));
     } catch (error) {
       next(error);
     }

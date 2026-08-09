@@ -21,7 +21,11 @@ export const ApiRoutes = {
   tenantsUpdate: '/platform/tenants/update',
   tenantsDeactivate: '/platform/tenants/deactivate',
   tenantsActivate: '/platform/tenants/activate',
+  tenantsDelete: '/platform/tenants/delete',
   tenantsOwnerCreate: '/platform/tenants/owner/create',
+  tenantsStaffSearch: '/platform/tenants/owner/search',
+  tenantsStaffUpdate: '/platform/tenants/owner/update',
+  tenantsStaffDelete: '/platform/tenants/owner/delete',
   platformAudit: '/platform/audit/search',
   platformAuditActions: '/platform/audit/actions',
   shopLogin: '/auth/login',
@@ -56,6 +60,7 @@ export const ApiRoutes = {
 
 export const QueryKeys = {
   tenants: 'tenants',
+  tenantStaff: 'tenant-staff',
   audit: 'audit',
   shopOrders: 'shop-orders',
   shopProducts: 'shop-products',
@@ -175,7 +180,27 @@ export const AuditActionLabels: Record<string, string> = {
   'tenant.deactivate': 'магазин отключён',
   'tenant.activate': 'магазин включён',
   'tenant.owner.create': 'добавлен владелец',
+  'tenant.delete': 'магазин удалён',
+  'tenant.owner.update': 'изменён сотрудник',
+  'tenant.owner.delete': 'удалён сотрудник',
 };
+
+export const StaffRoles = {
+  owner: 'owner',
+  admin: 'admin',
+  manager: 'manager',
+} as const;
+
+export const StaffRoleLabels: Record<string, string> = {
+  owner: 'владелец',
+  admin: 'администратор',
+  manager: 'менеджер',
+};
+
+export const StaffStatuses = {
+  active: 'active',
+  disabled: 'disabled',
+} as const;
 
 export const TenantStatuses = {
   active: 'active',
@@ -193,6 +218,11 @@ export const UiMessages = {
   updatedTenant: 'Изменения сохранены',
   deactivatedTenant: 'Магазин отключён',
   createdOwner: 'Владелец добавлен',
+  activatedTenant: 'Магазин включён',
+  deletedTenant: 'Магазин удалён вместе со всеми данными',
+  updatedStaff: 'Данные сотрудника обновлены',
+  deletedStaff: 'Сотрудник удалён',
+  emptyStaff: 'У магазина пока нет сотрудников — добавьте владельца',
   emptyTenants: 'Магазинов пока нет',
   required: 'Обязательное поле',
   sessionExpired: 'Сессия истекла, войдите заново',

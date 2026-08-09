@@ -1,10 +1,6 @@
 import { useEffect } from 'react';
 import { Alert, Divider, Form, Input, Modal, Select } from 'antd';
-import { If } from '@/shared/ui/If';
 import { TenantPlans, TenantVerticals, UiMessages } from '@/shared/config';
-
-const OWNER_PASSWORD_MIN = 8;
-import type { ITenant } from '@/entities/tenant';
 
 export interface ITenantFormValues {
   key: string;
@@ -12,14 +8,13 @@ export interface ITenantFormValues {
   vertical: string;
   plan: string;
   bundleId?: string;
-  ownerLogin?: string;
-  ownerName?: string;
-  ownerPassword?: string;
+  ownerName: string;
+  ownerLogin: string;
+  ownerPassword: string;
 }
 
 interface IProps {
   open: boolean;
-  editing: ITenant | null;
   isSaving: boolean;
   onSubmit: (values: ITenantFormValues) => void;
   onCancel: () => void;
@@ -27,29 +22,31 @@ interface IProps {
 
 const KEY_PATTERN = /^[a-z0-9-]+$/;
 
-export const TenantForm = ({ open, editing, isSaving, onSubmit, onCancel }: IProps) => {
+const OWNER_PASSWORD_MIN = 8;
+
+export const TenantForm = ({ open, isSaving, onSubmit, onCancel }: IProps) => {
   const [form] = Form.useForm<ITenantFormValues>();
 
   useEffect(() => {
     if (open) {
       form.setFieldsValue({
-        key: editing?.key ?? '',
-        name: editing?.name ?? '',
-        vertical: editing?.vertical ?? TenantVerticals[0],
-        plan: editing?.plan ?? TenantPlans[0],
-        bundleId: editing?.bundleId ?? '',
-        ownerLogin: '',
+        key: '',
+        name: '',
+        vertical: TenantVerticals[0],
+        plan: TenantPlans[0],
+        bundleId: '',
         ownerName: '',
+        ownerLogin: '',
         ownerPassword: '',
       });
     }
-  }, [open, editing, form]);
+  }, [open, form]);
 
   return (
     <Modal
       open={open}
-      title={editing ? 'Редактирование магазина' : 'Новый магазин'}
-      okText="Сохранить"
+      title="Новый магазин"
+      okText="Создать магазин"
       cancelText="Отмена"
       confirmLoading={isSaving}
       onOk={() => form.submit()}
@@ -60,12 +57,13 @@ export const TenantForm = ({ open, editing, isSaving, onSubmit, onCancel }: IPro
         <Form.Item
           name="key"
           label="Ключ магазина"
+          extra="Менять потом нельзя — по нему магазин узнают приложение и кабинет"
           rules={[
             { required: true, message: UiMessages.required },
             { pattern: KEY_PATTERN, message: 'Только строчные латинские буквы, цифры и дефис' },
           ]}
         >
-          <Input placeholder="my-shop" disabled={Boolean(editing)} className="font-mono!" />
+          <Input placeholder="my-shop" autoFocus className="font-mono!" />
         </Form.Item>
 
         <Form.Item
@@ -76,55 +74,55 @@ export const TenantForm = ({ open, editing, isSaving, onSubmit, onCancel }: IPro
           <Input placeholder="Мой магазин" />
         </Form.Item>
 
-        <Form.Item name="vertical" label="Вертикаль">
-          <Select options={TenantVerticals.map((item) => ({ value: item, label: item }))} />
-        </Form.Item>
+        <div className="flex flex-wrap gap-3">
+          <Form.Item name="vertical" label="Вертикаль" className="min-w-40 flex-1">
+            <Select options={TenantVerticals.map((item) => ({ value: item, label: item }))} />
+          </Form.Item>
 
-        <Form.Item name="plan" label="Тарифный план">
-          <Select options={TenantPlans.map((item) => ({ value: item, label: item }))} />
-        </Form.Item>
+          <Form.Item name="plan" label="Тарифный план" className="min-w-40 flex-1">
+            <Select options={TenantPlans.map((item) => ({ value: item, label: item }))} />
+          </Form.Item>
+        </div>
 
         <Form.Item name="bundleId" label="Bundle ID">
           <Input placeholder="store.phenomen.myshop" className="font-mono!" />
         </Form.Item>
 
-        <If condition={!editing}>
-          <Divider className="mt-2! mb-4!">Доступ администратора магазина</Divider>
+        <Divider className="mt-2! mb-4!">Владелец магазина</Divider>
 
-          <Alert
-            type="info"
-            showIcon
-            className="mb-4!"
-            message="Эти данные владелец магазина будет вводить на той же странице входа"
-          />
+        <Alert
+          type="info"
+          showIcon
+          className="mb-4!"
+          message="Владелец создаётся сразу вместе с магазином и входит на этой же странице входа. Остальных сотрудников добавите в карточке магазина."
+        />
 
-          <Form.Item
-            name="ownerName"
-            label="Имя"
-            rules={[{ required: true, message: UiMessages.required }]}
-          >
-            <Input placeholder="Иван Иванов" />
-          </Form.Item>
+        <Form.Item
+          name="ownerName"
+          label="Имя владельца"
+          rules={[{ required: true, message: UiMessages.required }]}
+        >
+          <Input placeholder="Иван Иванов" />
+        </Form.Item>
 
-          <Form.Item
-            name="ownerLogin"
-            label="Логин — email или телефон"
-            rules={[{ required: true, message: UiMessages.required }]}
-          >
-            <Input placeholder="owner@shop.ru" autoComplete="off" />
-          </Form.Item>
+        <Form.Item
+          name="ownerLogin"
+          label="Логин — email или телефон"
+          rules={[{ required: true, message: UiMessages.required }]}
+        >
+          <Input placeholder="owner@shop.ru" autoComplete="off" />
+        </Form.Item>
 
-          <Form.Item
-            name="ownerPassword"
-            label="Пароль"
-            rules={[
-              { required: true, message: UiMessages.required },
-              { min: OWNER_PASSWORD_MIN, message: `Минимум ${OWNER_PASSWORD_MIN} символов` },
-            ]}
-          >
-            <Input.Password autoComplete="new-password" />
-          </Form.Item>
-        </If>
+        <Form.Item
+          name="ownerPassword"
+          label="Пароль"
+          rules={[
+            { required: true, message: UiMessages.required },
+            { min: OWNER_PASSWORD_MIN, message: `Минимум ${OWNER_PASSWORD_MIN} символов` },
+          ]}
+        >
+          <Input.Password autoComplete="new-password" />
+        </Form.Item>
       </Form>
     </Modal>
   );

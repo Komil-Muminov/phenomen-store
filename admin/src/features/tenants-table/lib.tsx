@@ -1,16 +1,11 @@
-import { Button, Space, Tag } from 'antd';
+import { Button, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { CheckCircleOutlined, EditOutlined, StopOutlined, UserAddOutlined } from '@ant-design/icons';
-import { Tooltip } from '@/shared/ui/Tooltip';
-import { If } from '@/shared/ui/If';
+import { SettingOutlined } from '@ant-design/icons';
 import { TenantStatuses } from '@/shared/config';
 import type { ITenant } from '@/entities/tenant';
 
 interface IHandlers {
-  onEdit: (tenant: ITenant) => void;
-  onAddOwner: (tenant: ITenant) => void;
-  onDeactivate: (tenant: ITenant) => void;
-  onActivate: (tenant: ITenant) => void;
+  onOpen: (tenant: ITenant) => void;
 }
 
 const PLAN_COLORS: Record<string, string> = {
@@ -21,12 +16,7 @@ const PLAN_COLORS: Record<string, string> = {
 
 const formatDate = (value: string): string => new Date(value).toLocaleDateString('ru-RU');
 
-export const buildTenantColumns = ({
-  onEdit,
-  onAddOwner,
-  onDeactivate,
-  onActivate,
-}: IHandlers): ColumnsType<ITenant> => [
+export const buildTenantColumns = ({ onOpen }: IHandlers): ColumnsType<ITenant> => [
   {
     title: 'Ключ',
     dataIndex: 'key',
@@ -71,53 +61,13 @@ export const buildTenantColumns = ({
     key: 'actions',
     align: 'right',
     render: (_value: unknown, tenant: ITenant) => (
-      <Space size={4}>
-        <Tooltip title="Редактировать">
-          <Button
-            type="text"
-            aria-label="Редактировать магазин"
-            icon={<EditOutlined />}
-            onClick={() => onEdit(tenant)}
-            className="cursor-pointer!"
-          />
-        </Tooltip>
-
-        <Tooltip title="Добавить владельца">
-          <Button
-            type="text"
-            aria-label="Добавить владельца"
-            icon={<UserAddOutlined />}
-            onClick={() => onAddOwner(tenant)}
-            className="cursor-pointer!"
-          />
-        </Tooltip>
-
-        <If
-          condition={tenant.status === TenantStatuses.active}
-          fallback={(
-            <Tooltip title="Включить">
-              <Button
-                type="text"
-                aria-label="Включить магазин"
-                icon={<CheckCircleOutlined />}
-                onClick={() => onActivate(tenant)}
-                className="cursor-pointer!"
-              />
-            </Tooltip>
-          )}
-        >
-          <Tooltip title="Отключить">
-            <Button
-              type="text"
-              danger
-              aria-label="Отключить магазин"
-              icon={<StopOutlined />}
-              onClick={() => onDeactivate(tenant)}
-              className="cursor-pointer!"
-            />
-          </Tooltip>
-        </If>
-      </Space>
+      <Button
+        icon={<SettingOutlined />}
+        onClick={() => onOpen(tenant)}
+        className="cursor-pointer! transition-colors! duration-200!"
+      >
+        Управление
+      </Button>
     ),
   },
 ];

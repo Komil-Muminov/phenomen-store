@@ -1,17 +1,23 @@
-import type { ITenant } from '@/entities/tenant';
+import type { ITenant, ITenantStaff } from '@/entities/tenant';
 
 export interface ITenantsPageState {
   formOpen: boolean;
-  ownerOpen: boolean;
-  editing: ITenant | null;
+  cardOpen: boolean;
+  staffOpen: boolean;
   target: ITenant | null;
+  editingStaff: ITenantStaff | null;
 }
 
 export const INITIAL_STATE: ITenantsPageState = {
   formOpen: false,
-  ownerOpen: false,
-  editing: null,
+  cardOpen: false,
+  staffOpen: false,
   target: null,
+  editingStaff: null,
 };
 
 export const buildUpdateUrl = (base: string, id: string): string => `${base}/${id}`;
+
+export const buildStaffUrl = (base: string, id: string, staffId: string): string => (
+  `${base}/${id}/${staffId}`
+);
