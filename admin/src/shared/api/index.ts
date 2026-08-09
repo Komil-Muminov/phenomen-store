@@ -11,6 +11,43 @@ import {
 
 export type TApiScope = 'platform' | 'shop';
 
+const JWT_PARTS = 3;
+
+const MS_IN_SECOND = 1000;
+
+let onPlatformUnauthorized: (() => void) | null = null;
+
+let onShopUnauthorized: (() => void) | null = null;
+
+export const setOnPlatformUnauthorized = (handler: (() => void) | null): void => {
+  onPlatformUnauthorized = handler;
+};
+
+export const setOnShopUnauthorized = (handler: (() => void) | null): void => {
+  onShopUnauthorized = handler;
+};
+
+export const isTokenExpired = (token: string | null): boolean => {
+  if (!token) {
+    return true;
+  }
+
+  const parts = token.split('.');
+
+  if (parts.length !== JWT_PARTS) {
+    return true;
+  }
+
+  try {
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    const expiresAt = Number(payload?.exp);
+
+    return !Number.isFinite(expiresAt) || expiresAt * MS_IN_SECOND <= Date.now();
+  } catch {
+    return true;
+  }
+};
+
 export interface IApiResponse<T> {
   success: boolean;
   data: T;
@@ -49,6 +86,7 @@ apiClient.interceptors.response.use(
   (error) => {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       clearSession();
+      onPlatformUnauthorized?.();
     }
 
     return Promise.reject(error);
@@ -96,6 +134,7 @@ shopClient.interceptors.response.use(
   (error) => {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       clearShopSession();
+      onShopUnauthorized?.();
     }
 
     return Promise.reject(error);

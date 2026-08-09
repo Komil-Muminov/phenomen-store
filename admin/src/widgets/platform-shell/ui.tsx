@@ -2,7 +2,6 @@ import { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Button, Typography } from 'antd';
 import { HistoryOutlined, LogoutOutlined, ShopOutlined } from '@ant-design/icons';
-import { Tooltip } from '@/shared/ui/Tooltip';
 import { AppRoutes } from '@/shared/config';
 import { useAuth } from '@/shared/auth';
 
@@ -49,14 +48,13 @@ export const PlatformShell = ({ children }: IProps) => {
             <Typography.Text type="secondary" className="text-sm!">
               {admin?.name}
             </Typography.Text>
-            <Tooltip title="Выйти">
-              <Button
-                aria-label="Выйти"
-                icon={<LogoutOutlined />}
-                onClick={signOut}
-                className="cursor-pointer!"
-              />
-            </Tooltip>
+            <Button
+              icon={<LogoutOutlined />}
+              onClick={signOut}
+              className="cursor-pointer! transition-colors! duration-200!"
+            >
+              Выйти
+            </Button>
           </div>
         </div>
       </header>

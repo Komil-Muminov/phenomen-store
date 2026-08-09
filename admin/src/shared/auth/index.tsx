@@ -1,5 +1,19 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
-import { clearSession, readToken, writeToken } from '@/shared/api';
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import {
+  clearSession,
+  isTokenExpired,
+  readToken,
+  setOnPlatformUnauthorized,
+  writeToken,
+} from '@/shared/api';
 import { StorageKeys } from '@/shared/config';
 
 export interface IPlatformAdmin {
@@ -21,6 +35,16 @@ const readAdmin = (): IPlatformAdmin | null => {
   return raw ? (JSON.parse(raw) as IPlatformAdmin) : null;
 };
 
+const readValidAdmin = (): IPlatformAdmin | null => {
+  if (isTokenExpired(readToken())) {
+    clearSession();
+
+    return null;
+  }
+
+  return readAdmin();
+};
+
 const AuthContext = createContext<IAuthValue>({
   admin: null,
   isAuthorized: false,
@@ -29,7 +53,7 @@ const AuthContext = createContext<IAuthValue>({
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [admin, setAdmin] = useState<IPlatformAdmin | null>(() => (readToken() ? readAdmin() : null));
+  const [admin, setAdmin] = useState<IPlatformAdmin | null>(readValidAdmin);
 
   const signIn = useCallback((token: string, nextAdmin: IPlatformAdmin) => {
     writeToken(token);
@@ -40,6 +64,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = useCallback(() => {
     clearSession();
     setAdmin(null);
+  }, []);
+
+  useEffect(() => {
+    setOnPlatformUnauthorized(() => setAdmin(null));
+
+    return () => setOnPlatformUnauthorized(null);
   }, []);
 
   const value = useMemo<IAuthValue>(

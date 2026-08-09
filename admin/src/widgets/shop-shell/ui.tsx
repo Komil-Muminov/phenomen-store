@@ -11,7 +11,6 @@ import {
   ShoppingOutlined,
   TagsOutlined,
 } from '@ant-design/icons';
-import { Tooltip } from '@/shared/ui/Tooltip';
 import { AppRoutes } from '@/shared/config';
 import { useShopAuth } from '@/shared/shop-auth';
 
@@ -78,14 +77,13 @@ export const ShopShell = ({ children }: IProps) => {
             <Typography.Text type="secondary" className="text-sm!">
               {user?.name ?? user?.email}
             </Typography.Text>
-            <Tooltip title="Выйти">
-              <Button
-                aria-label="Выйти"
-                icon={<LogoutOutlined />}
-                onClick={signOut}
-                className="cursor-pointer!"
-              />
-            </Tooltip>
+            <Button
+              icon={<LogoutOutlined />}
+              onClick={signOut}
+              className="cursor-pointer! transition-colors! duration-200!"
+            >
+              Выйти
+            </Button>
           </div>
         </div>
       </header>
