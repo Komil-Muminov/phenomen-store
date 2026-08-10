@@ -24,6 +24,7 @@ export interface IProduct {
   reviewsCount: number;
   media: string[];
   inStock: boolean;
+  createdAt?: string;
   variants: IProductVariant[];
 }
 

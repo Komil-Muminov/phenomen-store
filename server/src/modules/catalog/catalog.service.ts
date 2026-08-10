@@ -67,6 +67,7 @@ const mapProduct = (row: IProductRow) => ({
   reviewsCount: row.reviews_count,
   media: row.media,
   inStock: row.in_stock,
+  createdAt: row.created_at,
   variants: (row.variants ?? []).map(mapVariant),
 });
 

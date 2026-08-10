@@ -49,6 +49,7 @@ export interface IProductRow {
   variants: IVariantRow[];
   min_price: string | null;
   in_stock: boolean;
+  created_at?: string;
 }
 
 export interface IProductSearchParams {

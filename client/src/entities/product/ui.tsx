@@ -54,6 +54,10 @@ export const ProductCard = ({
     }
   }, [onAddToCart, addToCart, product]);
 
+  const isNewProduct = Boolean(
+    product.createdAt && (Date.now() - new Date(product.createdAt).getTime()) < 30 * 86400 * 1000,
+  );
+
   return (
     <Pressable
       onPress={() => onPress(product)}
@@ -72,14 +76,14 @@ export const ProductCard = ({
               resizeMode="cover"
             />
             <If condition={Boolean(formatDiscount(product.price, product.oldPrice))}>
-              <View className="absolute left-2.5 top-2.5 rounded-lg bg-rose-600 px-2 py-0.5 shadow-sm">
+              <View className="absolute left-2.5 top-2.5 rounded-lg bg-rose-600 px-2 py-0.5 shadow-sm z-10">
                 <Text className="text-[11px] font-extrabold text-white">
                   {formatDiscount(product.price, product.oldPrice)}
                 </Text>
               </View>
             </If>
-            <If condition={!formatDiscount(product.price, product.oldPrice)}>
-              <View className="absolute left-2.5 top-2.5 rounded-lg bg-emerald-600 px-2 py-0.5 shadow-sm">
+            <If condition={!formatDiscount(product.price, product.oldPrice) && isNewProduct}>
+              <View className="absolute left-2.5 top-2.5 rounded-lg bg-emerald-600 px-2 py-0.5 shadow-sm z-10">
                 <Text className="text-[10px] font-extrabold text-white">
                   NEW
                 </Text>
