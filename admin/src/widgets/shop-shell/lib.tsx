@@ -15,18 +15,40 @@ export interface INavItem {
   to: string;
   label: string;
   icon: ReactNode;
+  match?: string[];
 }
 
 export const buildLinkClass = buildNavLinkClass(NavLinkBases.compact);
 
 export const buildMenuLinkClass = buildNavLinkClass(NavLinkBases.menu);
 
-export const ShopNavItems: INavItem[] = [
-  { to: AppRoutes.shopOrders, label: 'Заказы', icon: <ShoppingOutlined aria-hidden="true" /> },
+export const CatalogNavItems: INavItem[] = [
   { to: AppRoutes.shopProducts, label: 'Товары', icon: <TagsOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopCategories, label: 'Категории', icon: <FolderOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopStock, label: 'Остатки', icon: <DatabaseOutlined aria-hidden="true" /> },
-  { to: AppRoutes.shopAttributes, label: 'Характеристики', icon: <ApartmentOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopBanners, label: 'Баннеры', icon: <PictureOutlined aria-hidden="true" /> },
+];
+
+const CatalogRoutes = CatalogNavItems.map((item) => item.to);
+
+export const ShopNavItems: INavItem[] = [
+  { to: AppRoutes.shopOrders, label: 'Заказы', icon: <ShoppingOutlined aria-hidden="true" /> },
+  {
+    to: AppRoutes.shopProducts,
+    label: 'Товары',
+    icon: <TagsOutlined aria-hidden="true" />,
+    match: CatalogRoutes,
+  },
+  {
+    to: AppRoutes.shopAttributes,
+    label: 'Характеристики',
+    icon: <ApartmentOutlined aria-hidden="true" />,
+  },
   { to: AppRoutes.shopSettings, label: 'Настройки', icon: <SettingOutlined aria-hidden="true" /> },
 ];
+
+export const isCatalogRoute = (pathname: string): boolean => CatalogRoutes.includes(pathname);
+
+export const isNavItemActive = (item: INavItem, pathname: string): boolean => (
+  pathname === item.to || (item.match ?? []).includes(pathname)
+);

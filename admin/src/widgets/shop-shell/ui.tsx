@@ -1,10 +1,19 @@
 import { ReactNode, useCallback, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { Button, Drawer, Typography } from 'antd';
 import { LogoutOutlined, MenuOutlined } from '@ant-design/icons';
+import { If } from '@/shared/ui/If';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { useShopAuth } from '@/shared/shop-auth';
-import { ShopNavItems, buildLinkClass, buildMenuLinkClass } from '@/widgets/shop-shell/lib';
+import {
+  CatalogNavItems,
+  ShopNavItems,
+  buildLinkClass,
+  buildMenuLinkClass,
+  isCatalogRoute,
+  isNavItemActive,
+} from '@/widgets/shop-shell/lib';
+import { RenderSubNav } from '@/widgets/shop-shell/ui/renderSubNav';
 
 interface IProps {
   children: ReactNode;
@@ -14,6 +23,7 @@ const DRAWER_WIDTH = 272;
 
 export const ShopShell = ({ children }: IProps) => {
   const { user, tenantKey, signOut } = useShopAuth();
+  const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const openMenu = useCallback(() => setMenuOpen(true), []);
@@ -45,7 +55,11 @@ export const ShopShell = ({ children }: IProps) => {
 
             <nav className="hidden items-center gap-1 lg:flex">
               {ShopNavItems.map((item) => (
-                <NavLink key={item.to} to={item.to} className={buildLinkClass}>
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={buildLinkClass({ isActive: isNavItemActive(item, pathname) })}
+                >
                   {item.icon}
                   {item.label}
                 </NavLink>
@@ -81,15 +95,32 @@ export const ShopShell = ({ children }: IProps) => {
       >
         <nav className="flex flex-col gap-1">
           {ShopNavItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={buildMenuLinkClass}
-              onClick={closeMenu}
-            >
-              {item.icon}
-              {item.label}
-            </NavLink>
+            <div key={item.to} className="flex flex-col gap-1">
+              <NavLink
+                to={item.to}
+                className={buildMenuLinkClass({ isActive: isNavItemActive(item, pathname) })}
+                onClick={closeMenu}
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+
+              <If condition={Boolean(item.match) && isCatalogRoute(pathname)}>
+                <div className="ml-4 flex flex-col gap-1 border-l border-violet-100 pl-2">
+                  {CatalogNavItems.map((child) => (
+                    <NavLink
+                      key={child.to}
+                      to={child.to}
+                      className={buildMenuLinkClass}
+                      onClick={closeMenu}
+                    >
+                      {child.icon}
+                      {child.label}
+                    </NavLink>
+                  ))}
+                </div>
+              </If>
+            </div>
           ))}
         </nav>
 
@@ -101,7 +132,13 @@ export const ShopShell = ({ children }: IProps) => {
         </div>
       </Drawer>
 
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <If condition={isCatalogRoute(pathname)}>
+          <RenderSubNav />
+        </If>
+
+        {children}
+      </main>
     </div>
   );
 };
