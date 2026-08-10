@@ -1,5 +1,6 @@
 import { query, tenantQuery, withTenant } from '@/shared/db';
-import { UserRoles } from '@/shared/config';
+import { EntityStatus, UserRoles } from '@/shared/config';
+import type { IUserRow } from '@/modules/auth';
 import {
   IAuditEntry,
   IPlatformUserRow,
@@ -182,6 +183,20 @@ export const insertTenantOwner = async (
 
   return result.rows[0].id;
 });
+
+export const selectTenantOwnerUser = async (tenantId: string): Promise<IUserRow | null> => {
+  const rows = await tenantQuery<IUserRow>(
+    tenantId,
+    `SELECT id, tenant_id, phone, email, name, role, status, created_at::text AS created_at
+     FROM users
+     WHERE tenant_id = $1 AND role = ANY($2) AND status = $3
+     ORDER BY (role = $4) DESC, created_at
+     LIMIT 1`,
+    [tenantId, [UserRoles.owner, UserRoles.admin], EntityStatus.active, UserRoles.owner],
+  );
+
+  return rows[0] ?? null;
+};
 
 const STAFF_COLUMNS = 'id, name, email, phone, role, status, created_at';
 

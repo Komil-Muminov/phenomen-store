@@ -22,6 +22,7 @@ export const ApiRoutes = {
   tenantsDeactivate: '/platform/tenants/deactivate',
   tenantsActivate: '/platform/tenants/activate',
   tenantsDelete: '/platform/tenants/delete',
+  tenantsEnter: '/platform/tenants/enter',
   tenantsOwnerCreate: '/platform/tenants/owner/create',
   tenantsStaffSearch: '/platform/tenants/owner/search',
   tenantsStaffUpdate: '/platform/tenants/owner/update',
@@ -181,6 +182,7 @@ export const AuditActionLabels: Record<string, string> = {
   'tenant.activate': 'магазин включён',
   'tenant.owner.create': 'добавлен владелец',
   'tenant.delete': 'магазин удалён',
+  'tenant.enter': 'вход в кабинет магазина',
   'tenant.owner.update': 'изменён сотрудник',
   'tenant.owner.delete': 'удалён сотрудник',
 };
@@ -215,6 +217,7 @@ export const UiMessages = {
   createdOwner: 'Владелец добавлен',
   activatedTenant: 'Магазин включён',
   deletedTenant: 'Магазин удалён вместе со всеми данными',
+  enteredShop: 'Вы в кабинете магазина',
   updatedStaff: 'Данные сотрудника обновлены',
   deletedStaff: 'Сотрудник удалён',
   emptyStaff: 'У магазина пока нет сотрудников — добавьте владельца',

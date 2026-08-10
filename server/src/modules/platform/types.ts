@@ -6,6 +6,7 @@ export const PlatformPaths = {
   tenantDeactivate: '/tenants/deactivate/:id',
   tenantActivate: '/tenants/activate/:id',
   tenantDelete: '/tenants/delete/:id',
+  tenantEnter: '/tenants/enter/:id',
   ownerCreate: '/tenants/owner/create/:id',
   ownerSearch: '/tenants/owner/search/:id',
   ownerUpdate: '/tenants/owner/update/:id/:staffId',
@@ -23,6 +24,7 @@ export const PlatformActions = {
   tenantDeactivate: 'tenant.deactivate',
   tenantActivate: 'tenant.activate',
   tenantDelete: 'tenant.delete',
+  tenantEnter: 'tenant.enter',
   ownerCreate: 'tenant.owner.create',
   ownerUpdate: 'tenant.owner.update',
   ownerDelete: 'tenant.owner.delete',
@@ -42,6 +44,7 @@ export const PlatformErrors = {
   staffMissing: 'Сотрудник магазина не найден',
   staffLastOwner: 'Нельзя удалить единственного владельца магазина',
   staffContactRequired: 'Нужен email или телефон для входа',
+  staffNoOwner: 'В магазине нет активного владельца — сначала добавьте сотрудника',
 } as const;
 
 export interface ITenantStaffRow {

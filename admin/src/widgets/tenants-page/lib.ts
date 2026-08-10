@@ -4,7 +4,7 @@ import type { ITenantFormValues } from '@/features/tenant-form';
 import type { ITenantCardValues } from '@/features/tenant-card';
 import type { IOwnerFormValues } from '@/features/owner-form';
 import { buildStaffUrl, buildUpdateUrl } from '@/widgets/tenants-page/model';
-import type { ITenant, ITenantStaff } from '@/entities/tenant';
+import type { ISigninResult, ITenant, ITenantStaff } from '@/entities/tenant';
 
 type TWithId = { id: string };
 
@@ -36,6 +36,9 @@ export const useTenantMutations = () => ({
   remove: useMutationQuery<TWithId & { key: string }, { deleted: boolean }>(
     (body) => buildUpdateUrl(ApiRoutes.tenantsDelete, body.id),
     { method: 'delete', invalidate: TENANTS_KEY },
+  ),
+  enter: useMutationQuery<TWithId, ISigninResult>(
+    (body) => buildUpdateUrl(ApiRoutes.tenantsEnter, body.id),
   ),
   createStaff: useMutationQuery<IOwnerFormValues & TWithId, { id: string }>(
     (body) => buildUpdateUrl(ApiRoutes.tenantsOwnerCreate, body.id),

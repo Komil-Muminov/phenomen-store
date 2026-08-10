@@ -1,9 +1,11 @@
 import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Alert, App as AntApp } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/shared/api';
-import { ApiRoutes, EntityStatuses, QueryKeys, UiMessages } from '@/shared/config';
+import { ApiRoutes, AppRoutes, EntityStatuses, QueryKeys, UiMessages } from '@/shared/config';
 import { useGetQuery } from '@/shared/hooks';
+import { useShopAuth } from '@/shared/shop-auth';
 import { If } from '@/shared/ui/If';
 import { TenantsTable } from '@/features/tenants-table';
 import { TenantForm, ITenantFormValues } from '@/features/tenant-form';
@@ -17,6 +19,8 @@ import type { ITenant, ITenantList, ITenantStaff } from '@/entities/tenant';
 
 export const TenantsPage = () => {
   const { message, modal } = AntApp.useApp();
+  const navigate = useNavigate();
+  const { signIn: shopSignIn } = useShopAuth();
   const queryClient = useQueryClient();
   const [state, setState] = useState(INITIAL_STATE);
   const mutations = useTenantMutations();
@@ -100,6 +104,22 @@ export const TenantsPage = () => {
       onError: showError,
     });
   }, [mutations.remove, state.target, message, showError, closeAll]);
+
+  const handleEnterShop = useCallback((tenant: ITenant) => {
+    mutations.enter.mutate({ id: tenant.id }, {
+      onSuccess: (result) => {
+        shopSignIn(result.token, result.tenantKey ?? tenant.key, {
+          id: result.user?.id ?? '',
+          name: result.user?.name ?? null,
+          email: result.user?.email ?? null,
+          role: result.user?.role ?? '',
+        });
+        message.success(UiMessages.enteredShop);
+        navigate(AppRoutes.shopOrders);
+      },
+      onError: showError,
+    });
+  }, [mutations.enter, shopSignIn, message, navigate, showError]);
 
   const handleAddStaff = useCallback(() => {
     setState((current) => ({ ...current, staffOpen: true, editingStaff: null }));
@@ -210,7 +230,9 @@ export const TenantsPage = () => {
         isSaving={mutations.update.isPending}
         isStatusSaving={mutations.deactivate.isPending || mutations.activate.isPending}
         isDeleting={mutations.remove.isPending}
+        isEntering={mutations.enter.isPending}
         onSubmit={handleCardSubmit}
+        onEnterShop={handleEnterShop}
         onAddStaff={handleAddStaff}
         onEditStaff={handleEditStaff}
         onDeleteStaff={handleDeleteStaff}

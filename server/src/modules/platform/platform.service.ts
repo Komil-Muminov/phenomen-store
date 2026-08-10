@@ -4,7 +4,7 @@ import { Env, EntityStatus, ErrorMessages, HttpStatus, PlatformRoles, UserRoles 
 import { IListResult, IPlatformContext, ITenantContext } from '@/shared/types';
 import { AppError, pickString } from '@/shared/utils';
 import { invalidateTenantCache } from '@/modules/tenant';
-import { loginWithPassword, normalizePhone } from '@/modules/auth';
+import { issueToken, loginWithPassword, normalizePhone } from '@/modules/auth';
 import { applyVerticalPreset } from '@/modules/attributes';
 import {
   countTenantOwners,
@@ -30,6 +30,7 @@ import {
   selectPlatformUserByLogin,
   selectTenantById,
   selectTenants,
+  selectTenantOwnerUser,
   setTenantStatus,
   touchPlatformLogin,
   updatePlatformPassword,
@@ -236,6 +237,41 @@ export const signIn = async (
   );
 
   return { scope: 'shop', tenantKey: tenant.key, tenantName: tenant.name, ...session };
+};
+
+export const enterTenant = async (
+  actor: IPlatformContext,
+  tenantId: string,
+  ip: string | null,
+): Promise<Record<string, unknown>> => {
+  const tenant = await requireTenantRow(tenantId);
+
+  if (tenant.status !== EntityStatus.active) {
+    throw new AppError(PlatformErrors.accountDisabled, HttpStatus.forbidden);
+  }
+
+  const owner = await selectTenantOwnerUser(tenant.id);
+
+  if (!owner) {
+    throw new AppError(PlatformErrors.staffNoOwner, HttpStatus.notFound);
+  }
+
+  await insertAuditEntry({
+    actorId: actor.id,
+    actorLogin: actor.login,
+    action: PlatformActions.tenantEnter,
+    tenantId: tenant.id,
+    payload: { ownerId: owner.id, ownerRole: owner.role },
+    ip,
+  });
+
+  return {
+    scope: 'shop',
+    token: issueToken(owner),
+    tenantKey: tenant.key,
+    tenantName: tenant.name,
+    user: { id: owner.id, name: owner.name, email: owner.email, role: owner.role },
+  };
 };
 
 export const listAuditActions = async (): Promise<string[]> => selectAuditActions();

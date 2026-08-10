@@ -44,7 +44,7 @@ const generateCode = (): string => Array.from(
   () => Math.floor(Math.random() * CODE_BASE).toString(),
 ).join('');
 
-const issueToken = (user: IUserRow): string => {
+export const issueToken = (user: IUserRow): string => {
   const payload: IUserContext = {
     id: user.id,
     tenantId: user.tenant_id,

@@ -5,6 +5,7 @@ export {
   getProfile,
   updateProfile,
   loginWithPassword,
+  issueToken,
   changePassword,
 } from '@/modules/auth/auth.service';
 export { AuthErrors, OtpSettings, normalizePhone } from '@/modules/auth/types';

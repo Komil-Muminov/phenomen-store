@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Button, Drawer, Form, Input, Select, Tag, Typography } from 'antd';
-import { SaveOutlined } from '@ant-design/icons';
+import { LoginOutlined, SaveOutlined } from '@ant-design/icons';
 import { EntityStatuses, TenantPlans, TenantVerticals, UiMessages } from '@/shared/config';
 import { If } from '@/shared/ui/If';
 import { RenderStaff } from '@/features/tenant-card/ui/renderStaff';
@@ -21,6 +21,7 @@ interface IProps extends ITenantCardHandlers {
   isSaving: boolean;
   isStatusSaving: boolean;
   isDeleting: boolean;
+  isEntering: boolean;
   onClose: () => void;
 }
 
@@ -32,11 +33,13 @@ export const TenantCard = ({
   isSaving,
   isStatusSaving,
   isDeleting,
+  isEntering,
   onSubmit,
   onAddStaff,
   onEditStaff,
   onDeleteStaff,
   onToggleStatus,
+  onEnterShop,
   onDelete,
   onClose,
 }: IProps) => {
@@ -71,6 +74,26 @@ export const TenantCard = ({
       classNames={{ body: 'p-4!' }}
     >
       <If condition={Boolean(tenant)}>
+        <section className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-violet-200 bg-violet-50/50 p-4 transition-colors hover:bg-violet-50">
+          <div className="min-w-0">
+            <div className="font-medium">{CardTitles.enter}</div>
+            <Typography.Text type="secondary" className="text-xs!">
+              Откроется кабинет магазина от имени его владельца, платформенная сессия сохранится
+            </Typography.Text>
+          </div>
+
+          <Button
+            type="primary"
+            loading={isEntering}
+            disabled={tenant?.status !== EntityStatuses.active}
+            icon={<LoginOutlined />}
+            onClick={() => onEnterShop(tenant as ITenant)}
+            className="cursor-pointer!"
+          >
+            Войти в магазин
+          </Button>
+        </section>
+
         <section className="mb-6 rounded-xl border border-violet-200 p-4">
           <Typography.Text strong className="mb-3! block text-brand-text!">
             {CardTitles.main}

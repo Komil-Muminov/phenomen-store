@@ -19,6 +19,7 @@ import {
   createTenantOwner,
   deleteTenant,
   deleteTenantStaffMember,
+  enterTenant,
   listAudit,
   listAuditActions,
   listTenantStaff,
@@ -190,6 +191,20 @@ platformRouter.patch(
       const id = requireUuid(req.params.id, 'id');
 
       sendOk(res, await activateTenant(requireActor(req), id, readIp(req)));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+platformRouter.post(
+  PlatformPaths.tenantEnter,
+  platformRoleMiddleware([PlatformRoles.superadmin]),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+
+      sendOk(res, await enterTenant(requireActor(req), id, readIp(req)));
     } catch (error) {
       next(error);
     }
