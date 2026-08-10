@@ -1,4 +1,4 @@
-import { Button, Space, Tag, Typography } from 'antd';
+import { Button, Image, Space, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
   DeleteOutlined,
@@ -24,14 +24,14 @@ const formatDate = (value: string | null): string => (
   value ? new Date(value).toLocaleDateString('ru-RU') : ''
 );
 
-const formatPeriod = (banner: IShopBanner): string => {
+export const formatPeriod = (banner: IShopBanner): string => {
   const from = formatDate(banner.startsAt);
   const to = formatDate(banner.endsAt);
 
   return from || to ? `${from || '…'} — ${to || '…'}` : 'всегда';
 };
 
-const formatTarget = (
+export const formatTarget = (
   banner: IShopBanner,
   categoryNames: Record<string, string>,
   productNames: Record<string, string>,
@@ -75,13 +75,20 @@ export const buildBannerColumns = ({
     dataIndex: 'imageUrl',
     key: 'imageUrl',
     width: 120,
-    render: (value: string) => (
+    render: (value: string, banner: IShopBanner) => (
       <span className="flex h-12 w-20 items-center justify-center overflow-hidden rounded-lg border border-violet-200 bg-violet-50">
         <If
           condition={Boolean(value)}
           fallback={<PictureOutlined className="text-violet-300" aria-hidden="true" />}
         >
-          <img src={value} alt="" className="h-full w-full object-cover" />
+          <Image
+            src={value}
+            alt={banner.title ?? 'Картинка баннера'}
+            width="100%"
+            height="100%"
+            className="cursor-pointer! object-cover!"
+            rootClassName="h-full w-full"
+          />
         </If>
       </span>
     ),

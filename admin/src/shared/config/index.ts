@@ -164,6 +164,10 @@ export const StaleTimeMs = {
 
 export const RequestTimeoutMs = 20_000;
 
+export const MediaAccept = '.jpg,.jpeg,.png,.webp,.gif';
+
+export const MediaMaxSizeLabel = '5 МБ';
+
 export const SearchDebounceMs = 400;
 
 export const AttributeKindOptions = [

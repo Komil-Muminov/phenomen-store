@@ -1,10 +1,9 @@
 import { useCallback, useEffect } from 'react';
-import { DatePicker, Form, Input, InputNumber, Modal, Switch, Typography } from 'antd';
-import { PictureOutlined } from '@ant-design/icons';
+import { DatePicker, Form, Input, InputNumber, Modal, Switch } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
-import { BannerActionTypes, BannerDefaults, UiMessages } from '@/shared/config';
-import { If } from '@/shared/ui/If';
+import { BannerActionTypes, BannerDefaults } from '@/shared/config';
 import { RenderAction } from '@/features/banner-form/ui/renderAction';
+import { RenderImage } from '@/features/banner-form/ui/renderImage';
 import type { IShopBanner, IShopCategory, IShopProduct } from '@/entities/shop';
 
 export interface IBannerFormValues {
@@ -39,8 +38,6 @@ interface IProps {
   onSubmit: (values: IBannerFormValues) => void;
   onCancel: () => void;
 }
-
-const URL_PLACEHOLDER = 'https://';
 
 const toDayjs = (value: string | null): Dayjs | null => (value ? dayjs(value) : null);
 
@@ -113,31 +110,16 @@ export const BannerForm = ({
         onFinish={handleFinish}
         onValuesChange={handleValuesChange}
       >
-        <section className="mb-4 flex items-start gap-3 rounded-xl border border-violet-200 p-4">
-          <span className="flex h-20 w-32 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-violet-200 bg-violet-50">
-            <If
-              condition={Boolean(imageUrl)}
-              fallback={<PictureOutlined className="text-xl text-violet-300" aria-hidden="true" />}
-            >
-              <img src={imageUrl} alt="" className="h-full w-full object-cover" />
-            </If>
-          </span>
-
-          <div className="min-w-0 flex-1">
-            <Form.Item
-              name="imageUrl"
-              label="Ссылка на картинку"
-              rules={[{ required: true, message: UiMessages.required }]}
-              className="mb-1!"
-            >
-              <Input placeholder={URL_PLACEHOLDER} autoFocus />
-            </Form.Item>
-
-            <Typography.Text type="secondary" className="text-xs!">
-              Прямая ссылка на файл, лучше по https и шириной от 1200px
-            </Typography.Text>
-          </div>
-        </section>
+        <Form.Item
+          name="imageUrl"
+          rules={[{ required: true, message: 'Прикрепите картинку баннера' }]}
+          className="mb-0!"
+        >
+          <RenderImage
+            imageUrl={imageUrl}
+            onChange={(url) => form.setFieldValue('imageUrl', url)}
+          />
+        </Form.Item>
 
         <Form.Item name="title" label="Заголовок">
           <Input placeholder="Новая коллекция" />

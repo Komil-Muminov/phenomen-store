@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Empty, Table } from 'antd';
 import { UiMessages } from '@/shared/config';
 import { buildBannerColumns } from '@/features/banners-table/lib';
+import { RenderCards } from '@/features/banners-table/ui/renderCards';
 import type { IShopBanner, IShopCategory, IShopProduct } from '@/entities/shop';
 
 interface IProps {
@@ -67,28 +68,42 @@ export const BannersTable = ({
   }, [canReorder, dragIndex, items, onReorder, resetDrag]);
 
   return (
-    <Table<IShopBanner>
-      rowKey="id"
-      size="middle"
-      columns={columns}
-      dataSource={items}
-      loading={isLoading}
-      pagination={false}
-      scroll={{ x: 'max-content' }}
-      locale={{ emptyText: <Empty description={UiMessages.emptyBanners} /> }}
-      className="overflow-x-auto"
-      onRow={(_record, index) => ({
-        draggable: canReorder,
-        className: overIndex === index && dragIndex !== index ? `${ROW_BASE} ${ROW_OVER}` : ROW_BASE,
-        onDragStart: () => setDragIndex(index ?? null),
-        onDragEnter: () => setOverIndex(index ?? null),
-        onDragOver: (event) => event.preventDefault(),
-        onDragEnd: resetDrag,
-        onDrop: (event) => {
-          event.preventDefault();
-          handleDrop(index ?? 0);
-        },
-      })}
-    />
+    <>
+      <div className="lg:hidden">
+        <RenderCards
+          items={items}
+          isLoading={isLoading}
+          categoryNames={categoryNames}
+          productNames={productNames}
+          onEdit={onEdit}
+          onDeactivate={onDeactivate}
+          onDelete={onDelete}
+        />
+      </div>
+
+      <Table<IShopBanner>
+        rowKey="id"
+        size="middle"
+        columns={columns}
+        dataSource={items}
+        loading={isLoading}
+        pagination={false}
+        scroll={{ x: 'max-content' }}
+        locale={{ emptyText: <Empty description={UiMessages.emptyBanners} /> }}
+        className="hidden overflow-x-auto lg:block"
+        onRow={(_record, index) => ({
+          draggable: canReorder,
+          className: overIndex === index && dragIndex !== index ? `${ROW_BASE} ${ROW_OVER}` : ROW_BASE,
+          onDragStart: () => setDragIndex(index ?? null),
+          onDragEnter: () => setOverIndex(index ?? null),
+          onDragOver: (event) => event.preventDefault(),
+          onDragEnd: resetDrag,
+          onDrop: (event) => {
+            event.preventDefault();
+            handleDrop(index ?? 0);
+          },
+        })}
+      />
+    </>
   );
 };
