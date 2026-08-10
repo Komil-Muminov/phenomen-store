@@ -32,16 +32,19 @@ export const SettingsForm = ({ config, isSaving, onSubmit }: IProps) => {
       <RenderBrand />
       <RenderCommerce />
 
-      <div className="mt-4 flex justify-end">
+      <div className="sticky bottom-6 z-30 mt-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white/95 p-4 shadow-md backdrop-blur-md">
+        <div className="text-xs font-medium text-slate-500">
+          Изменения автоматически синхронизируются с мобильным приложением
+        </div>
         <Button
           type="primary"
           htmlType="submit"
           size="large"
           icon={<SaveOutlined />}
           loading={isSaving}
-          className="cursor-pointer! transition-colors! duration-200!"
+          className="cursor-pointer! bg-indigo-600! hover:bg-indigo-500! rounded-xl! font-semibold! px-6!"
         >
-          Сохранить настройки
+          Сохранить изменения
         </Button>
       </div>
     </Form>

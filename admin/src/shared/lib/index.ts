@@ -1,12 +1,12 @@
 export const NavLinkBases = {
-  compact: 'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors duration-200',
-  menu: 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-base transition-colors duration-200',
+  compact: 'flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm transition-all duration-200',
+  menu: 'flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-base transition-all duration-200',
 } as const;
 
 export const buildNavLinkClass = (base: string) => ({ isActive }: { isActive: boolean }): string => (
   isActive
-    ? `${base} bg-violet-100 font-medium text-violet-800`
-    : `${base} text-slate-600 hover:bg-violet-50 hover:text-violet-700`
+    ? `${base} bg-indigo-50 font-semibold text-indigo-600 shadow-xs border border-indigo-100`
+    : `${base} text-slate-600 font-medium hover:bg-slate-100/80 hover:text-slate-900 border border-transparent`
 );
 
 export const buildListParams = <T extends object>(

@@ -93,7 +93,7 @@ export const PlatformAuditPage = () => {
         />
       </If>
 
-      <section className="rounded-xl border border-violet-200 bg-white p-2 shadow-sm">
+      <section className="rounded-2xl border border-slate-200/80 bg-white p-0 shadow-xs overflow-hidden">
         <AuditTable items={auditQuery.data?.items ?? []} isLoading={auditQuery.isLoading} />
       </section>
 

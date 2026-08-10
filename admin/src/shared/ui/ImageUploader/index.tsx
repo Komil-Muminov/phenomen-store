@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Button, Image, Typography, Upload, message } from 'antd';
-import { DeleteOutlined, PictureOutlined, UploadOutlined } from '@ant-design/icons';
+import { CloudUploadOutlined, DeleteOutlined, PictureOutlined } from '@ant-design/icons';
 import { extractErrorMessage, uploadFile } from '@/shared/api';
 import { ApiRoutes, MediaAccept, MediaMaxSizeLabel } from '@/shared/config';
 import { If } from '@/shared/ui/If';
@@ -14,7 +14,7 @@ interface IProps {
   previewClass?: string;
 }
 
-const DEFAULT_PREVIEW = 'h-28 w-full sm:w-44';
+const DEFAULT_PREVIEW = 'h-28 w-28';
 
 export const ImageUploader = ({
   value = '',
@@ -37,18 +37,22 @@ export const ImageUploader = ({
   }, [onChange]);
 
   return (
-    <section className="rounded-xl border border-violet-200 p-4">
-      <Typography.Text strong className="mb-3! block text-brand-text!">
+    <section className="rounded-2xl border border-dashed border-slate-300/90 bg-slate-50/60 p-5 transition-all hover:border-indigo-400 hover:bg-slate-50">
+      <Typography.Text strong className="mb-3! block text-slate-800! font-semibold!">
         {title}
       </Typography.Text>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <span
-          className={`flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-violet-200 bg-violet-50 ${previewClass}`}
+          className={`flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs ${previewClass}`}
         >
           <If
             condition={Boolean(value)}
-            fallback={<PictureOutlined className="text-2xl text-violet-300" aria-hidden="true" />}
+            fallback={
+              <div className="flex flex-col items-center justify-center text-slate-400">
+                <PictureOutlined className="text-2xl" aria-hidden="true" />
+              </div>
+            }
           >
             <Image
               src={value}
@@ -62,7 +66,7 @@ export const ImageUploader = ({
         </span>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
             <Upload
               accept={MediaAccept}
               beforeUpload={handleUpload}
@@ -71,16 +75,16 @@ export const ImageUploader = ({
             >
               <Button
                 type="primary"
-                icon={<UploadOutlined />}
+                icon={<CloudUploadOutlined />}
                 loading={uploading}
-                className="cursor-pointer!"
+                className="cursor-pointer! bg-indigo-600! hover:bg-indigo-500!"
               >
-                {value ? 'Заменить файл' : 'Выбрать файл'}
+                {value ? 'Заменить изображение' : 'Загрузить файл'}
               </Button>
             </Upload>
 
             <If condition={Boolean(value)}>
-              <Tooltip title="Убрать">
+              <Tooltip title="Удалить логотип">
                 <Button
                   danger
                   aria-label={`Убрать: ${title}`}
@@ -92,7 +96,7 @@ export const ImageUploader = ({
             </If>
           </div>
 
-          <Typography.Text type="secondary" className="mt-2! block text-xs!">
+          <Typography.Text className="mt-2.5! block text-xs! text-slate-500!">
             {`${hint} Форматы JPG, PNG, WebP, GIF, до ${MediaMaxSizeLabel}.`}
           </Typography.Text>
         </div>

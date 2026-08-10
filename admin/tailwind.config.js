@@ -4,16 +4,17 @@ export default {
     extend: {
       colors: {
         brand: {
-          primary: '#7C3AED',
-          secondary: '#A78BFA',
-          cta: '#F97316',
-          surface: '#FAF5FF',
-          text: '#4C1D95',
+          primary: '#4F46E5',
+          secondary: '#818CF8',
+          cta: '#EA580C',
+          surface: '#F8FAFC',
+          text: '#0F172A',
+          muted: '#64748B',
         },
       },
       fontFamily: {
-        sans: ['"Fira Sans"', 'system-ui', 'sans-serif'],
-        mono: ['"Fira Code"', 'monospace'],
+        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        mono: ['"JetBrains Mono"', '"Fira Code"', 'monospace'],
       },
     },
   },

@@ -1,4 +1,4 @@
-import { Button, Space, Tag } from 'antd';
+import { Button, Space } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { CheckCircleOutlined, CopyOutlined, EditOutlined, StopOutlined } from '@ant-design/icons';
 import { Tooltip } from '@/shared/ui/Tooltip';
@@ -21,32 +21,38 @@ export const buildProductColumns = ({
     title: 'Ключ',
     dataIndex: 'slug',
     key: 'slug',
-    render: (value: string) => <span className="font-mono text-sm text-violet-700">{value}</span>,
+    render: (value: string) => (
+      <span className="font-mono text-xs font-medium text-slate-600 bg-slate-100/90 px-2 py-0.5 rounded-md border border-slate-200/60 inline-block">
+        {value}
+      </span>
+    ),
   },
   {
     title: 'Название',
     dataIndex: 'name',
     key: 'name',
-    render: (value: string) => <span className="font-medium">{value}</span>,
+    render: (value: string) => <span className="font-semibold text-slate-900">{value}</span>,
   },
   {
     title: 'Бренд',
     dataIndex: 'brand',
     key: 'brand',
-    render: (value: string | null) => value || '—',
+    render: (value: string | null) => (
+      <span className="text-slate-600 font-medium">{value || '—'}</span>
+    ),
   },
   {
     title: 'Цена',
     dataIndex: 'price',
     key: 'price',
-    render: (value: number) => <span className="font-medium">{formatPrice(value)}</span>,
+    render: (value: number) => <span className="font-semibold text-slate-900">{formatPrice(value)}</span>,
   },
   {
     title: 'Старая цена',
     dataIndex: 'oldPrice',
     key: 'oldPrice',
     render: (value: number | null) => (
-      value === null ? '—' : <span className="text-slate-400 line-through">{formatPrice(value)}</span>
+      value === null ? <span className="text-slate-400">—</span> : <span className="text-slate-400 text-xs line-through">{formatPrice(value)}</span>
     ),
   },
   {
@@ -54,7 +60,17 @@ export const buildProductColumns = ({
     dataIndex: 'inStock',
     key: 'inStock',
     render: (value: boolean) => (
-      <Tag color={value ? 'green' : 'red'}>{value ? 'виден' : 'скрыт'}</Tag>
+      value ? (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200/80">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          виден
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600 border border-slate-200/80">
+          <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+          скрыт
+        </span>
+      )
     ),
   },
   {
@@ -67,9 +83,9 @@ export const buildProductColumns = ({
           <Button
             type="text"
             aria-label="Редактировать товар"
-            icon={<EditOutlined />}
+            icon={<EditOutlined className="text-slate-500 hover:text-indigo-600" />}
             onClick={() => onEdit(product)}
-            className="cursor-pointer!"
+            className="cursor-pointer! hover:bg-slate-100! rounded-lg!"
           />
         </Tooltip>
 
@@ -77,20 +93,19 @@ export const buildProductColumns = ({
           <Button
             type="text"
             aria-label="Дублировать товар"
-            icon={<CopyOutlined />}
+            icon={<CopyOutlined className="text-slate-500 hover:text-indigo-600" />}
             onClick={() => onDuplicate(product)}
-            className="cursor-pointer!"
+            className="cursor-pointer! hover:bg-slate-100! rounded-lg!"
           />
         </Tooltip>
 
         <Tooltip title={product.inStock ? 'Скрыть из каталога' : 'Вернуть в каталог'}>
           <Button
             type="text"
-            danger={product.inStock}
             aria-label={product.inStock ? 'Скрыть товар' : 'Вернуть товар'}
-            icon={product.inStock ? <StopOutlined /> : <CheckCircleOutlined />}
+            icon={product.inStock ? <StopOutlined className="text-slate-400 hover:text-red-600" /> : <CheckCircleOutlined className="text-emerald-600 hover:text-emerald-700" />}
             onClick={() => onToggle(product)}
-            className="cursor-pointer!"
+            className="cursor-pointer! hover:bg-slate-100! rounded-lg!"
           />
         </Tooltip>
       </Space>

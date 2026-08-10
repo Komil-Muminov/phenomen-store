@@ -27,10 +27,61 @@ const queryClient = new QueryClient({
 
 const antTheme = {
   token: {
-    colorPrimary: '#7C3AED',
-    colorLink: '#7C3AED',
-    borderRadius: 8,
-    fontFamily: '"Fira Sans", system-ui, sans-serif',
+    colorPrimary: '#6366f1',
+    colorLink: '#6366f1',
+    colorLinkHover: '#4f46e5',
+    colorSuccess: '#10b981',
+    colorWarning: '#f59e0b',
+    colorError: '#ef4444',
+    colorInfo: '#3b82f6',
+    colorTextBase: '#0f172a',
+    colorTextSecondary: '#64748b',
+    colorBgBase: '#ffffff',
+    colorBgContainer: '#ffffff',
+    colorBgLayout: '#f8fafc',
+    colorBorder: '#e2e8f0',
+    colorBorderSecondary: '#f1f5f9',
+    borderRadius: 10,
+    borderRadiusLG: 14,
+    borderRadiusSM: 8,
+    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    controlHeight: 40,
+    fontSize: 14,
+    fontSizeHeading3: 20,
+    fontSizeHeading4: 18,
+  },
+  components: {
+    Card: {
+      paddingLG: 24,
+      borderRadiusLG: 14,
+      colorBorderSecondary: '#e2e8f0',
+    },
+    Button: {
+      controlHeight: 40,
+      borderRadius: 10,
+      fontWeight: 500,
+      paddingInline: 16,
+    },
+    Input: {
+      controlHeight: 40,
+      borderRadius: 10,
+      colorBorder: '#cbd5e1',
+    },
+    InputNumber: {
+      controlHeight: 40,
+      borderRadius: 10,
+      colorBorder: '#cbd5e1',
+    },
+    Select: {
+      controlHeight: 40,
+      borderRadius: 10,
+      colorBorder: '#cbd5e1',
+    },
+    Table: {
+      borderRadius: 12,
+      headerBg: '#f8fafc',
+      headerColor: '#475569',
+    },
   },
 };
 

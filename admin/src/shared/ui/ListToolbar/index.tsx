@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Button, Input, Typography } from 'antd';
+import { Button, Input } from 'antd';
 import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { If } from '@/shared/ui/If';
 import { Tooltip } from '@/shared/ui/Tooltip';
@@ -27,20 +27,22 @@ export const ListToolbar = ({
   filters = null,
   actions = null,
 }: IProps) => (
-  <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
-    <div className="min-w-0">
-      <Typography.Title level={3} className="mb-0! text-brand-text!">
+  <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
+    <div className="flex items-center gap-3 min-w-0">
+      <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-0">
         {title}
-      </Typography.Title>
-      <Typography.Text type="secondary">{subtitle}</Typography.Text>
+      </h1>
+      <span className="inline-flex items-center rounded-full border border-slate-200/80 bg-slate-100/80 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
+        {subtitle}
+      </span>
     </div>
 
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2.5">
       <Input
         allowClear
         value={search}
         placeholder={searchPlaceholder}
-        prefix={<SearchOutlined className="text-violet-400" />}
+        prefix={<SearchOutlined className="text-slate-400" />}
         onChange={(event) => onSearch(event.target.value)}
         className="w-64!"
       />
@@ -53,7 +55,7 @@ export const ListToolbar = ({
           icon={<ReloadOutlined />}
           loading={isFetching}
           onClick={onRefresh}
-          className="cursor-pointer!"
+          className="cursor-pointer! border-slate-200/80 hover:text-indigo-600!"
         />
       </Tooltip>
 
