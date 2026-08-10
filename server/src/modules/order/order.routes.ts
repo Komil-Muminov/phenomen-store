@@ -2,7 +2,16 @@ import { NextFunction, Response, Router } from 'express';
 import { ApiActions, ErrorMessages, GuestHeader, HttpStatus, IdempotencyHeader, UserRoles } from '@/shared/config';
 import { authMiddleware, optionalAuthMiddleware, rbacMiddleware } from '@/shared/middlewares';
 import { IAppRequest } from '@/shared/types';
-import { AppError, parsePagination, pickString, requireUuid, sendCreated, sendList, sendOk } from '@/shared/utils';
+import {
+  AppError,
+  parsePagination,
+  pickSearch,
+  pickString,
+  requireUuid,
+  sendCreated,
+  sendList,
+  sendOk,
+} from '@/shared/utils';
 import { requireOwner } from '@/modules/cart';
 import {
   changeOrderStatus,
@@ -71,8 +80,9 @@ orderRouter.get(
       const tenant = requireTenant(req);
       const { page, limit } = parsePagination(req.query as Record<string, unknown>);
       const status = pickString(req.query.status) || null;
+      const search = pickSearch(req.query.search);
 
-      sendList(res, await getTenantOrders(tenant, status, page, limit));
+      sendList(res, await getTenantOrders(tenant, status, search, page, limit));
     } catch (error) {
       next(error);
     }

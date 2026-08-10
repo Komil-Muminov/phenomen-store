@@ -1,3 +1,17 @@
+export interface IManagedListFilters {
+  search: string | null;
+  isActive: boolean | null;
+}
+
+export interface IManagedProductFilters extends IManagedListFilters {
+  categoryId: string | null;
+}
+
+export interface IStockFilters {
+  search: string | null;
+  onlyEmpty: boolean;
+}
+
 export interface ICategoryRow {
   id: string;
   parent_id: string | null;

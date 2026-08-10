@@ -1,5 +1,5 @@
 import { HttpStatus } from '@/shared/config';
-import { ITenantContext } from '@/shared/types';
+import { IListResult, ITenantContext } from '@/shared/types';
 import { AppError, pickString } from '@/shared/utils';
 import {
   appendAttributeValue,
@@ -10,6 +10,7 @@ import {
   seedAttributePreset,
   selectAttributeById,
   selectAttributes,
+  selectManagedAttributes,
   updateAttributeFields,
 } from '@/modules/attributes/attributes.db';
 import {
@@ -18,6 +19,7 @@ import {
   AttributeValueTypes,
   CODE_PATTERN,
   IAttribute,
+  IAttributeFilters,
   IAttributeRow,
 } from '@/modules/attributes/types';
 
@@ -54,6 +56,18 @@ export const buildCode = (source: string): string => {
 export const listAttributes = async (tenant: ITenantContext): Promise<IAttribute[]> => (
   (await selectAttributes(tenant.id)).map(mapAttribute)
 );
+
+export const listManagedAttributes = async (
+  tenant: ITenantContext,
+  filters: IAttributeFilters,
+  page: number,
+  limit: number,
+  offset: number,
+): Promise<IListResult<IAttribute>> => {
+  const { items, total } = await selectManagedAttributes(tenant.id, filters, limit, offset);
+
+  return { items: items.map(mapAttribute), total, page, limit };
+};
 
 export const createAttribute = async (
   tenant: ITenantContext,

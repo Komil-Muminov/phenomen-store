@@ -9,6 +9,7 @@ interface IProps {
   categories: IShopCategory[];
   products: IShopProduct[];
   isLoading: boolean;
+  canReorder: boolean;
   onEdit: (banner: IShopBanner) => void;
   onDeactivate: (banner: IShopBanner) => void;
   onDelete: (banner: IShopBanner) => void;
@@ -37,6 +38,7 @@ export const BannersTable = ({
   categories,
   products,
   isLoading,
+  canReorder,
   onEdit,
   onDeactivate,
   onDelete,
@@ -57,12 +59,12 @@ export const BannersTable = ({
   }, []);
 
   const handleDrop = useCallback((target: number) => {
-    if (dragIndex !== null && dragIndex !== target) {
+    if (canReorder && dragIndex !== null && dragIndex !== target) {
       onReorder(moveItem(items, dragIndex, target));
     }
 
     resetDrag();
-  }, [dragIndex, items, onReorder, resetDrag]);
+  }, [canReorder, dragIndex, items, onReorder, resetDrag]);
 
   return (
     <Table<IShopBanner>
@@ -76,7 +78,7 @@ export const BannersTable = ({
       locale={{ emptyText: <Empty description={UiMessages.emptyBanners} /> }}
       className="overflow-x-auto"
       onRow={(_record, index) => ({
-        draggable: true,
+        draggable: canReorder,
         className: overIndex === index && dragIndex !== index ? `${ROW_BASE} ${ROW_OVER}` : ROW_BASE,
         onDragStart: () => setDragIndex(index ?? null),
         onDragEnter: () => setOverIndex(index ?? null),

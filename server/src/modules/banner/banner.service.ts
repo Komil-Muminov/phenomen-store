@@ -10,6 +10,7 @@ import {
   existsTenantProduct,
   insertBanner,
   selectBannerById,
+  selectBannerPage,
   selectManagedBanners,
   setBannerActive,
   updateBannerFields,
@@ -19,6 +20,7 @@ import {
   BannerActionTypes,
   BannerDefaults,
   BannerErrors,
+  IBannerFilters,
   IBannerInput,
   IBannerRow,
   MaxReorderItems,
@@ -189,9 +191,17 @@ const requireBanner = async (tenant: ITenantContext, id: string): Promise<IBanne
   return row;
 };
 
-export const listBanners = async (tenant: ITenantContext) => (
-  (await selectManagedBanners(tenant.id)).map(mapBanner)
-);
+export const listBanners = async (
+  tenant: ITenantContext,
+  filters: IBannerFilters,
+  page: number,
+  limit: number,
+  offset: number,
+) => {
+  const { items, total } = await selectBannerPage(tenant.id, filters, limit, offset);
+
+  return { items: items.map(mapBanner), total, page, limit };
+};
 
 export const createBanner = async (tenant: ITenantContext, payload: Record<string, unknown>) => {
   const input = await buildInput(tenant, payload, null);

@@ -1,16 +1,18 @@
-import { useCallback, useMemo, useState } from 'react';
-import { Alert, App as AntApp, Button, Typography } from 'antd';
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { useCallback, useState } from 'react';
+import { Alert, App as AntApp, Button, Select } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/shared/api';
-import { ApiRoutes, QueryKeys } from '@/shared/config';
-import { useGetQuery, useMutationQuery } from '@/shared/hooks';
+import { ApiRoutes, AttributeKindOptions, ListLimits, QueryKeys } from '@/shared/config';
+import { useGetQuery, useListQuery, useMutationQuery } from '@/shared/hooks';
+import { buildListKey, buildListParams } from '@/shared/lib';
 import { If } from '@/shared/ui/If';
-import { Tooltip } from '@/shared/ui/Tooltip';
+import { ListPagination } from '@/shared/ui/ListPagination';
+import { ListToolbar } from '@/shared/ui/ListToolbar';
 import { AttributesTable } from '@/features/attributes-table';
 import { AttributeForm, IAttributeFormValues } from '@/features/attribute-form';
 import { ShopShell } from '@/widgets/shop-shell';
-import type { IShopAttribute } from '@/entities/shop';
+import type { IShopAttribute, IShopAttributeList } from '@/entities/shop';
 
 export const ShopAttributesPage = () => {
   const { message, modal } = AntApp.useApp();
@@ -18,10 +20,14 @@ export const ShopAttributesPage = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<IShopAttribute | null>(null);
 
-  const attributesQuery = useGetQuery<IShopAttribute[]>(
-    [QueryKeys.shopAttributes],
-    ApiRoutes.shopAttributesSearch,
-    { scope: 'shop' },
+  const { draft, applied, setFilter, setSearch, setPage } = useListQuery({
+    isVariantOption: undefined as boolean | undefined,
+  });
+
+  const attributesQuery = useGetQuery<IShopAttributeList>(
+    [QueryKeys.shopAttributes, 'manage', ...buildListKey(applied)],
+    ApiRoutes.shopAttributesManage,
+    { scope: 'shop', params: buildListParams(applied, ListLimits.default) },
   );
 
   const invalidate = [[QueryKeys.shopAttributes]];
@@ -37,15 +43,6 @@ export const ShopAttributesPage = () => {
     (body) => `${ApiRoutes.shopAttributeDelete}/${body.id}`,
     { scope: 'shop', method: 'delete', invalidate },
   );
-
-  const counters = useMemo(() => {
-    const items = attributesQuery.data ?? [];
-
-    return {
-      options: items.filter((item) => item.isVariantOption).length,
-      details: items.filter((item) => !item.isVariantOption).length,
-    };
-  }, [attributesQuery.data]);
 
   const closeForm = useCallback(() => {
     setFormOpen(false);
@@ -83,6 +80,10 @@ export const ShopAttributesPage = () => {
     });
   }, [deleteMutation, modal, message]);
 
+  const handleKind = useCallback((value: string) => {
+    setFilter({ isVariantOption: value === 'all' ? undefined : value === 'option' });
+  }, [setFilter]);
+
   const handleSubmit = useCallback((values: IAttributeFormValues) => {
     const onError = (error: Error) => message.error(extractErrorMessage(error));
 
@@ -109,27 +110,23 @@ export const ShopAttributesPage = () => {
 
   return (
     <ShopShell>
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <Typography.Title level={3} className="mb-0! text-brand-text!">
-            Характеристики
-          </Typography.Title>
-          <Typography.Text type="secondary">
-            Для вариантов: {counters.options} · описательных: {counters.details}
-          </Typography.Text>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Tooltip title="Обновить">
-            <Button
-              aria-label="Обновить справочник"
-              icon={<ReloadOutlined />}
-              loading={attributesQuery.isFetching}
-              onClick={handleRefresh}
-              className="cursor-pointer!"
-            />
-          </Tooltip>
-
+      <ListToolbar
+        title="Характеристики"
+        subtitle={`Найдено: ${attributesQuery.data?.total ?? 0}`}
+        search={draft.search}
+        searchPlaceholder="Название или код"
+        isFetching={attributesQuery.isFetching}
+        onSearch={setSearch}
+        onRefresh={handleRefresh}
+        filters={(
+          <Select
+            value={draft.isVariantOption === undefined ? 'all' : (draft.isVariantOption ? 'option' : 'detail')}
+            onChange={handleKind}
+            className="min-w-48"
+            options={AttributeKindOptions}
+          />
+        )}
+        actions={(
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -138,8 +135,8 @@ export const ShopAttributesPage = () => {
           >
             Новая характеристика
           </Button>
-        </div>
-      </header>
+        )}
+      />
 
       <Alert
         type="info"
@@ -160,12 +157,19 @@ export const ShopAttributesPage = () => {
 
       <section className="rounded-xl border border-violet-200 bg-white p-2 shadow-sm">
         <AttributesTable
-          items={attributesQuery.data ?? []}
+          items={attributesQuery.data?.items ?? []}
           isLoading={attributesQuery.isLoading}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
       </section>
+
+      <ListPagination
+        current={applied.page}
+        pageSize={ListLimits.default}
+        total={attributesQuery.data?.total ?? 0}
+        onChange={setPage}
+      />
 
       <AttributeForm
         open={formOpen}

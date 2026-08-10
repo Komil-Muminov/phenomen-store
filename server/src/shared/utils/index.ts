@@ -37,6 +37,24 @@ export const parsePagination = (query: Record<string, unknown>): IPaginationPara
   return { page, limit, offset: (page - 1) * limit };
 };
 
+export const pickSearch = (value: unknown): string | null => {
+  const text = typeof value === 'string' ? value.trim() : '';
+
+  return text ? `%${text}%` : null;
+};
+
+export const pickFlag = (value: unknown): boolean | null => {
+  if (value === 'true' || value === true) {
+    return true;
+  }
+
+  return value === 'false' || value === false ? false : null;
+};
+
+export const pickUuid = (value: unknown, fieldName: string): string | null => (
+  typeof value === 'string' && value.length > 0 ? requireUuid(value, fieldName) : null
+);
+
 export const requireFields = (payload: Record<string, unknown>, fields: string[]): void => {
   const missing = fields.filter((field) => {
     const value = payload?.[field];

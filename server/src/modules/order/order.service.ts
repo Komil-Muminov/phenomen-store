@@ -139,10 +139,17 @@ export const createOrder = async (
 export const getTenantOrders = async (
   tenant: ITenantContext,
   status: string | null,
+  search: string | null,
   page: number,
   limit: number,
 ): Promise<IListResult<ReturnType<typeof mapOrder>>> => {
-  const { items, total } = await selectTenantOrders(tenant.id, status, limit, (page - 1) * limit);
+  const { items, total } = await selectTenantOrders(
+    tenant.id,
+    status,
+    search,
+    limit,
+    (page - 1) * limit,
+  );
   const mapped = await Promise.all(
     items.map(async (row) => mapOrder(row, await selectOrderItems(tenant.id, row.id))),
   );

@@ -2,7 +2,17 @@ import { NextFunction, Response, Router } from 'express';
 import { ApiActions, ErrorMessages, HttpStatus, UserRoles } from '@/shared/config';
 import { authMiddleware, rbacMiddleware } from '@/shared/middlewares';
 import { IAppRequest } from '@/shared/types';
-import { AppError, parsePagination, requireUuid, sendCreated, sendList, sendOk } from '@/shared/utils';
+import {
+  AppError,
+  parsePagination,
+  pickFlag,
+  pickSearch,
+  pickUuid,
+  requireUuid,
+  sendCreated,
+  sendList,
+  sendOk,
+} from '@/shared/utils';
 import {
   buildSearchParams,
   changeStock,
@@ -80,9 +90,15 @@ productRouter.get(
   rbacMiddleware(STAFF_ROLES),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
-      const { page, limit, offset } = parsePagination(req.query as Record<string, unknown>);
+      const params = req.query as Record<string, unknown>;
+      const { page, limit, offset } = parsePagination(params);
+      const filters = {
+        search: pickSearch(params.search),
+        categoryId: pickUuid(params.categoryId, 'categoryId'),
+        isActive: pickFlag(params.isActive),
+      };
 
-      sendList(res, await listManagedProducts(requireTenant(req), page, limit, offset));
+      sendList(res, await listManagedProducts(requireTenant(req), filters, page, limit, offset));
     } catch (error) {
       next(error);
     }
@@ -95,9 +111,14 @@ productRouter.get(
   rbacMiddleware(STAFF_ROLES),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
-      const { page, limit, offset } = parsePagination(req.query as Record<string, unknown>);
+      const params = req.query as Record<string, unknown>;
+      const { page, limit, offset } = parsePagination(params);
+      const filters = {
+        search: pickSearch(params.search),
+        onlyEmpty: pickFlag(params.onlyEmpty) === true,
+      };
 
-      sendList(res, await listStock(requireTenant(req), page, limit, offset));
+      sendList(res, await listStock(requireTenant(req), filters, page, limit, offset));
     } catch (error) {
       next(error);
     }
@@ -214,7 +235,11 @@ categoryRouter.get(
   rbacMiddleware(STAFF_ROLES),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
-      sendOk(res, await listManagedCategories(requireTenant(req)));
+      const params = req.query as Record<string, unknown>;
+      const { page, limit, offset } = parsePagination(params);
+      const filters = { search: pickSearch(params.search), isActive: pickFlag(params.isActive) };
+
+      sendList(res, await listManagedCategories(requireTenant(req), filters, page, limit, offset));
     } catch (error) {
       next(error);
     }

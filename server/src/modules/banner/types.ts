@@ -1,3 +1,8 @@
+export interface IBannerFilters {
+  search: string | null;
+  isActive: boolean | null;
+}
+
 export interface IBannerRow {
   id: string;
   image_url: string;

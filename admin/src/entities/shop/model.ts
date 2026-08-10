@@ -114,3 +114,24 @@ export interface IShopSession {
     role: string;
   };
 }
+
+export interface IShopCategoryList {
+  items: IShopCategory[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface IShopAttributeList {
+  items: IShopAttribute[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface IShopBannerList {
+  items: IShopBanner[];
+  total: number;
+  page: number;
+  limit: number;
+}

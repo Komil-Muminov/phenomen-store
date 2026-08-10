@@ -5,10 +5,13 @@ export type {
   IShopProduct,
   IProductVariant,
   IShopAttribute,
+  IShopAttributeList,
   IStockItem,
   IStockList,
   IShopProductList,
   IShopCategory,
+  IShopCategoryList,
   IShopBanner,
+  IShopBannerList,
   IShopSession,
 } from '@/entities/shop/model';

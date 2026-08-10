@@ -2,7 +2,16 @@ import { NextFunction, Response, Router } from 'express';
 import { ApiActions, ErrorMessages, HttpStatus, UserRoles } from '@/shared/config';
 import { authMiddleware, rbacMiddleware } from '@/shared/middlewares';
 import { IAppRequest } from '@/shared/types';
-import { AppError, requireUuid, sendCreated, sendOk } from '@/shared/utils';
+import {
+  AppError,
+  parsePagination,
+  pickFlag,
+  pickSearch,
+  requireUuid,
+  sendCreated,
+  sendList,
+  sendOk,
+} from '@/shared/utils';
 import {
   createBanner,
   deactivateBanner,
@@ -31,7 +40,11 @@ bannerRouter.get(
   rbacMiddleware(STAFF_ROLES),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
-      sendOk(res, await listBanners(requireTenant(req)));
+      const params = req.query as Record<string, unknown>;
+      const { page, limit, offset } = parsePagination(params);
+      const filters = { search: pickSearch(params.search), isActive: pickFlag(params.isActive) };
+
+      sendList(res, await listBanners(requireTenant(req), filters, page, limit, offset));
     } catch (error) {
       next(error);
     }

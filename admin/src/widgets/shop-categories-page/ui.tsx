@@ -1,16 +1,18 @@
 import { useCallback, useState } from 'react';
-import { Alert, App as AntApp, Button, Typography } from 'antd';
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Alert, App as AntApp, Button, Select } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/shared/api';
-import { ApiRoutes, QueryKeys } from '@/shared/config';
-import { useGetQuery, useMutationQuery } from '@/shared/hooks';
+import { ApiRoutes, ListLimits, QueryKeys, VisibilityOptions } from '@/shared/config';
+import { useGetQuery, useListQuery, useMutationQuery } from '@/shared/hooks';
+import { buildListKey, buildListParams } from '@/shared/lib';
 import { If } from '@/shared/ui/If';
-import { Tooltip } from '@/shared/ui/Tooltip';
+import { ListPagination } from '@/shared/ui/ListPagination';
+import { ListToolbar } from '@/shared/ui/ListToolbar';
 import { CategoriesTable } from '@/features/categories-table';
 import { CategoryForm, ICategoryFormValues } from '@/features/category-form';
 import { ShopShell } from '@/widgets/shop-shell';
-import type { IShopCategory } from '@/entities/shop';
+import type { IShopCategory, IShopCategoryList } from '@/entities/shop';
 
 export const ShopCategoriesPage = () => {
   const { message } = AntApp.useApp();
@@ -18,9 +20,18 @@ export const ShopCategoriesPage = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<IShopCategory | null>(null);
 
-  const categoriesQuery = useGetQuery<IShopCategory[]>(
-    [QueryKeys.shopCategories, 'manage'],
+  const { draft, applied, setFilter, setSearch, setPage } = useListQuery({
+    isActive: undefined as boolean | undefined,
+  });
+
+  const categoriesQuery = useGetQuery<IShopCategoryList>(
+    [QueryKeys.shopCategories, 'manage', ...buildListKey(applied)],
     ApiRoutes.shopCategoriesManage,
+    { scope: 'shop', params: buildListParams(applied, ListLimits.default) },
+  );
+  const parentsQuery = useGetQuery<IShopCategory[]>(
+    [QueryKeys.shopCategories, 'parents'],
+    ApiRoutes.shopCategoriesSearch,
     { scope: 'shop' },
   );
 
@@ -88,29 +99,32 @@ export const ShopCategoriesPage = () => {
     });
   }, [editing, updateMutation, createMutation, message, closeForm]);
 
-  const items = categoriesQuery.data ?? [];
+  const handleVisibility = useCallback((value: string) => {
+    setFilter({ isActive: value === 'all' ? undefined : value === 'active' });
+  }, [setFilter]);
+
+  const items = categoriesQuery.data?.items ?? [];
+  const total = categoriesQuery.data?.total ?? 0;
 
   return (
     <ShopShell>
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <Typography.Title level={3} className="mb-0! text-brand-text!">
-            Категории
-          </Typography.Title>
-          <Typography.Text type="secondary">Всего: {items.length}</Typography.Text>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Tooltip title="Обновить">
-            <Button
-              aria-label="Обновить категории"
-              icon={<ReloadOutlined />}
-              loading={categoriesQuery.isFetching}
-              onClick={handleRefresh}
-              className="cursor-pointer!"
-            />
-          </Tooltip>
-
+      <ListToolbar
+        title="Категории"
+        subtitle={`Найдено: ${total}`}
+        search={draft.search}
+        searchPlaceholder="Название или слаг"
+        isFetching={categoriesQuery.isFetching}
+        onSearch={setSearch}
+        onRefresh={handleRefresh}
+        filters={(
+          <Select
+            value={draft.isActive === undefined ? 'all' : String(draft.isActive)}
+            onChange={handleVisibility}
+            className="min-w-40"
+            options={VisibilityOptions}
+          />
+        )}
+        actions={(
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -119,8 +133,8 @@ export const ShopCategoriesPage = () => {
           >
             Новая категория
           </Button>
-        </div>
-      </header>
+        )}
+      />
 
       <If condition={Boolean(categoriesQuery.error)}>
         <Alert
@@ -131,7 +145,7 @@ export const ShopCategoriesPage = () => {
         />
       </If>
 
-      <If condition={!categoriesQuery.isLoading && items.length === 0}>
+      <If condition={!categoriesQuery.isLoading && total === 0 && !applied.search}>
         <Alert
           type="warning"
           showIcon
@@ -150,10 +164,17 @@ export const ShopCategoriesPage = () => {
         />
       </section>
 
+      <ListPagination
+        current={applied.page}
+        pageSize={ListLimits.default}
+        total={total}
+        onChange={setPage}
+      />
+
       <CategoryForm
         open={formOpen}
         editing={editing}
-        categories={items}
+        categories={parentsQuery.data ?? []}
         isSaving={createMutation.isPending || updateMutation.isPending}
         onSubmit={handleSubmit}
         onCancel={closeForm}

@@ -3,8 +3,11 @@ import {
   DemoProducts,
   DemoSizes,
   ICategoryRow,
+  IManagedListFilters,
+  IManagedProductFilters,
   IProductRow,
   IProductSearchParams,
+  IStockFilters,
   ProductSortSql,
   SearchLanguage,
 } from '@/modules/catalog/types';
@@ -45,6 +48,12 @@ export const selectCategories = async (tenantId: string): Promise<ICategoryRow[]
 
 const CATEGORY_COLUMNS = 'id, parent_id, slug, name, description, image_url, position, is_active';
 
+const MANAGED_CATEGORIES_FILTER = `
+  WHERE tenant_id = $1
+    AND ($2::text IS NULL OR name ILIKE $2 OR slug ILIKE $2)
+    AND ($3::boolean IS NULL OR is_active = $3)
+`;
+
 export const selectManagedCategories = async (tenantId: string): Promise<ICategoryRow[]> => (
   tenantQuery<ICategoryRow>(
     tenantId,
@@ -52,6 +61,26 @@ export const selectManagedCategories = async (tenantId: string): Promise<ICatego
     [tenantId],
   )
 );
+
+export const selectCategoryPage = async (
+  tenantId: string,
+  filters: IManagedListFilters,
+  limit: number,
+  offset: number,
+): Promise<{ items: ICategoryRow[]; total: number }> => withTenant(tenantId, async (client) => {
+  const scope = [tenantId, filters.search, filters.isActive];
+  const items = await client.query<ICategoryRow>(
+    `SELECT ${CATEGORY_COLUMNS} FROM categories ${MANAGED_CATEGORIES_FILTER}
+     ORDER BY position, name LIMIT $4 OFFSET $5`,
+    [...scope, limit, offset],
+  );
+  const counted = await client.query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total FROM categories ${MANAGED_CATEGORIES_FILTER}`,
+    scope,
+  );
+
+  return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
+});
 
 export const selectCategoryById = async (
   tenantId: string,
@@ -185,18 +214,27 @@ export const selectProducts = async (
   });
 };
 
+const MANAGED_PRODUCTS_FILTER = `
+  WHERE p.tenant_id = $1
+    AND ($2::text IS NULL OR p.name ILIKE $2 OR p.brand ILIKE $2 OR p.slug ILIKE $2)
+    AND ($3::uuid IS NULL OR p.category_id = $3)
+    AND ($4::boolean IS NULL OR p.is_active = $4)
+`;
+
 export const selectManagedProducts = async (
   tenantId: string,
+  filters: IManagedProductFilters,
   limit: number,
   offset: number,
 ): Promise<{ items: IProductRow[]; total: number }> => withTenant(tenantId, async (client) => {
+  const scope = [tenantId, filters.search, filters.categoryId, filters.isActive];
   const items = await client.query<IProductRow>(
-    `${PRODUCT_SELECT} WHERE p.tenant_id = $1 ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`,
-    [tenantId, limit, offset],
+    `${PRODUCT_SELECT} ${MANAGED_PRODUCTS_FILTER} ORDER BY p.created_at DESC LIMIT $5 OFFSET $6`,
+    [...scope, limit, offset],
   );
   const counted = await client.query<{ total: string }>(
-    'SELECT COUNT(*)::text AS total FROM products p WHERE p.tenant_id = $1',
-    [tenantId],
+    `SELECT COUNT(*)::text AS total FROM products p ${MANAGED_PRODUCTS_FILTER}`,
+    scope,
   );
 
   return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
@@ -323,24 +361,32 @@ export interface IStockRow {
   is_active: boolean;
 }
 
+const STOCK_FILTER = `
+  FROM product_variants v
+  JOIN products p ON p.id = v.product_id AND p.tenant_id = v.tenant_id
+  WHERE v.tenant_id = $1
+    AND ($2::text IS NULL OR p.name ILIKE $2 OR v.sku ILIKE $2)
+    AND ($3::boolean IS NOT TRUE OR v.stock = 0)
+`;
+
 export const selectStockRows = async (
   tenantId: string,
+  filters: IStockFilters,
   limit: number,
   offset: number,
 ): Promise<{ items: IStockRow[]; total: number }> => withTenant(tenantId, async (client) => {
+  const scope = [tenantId, filters.search, filters.onlyEmpty];
   const items = await client.query<IStockRow>(
     `SELECT v.id, v.sku, v.options, v.stock, v.price::text, v.is_active,
             p.id AS product_id, p.name AS product_name
-     FROM product_variants v
-     JOIN products p ON p.id = v.product_id AND p.tenant_id = v.tenant_id
-     WHERE v.tenant_id = $1
+     ${STOCK_FILTER}
      ORDER BY p.name, v.sku
-     LIMIT $2 OFFSET $3`,
-    [tenantId, limit, offset],
+     LIMIT $4 OFFSET $5`,
+    [...scope, limit, offset],
   );
   const counted = await client.query<{ total: string }>(
-    'SELECT COUNT(*)::text AS total FROM product_variants WHERE tenant_id = $1',
-    [tenantId],
+    `SELECT COUNT(*)::text AS total ${STOCK_FILTER}`,
+    scope,
   );
 
   return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };

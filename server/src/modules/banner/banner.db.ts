@@ -1,5 +1,5 @@
-import { tenantQuery } from '@/shared/db';
-import { IBannerInput, IBannerRow } from '@/modules/banner/types';
+import { tenantQuery, withTenant } from '@/shared/db';
+import { IBannerFilters, IBannerInput, IBannerRow } from '@/modules/banner/types';
 
 const BANNER_COLUMNS = `
   id, image_url, title, subtitle, action_type, action_value,
@@ -13,6 +13,31 @@ export const selectManagedBanners = async (tenantId: string): Promise<IBannerRow
     [tenantId],
   )
 );
+
+const MANAGED_FILTER = `
+  WHERE tenant_id = $1
+    AND ($2::text IS NULL OR title ILIKE $2 OR subtitle ILIKE $2)
+    AND ($3::boolean IS NULL OR is_active = $3)
+`;
+
+export const selectBannerPage = async (
+  tenantId: string,
+  filters: IBannerFilters,
+  limit: number,
+  offset: number,
+): Promise<{ items: IBannerRow[]; total: number }> => withTenant(tenantId, async (client) => {
+  const scope = [tenantId, filters.search, filters.isActive];
+  const items = await client.query<IBannerRow>(
+    `SELECT ${BANNER_COLUMNS} FROM banners ${MANAGED_FILTER} ORDER BY position, id LIMIT $4 OFFSET $5`,
+    [...scope, limit, offset],
+  );
+  const counted = await client.query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total FROM banners ${MANAGED_FILTER}`,
+    scope,
+  );
+
+  return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
+});
 
 export const selectBannerById = async (
   tenantId: string,

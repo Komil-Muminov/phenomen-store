@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from 'react';
 import {
   useMutation,
   useQuery,
@@ -6,7 +7,7 @@ import {
   UseQueryResult,
 } from '@tanstack/react-query';
 import { requestData, TApiScope } from '@/shared/api';
-import { StaleTimeMs } from '@/shared/config';
+import { Pagination, SearchDebounceMs, StaleTimeMs } from '@/shared/config';
 
 type TQueryKey = readonly (string | number | boolean | null | undefined)[];
 
@@ -54,4 +55,39 @@ export const useMutationQuery = <TBody, TData = unknown>(
       });
     },
   });
+};
+
+export interface IListState {
+  page: number;
+  search: string;
+}
+
+export const useListQuery = <T extends Record<string, unknown>>(initial: T) => {
+  const [draft, setDraft] = useState<T & IListState>({
+    ...initial,
+    page: Pagination.defaultPage,
+    search: '',
+  });
+  const [applied, setApplied] = useState(draft);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setApplied(draft), SearchDebounceMs);
+
+    return () => clearTimeout(timer);
+  }, [draft]);
+
+  const setFilter = useCallback((patch: Partial<T & IListState>) => {
+    setDraft((current) => ({ ...current, ...patch, page: Pagination.defaultPage }));
+  }, []);
+
+  const setSearch = useCallback((search: string) => {
+    setDraft((current) => ({ ...current, search, page: Pagination.defaultPage }));
+  }, []);
+
+  const setPage = useCallback((page: number) => {
+    setDraft((current) => ({ ...current, page }));
+    setApplied((current) => ({ ...current, page }));
+  }, []);
+
+  return { draft, applied, setFilter, setSearch, setPage };
 };

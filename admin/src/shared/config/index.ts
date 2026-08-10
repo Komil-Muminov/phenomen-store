@@ -38,6 +38,7 @@ export const ApiRoutes = {
   shopProductDeactivate: '/products/deactivate',
   shopCategoriesSearch: '/categories/search',
   shopAttributesSearch: '/attributes/search',
+  shopAttributesManage: '/attributes/manage/search',
   shopStockSearch: '/products/stock/search',
   shopStockUpdate: '/products/stock/update',
   shopProductDuplicate: '/products/duplicate',
@@ -162,6 +163,26 @@ export const StaleTimeMs = {
 } as const;
 
 export const RequestTimeoutMs = 20_000;
+
+export const SearchDebounceMs = 400;
+
+export const AttributeKindOptions = [
+  { value: 'all', label: 'Все характеристики' },
+  { value: 'option', label: 'Для вариантов' },
+  { value: 'detail', label: 'Описательные' },
+];
+
+export const VisibilityOptions = [
+  { value: 'all', label: 'Все' },
+  { value: 'true', label: 'Показанные' },
+  { value: 'false', label: 'Скрытые' },
+];
+
+export const ListLimits = {
+  default: 20,
+  stock: 50,
+  banners: 50,
+} as const;
 
 export const AuthHeader = 'Authorization';
 

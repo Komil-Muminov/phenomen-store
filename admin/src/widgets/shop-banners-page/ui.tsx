@@ -1,16 +1,23 @@
 import { useCallback, useState } from 'react';
-import { Alert, App as AntApp, Button, Typography } from 'antd';
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Alert, App as AntApp } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/shared/api';
-import { ApiRoutes, QueryKeys, StaleTimeMs, UiMessages } from '@/shared/config';
-import { useGetQuery, useMutationQuery } from '@/shared/hooks';
+import { ApiRoutes, ListLimits, QueryKeys, StaleTimeMs, UiMessages } from '@/shared/config';
+import { useGetQuery, useListQuery } from '@/shared/hooks';
+import { buildListKey, buildListParams } from '@/shared/lib';
 import { If } from '@/shared/ui/If';
-import { Tooltip } from '@/shared/ui/Tooltip';
+import { ListPagination } from '@/shared/ui/ListPagination';
 import { BannersTable } from '@/features/banners-table';
 import { BannerForm, IBannerFormValues } from '@/features/banner-form';
 import { ShopShell } from '@/widgets/shop-shell';
-import type { IShopBanner, IShopCategory, IShopProductList } from '@/entities/shop';
+import { useBannerMutations } from '@/widgets/shop-banners-page/lib';
+import { RenderToolbar } from '@/widgets/shop-banners-page/ui/renderToolbar';
+import type {
+  IShopBanner,
+  IShopBannerList,
+  IShopCategory,
+  IShopProductList,
+} from '@/entities/shop';
 
 export const ShopBannersPage = () => {
   const { message, modal } = AntApp.useApp();
@@ -18,10 +25,14 @@ export const ShopBannersPage = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<IShopBanner | null>(null);
 
-  const bannersQuery = useGetQuery<IShopBanner[]>(
-    [QueryKeys.shopBanners],
+  const { draft, applied, setFilter, setSearch, setPage } = useListQuery({
+    isActive: undefined as boolean | undefined,
+  });
+
+  const bannersQuery = useGetQuery<IShopBannerList>(
+    [QueryKeys.shopBanners, ...buildListKey(applied)],
     ApiRoutes.shopBannersManage,
-    { scope: 'shop' },
+    { scope: 'shop', params: buildListParams(applied, ListLimits.banners) },
   );
   const categoriesQuery = useGetQuery<IShopCategory[]>(
     [QueryKeys.shopCategories],
@@ -34,27 +45,7 @@ export const ShopBannersPage = () => {
     { scope: 'shop', staleTime: StaleTimeMs.long },
   );
 
-  const invalidate = [[QueryKeys.shopBanners]];
-  const createMutation = useMutationQuery<IBannerFormValues, IShopBanner>(
-    ApiRoutes.shopBannerCreate,
-    { scope: 'shop', invalidate },
-  );
-  const updateMutation = useMutationQuery<IBannerFormValues & { id: string }, IShopBanner>(
-    (body) => `${ApiRoutes.shopBannerUpdate}/${body.id}`,
-    { scope: 'shop', method: 'patch', invalidate },
-  );
-  const deactivateMutation = useMutationQuery<{ id: string }, IShopBanner>(
-    (body) => `${ApiRoutes.shopBannerDeactivate}/${body.id}`,
-    { scope: 'shop', method: 'patch', invalidate },
-  );
-  const deleteMutation = useMutationQuery<{ id: string }, { deleted: boolean }>(
-    (body) => `${ApiRoutes.shopBannerDelete}/${body.id}`,
-    { scope: 'shop', method: 'delete', invalidate },
-  );
-  const reorderMutation = useMutationQuery<{ ids: string[] }, IShopBanner[]>(
-    ApiRoutes.shopBannerReorder,
-    { scope: 'shop', invalidate },
-  );
+  const mutations = useBannerMutations();
 
   const closeForm = useCallback(() => {
     setFormOpen(false);
@@ -76,18 +67,18 @@ export const ShopBannersPage = () => {
   }, [queryClient]);
 
   const handleDeactivate = useCallback((banner: IShopBanner) => {
-    deactivateMutation.mutate({ id: banner.id }, {
+    mutations.deactivate.mutate({ id: banner.id }, {
       onSuccess: () => message.success(UiMessages.hiddenBanner),
       onError: (error) => message.error(extractErrorMessage(error)),
     });
-  }, [deactivateMutation, message]);
+  }, [mutations.deactivate, message]);
 
   const handleReorder = useCallback((ids: string[]) => {
-    reorderMutation.mutate({ ids }, {
+    mutations.reorder.mutate({ ids }, {
       onSuccess: () => message.success(UiMessages.reorderedBanners),
       onError: (error) => message.error(extractErrorMessage(error)),
     });
-  }, [reorderMutation, message]);
+  }, [mutations.reorder, message]);
 
   const handleDelete = useCallback((banner: IShopBanner) => {
     modal.confirm({
@@ -97,20 +88,20 @@ export const ShopBannersPage = () => {
       okButtonProps: { danger: true },
       cancelText: 'Отмена',
       onOk: () => new Promise<void>((resolve) => {
-        deleteMutation.mutate({ id: banner.id }, {
+        mutations.remove.mutate({ id: banner.id }, {
           onSuccess: () => message.success(UiMessages.deletedBanner),
           onError: (error) => message.error(extractErrorMessage(error)),
           onSettled: () => resolve(),
         });
       }),
     });
-  }, [deleteMutation, modal, message]);
+  }, [mutations.remove, modal, message]);
 
   const handleSubmit = useCallback((values: IBannerFormValues) => {
     const onError = (error: Error) => message.error(extractErrorMessage(error));
 
     if (editing) {
-      updateMutation.mutate({ ...values, id: editing.id }, {
+      mutations.update.mutate({ ...values, id: editing.id }, {
         onSuccess: () => {
           message.success(UiMessages.updatedBanner);
           closeForm();
@@ -121,52 +112,37 @@ export const ShopBannersPage = () => {
       return;
     }
 
-    createMutation.mutate(values, {
+    mutations.create.mutate(values, {
       onSuccess: () => {
         message.success(UiMessages.createdBanner);
         closeForm();
       },
       onError,
     });
-  }, [editing, updateMutation, createMutation, message, closeForm]);
+  }, [editing, mutations.update, mutations.create, message, closeForm]);
 
-  const items = bannersQuery.data ?? [];
+  const handleVisibility = useCallback((value: string) => {
+    setFilter({ isActive: value === 'all' ? undefined : value === 'active' });
+  }, [setFilter]);
+
+  const items = bannersQuery.data?.items ?? [];
+  const total = bannersQuery.data?.total ?? 0;
   const products = productsQuery.data?.items ?? [];
+  const canReorder = applied.page === 1 && !applied.search && applied.isActive === undefined;
 
   return (
     <ShopShell>
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <Typography.Title level={3} className="mb-0! text-brand-text!">
-            Баннеры
-          </Typography.Title>
-          <Typography.Text type="secondary">
-            Карусель на главной приложения — всего: {items.length}. Порядок меняется
-            перетаскиванием строк
-          </Typography.Text>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Tooltip title="Обновить">
-            <Button
-              aria-label="Обновить баннеры"
-              icon={<ReloadOutlined />}
-              loading={bannersQuery.isFetching}
-              onClick={handleRefresh}
-              className="cursor-pointer!"
-            />
-          </Tooltip>
-
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleCreate}
-            className="cursor-pointer! transition-colors! duration-200!"
-          >
-            Новый баннер
-          </Button>
-        </div>
-      </header>
+      <RenderToolbar
+        total={total}
+        search={draft.search}
+        isActive={draft.isActive}
+        isFetching={bannersQuery.isFetching}
+        canReorder={canReorder}
+        onSearch={setSearch}
+        onVisibility={handleVisibility}
+        onRefresh={handleRefresh}
+        onCreate={handleCreate}
+      />
 
       <If condition={Boolean(bannersQuery.error)}>
         <Alert
@@ -177,7 +153,7 @@ export const ShopBannersPage = () => {
         />
       </If>
 
-      <If condition={!bannersQuery.isLoading && items.length === 0}>
+      <If condition={!bannersQuery.isLoading && total === 0 && !applied.search}>
         <Alert
           type="info"
           showIcon
@@ -192,7 +168,8 @@ export const ShopBannersPage = () => {
           items={items}
           categories={categoriesQuery.data ?? []}
           products={products}
-          isLoading={bannersQuery.isLoading || reorderMutation.isPending}
+          isLoading={bannersQuery.isLoading || mutations.reorder.isPending}
+          canReorder={canReorder}
           onEdit={handleEdit}
           onDeactivate={handleDeactivate}
           onDelete={handleDelete}
@@ -200,12 +177,19 @@ export const ShopBannersPage = () => {
         />
       </section>
 
+      <ListPagination
+        current={applied.page}
+        pageSize={ListLimits.banners}
+        total={total}
+        onChange={setPage}
+      />
+
       <BannerForm
         open={formOpen}
         editing={editing}
         categories={categoriesQuery.data ?? []}
         products={products}
-        isSaving={createMutation.isPending || updateMutation.isPending}
+        isSaving={mutations.create.isPending || mutations.update.isPending}
         onSubmit={handleSubmit}
         onCancel={closeForm}
       />

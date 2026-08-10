@@ -16,6 +16,7 @@ import {
   selectProductVariants,
   selectStockRows,
   updateVariantStock,
+  selectCategoryPage,
   selectManagedCategories,
   selectCategoryById,
   existsCategorySlug,
@@ -27,7 +28,16 @@ import {
   selectProducts,
   updateProductFields,
 } from '@/modules/catalog/catalog.db';
-import { ICategoryRow, IProductRow, IProductSearchParams, ProductSort, ProductSortSql } from '@/modules/catalog/types';
+import {
+  ICategoryRow,
+  IManagedListFilters,
+  IManagedProductFilters,
+  IProductRow,
+  IProductSearchParams,
+  IStockFilters,
+  ProductSort,
+  ProductSortSql,
+} from '@/modules/catalog/types';
 
 const toNumber = (value: string | null): number | null => (value === null ? null : Number(value));
 
@@ -160,11 +170,12 @@ const requireProduct = async (tenant: ITenantContext, id: string) => {
 
 export const listManagedProducts = async (
   tenant: ITenantContext,
+  filters: IManagedProductFilters,
   page: number,
   limit: number,
   offset: number,
 ): Promise<IListResult<ReturnType<typeof mapProduct>>> => {
-  const { items, total } = await selectManagedProducts(tenant.id, limit, offset);
+  const { items, total } = await selectManagedProducts(tenant.id, filters, limit, offset);
 
   return { items: items.map(mapProduct), total, page, limit };
 };
@@ -429,11 +440,12 @@ export const importProducts = async (
 
 export const listStock = async (
   tenant: ITenantContext,
+  filters: IStockFilters,
   page: number,
   limit: number,
   offset: number,
 ) => {
-  const { items, total } = await selectStockRows(tenant.id, limit, offset);
+  const { items, total } = await selectStockRows(tenant.id, filters, limit, offset);
 
   return {
     items: items.map((row) => ({
@@ -507,12 +519,22 @@ export const getCategories = async (tenant: ITenantContext) => {
   return rows.map(mapCategory);
 };
 
-export const listManagedCategories = async (tenant: ITenantContext) => (
-  (await selectManagedCategories(tenant.id)).map((row) => ({
-    ...mapCategory(row),
-    isActive: row.is_active !== false,
-  }))
-);
+export const listManagedCategories = async (
+  tenant: ITenantContext,
+  filters: IManagedListFilters,
+  page: number,
+  limit: number,
+  offset: number,
+) => {
+  const { items, total } = await selectCategoryPage(tenant.id, filters, limit, offset);
+
+  return {
+    items: items.map((row) => ({ ...mapCategory(row), isActive: row.is_active !== false })),
+    total,
+    page,
+    limit,
+  };
+};
 
 const requireCategory = async (tenant: ITenantContext, id: string) => {
   const row = await selectCategoryById(tenant.id, id);

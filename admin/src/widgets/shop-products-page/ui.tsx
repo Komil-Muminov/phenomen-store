@@ -1,16 +1,18 @@
 import { useCallback, useState } from 'react';
-import { Alert, App as AntApp, Button, Typography } from 'antd';
-import { PlusOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons';
+import { Alert, App as AntApp } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/shared/api';
-import { ApiRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
-import { useGetQuery, useMutationQuery } from '@/shared/hooks';
+import { ApiRoutes, ListLimits, QueryKeys, StaleTimeMs } from '@/shared/config';
+import { useGetQuery, useListQuery } from '@/shared/hooks';
+import { buildListKey, buildListParams } from '@/shared/lib';
 import { If } from '@/shared/ui/If';
-import { Tooltip } from '@/shared/ui/Tooltip';
+import { ListPagination } from '@/shared/ui/ListPagination';
 import { ProductsTable } from '@/features/products-table';
 import { ProductForm, IProductPayload } from '@/features/product-form';
 import { ProductImport, IImportRow, IImportResult } from '@/features/product-import';
 import { ShopShell } from '@/widgets/shop-shell';
+import { useProductMutations } from '@/widgets/shop-products-page/lib';
+import { RenderToolbar } from '@/widgets/shop-products-page/ui/renderToolbar';
 import type {
   IShopAttribute,
   IShopCategory,
@@ -26,10 +28,15 @@ export const ShopProductsPage = () => {
   const [importOpen, setImportOpen] = useState(false);
   const [importResult, setImportResult] = useState<IImportResult | null>(null);
 
+  const { draft, applied, setFilter, setSearch, setPage } = useListQuery({
+    categoryId: undefined as string | undefined,
+    isActive: undefined as boolean | undefined,
+  });
+
   const productsQuery = useGetQuery<IShopProductList>(
-    [QueryKeys.shopProducts],
+    [QueryKeys.shopProducts, 'manage', ...buildListKey(applied)],
     ApiRoutes.shopProductsSearch,
-    { scope: 'shop' },
+    { scope: 'shop', params: buildListParams(applied, ListLimits.default) },
   );
   const categoriesQuery = useGetQuery<IShopCategory[]>(
     [QueryKeys.shopCategories],
@@ -42,27 +49,7 @@ export const ShopProductsPage = () => {
     { scope: 'shop', staleTime: StaleTimeMs.long },
   );
 
-  const invalidate = [[QueryKeys.shopProducts]];
-  const createMutation = useMutationQuery<IProductPayload, IShopProduct>(
-    ApiRoutes.shopProductCreate,
-    { scope: 'shop', invalidate },
-  );
-  const updateMutation = useMutationQuery<IProductPayload & { id: string }, IShopProduct>(
-    (body) => `${ApiRoutes.shopProductUpdate}/${body.id}`,
-    { scope: 'shop', method: 'patch', invalidate },
-  );
-  const toggleMutation = useMutationQuery<{ id: string; isActive: boolean }, IShopProduct>(
-    (body) => `${ApiRoutes.shopProductUpdate}/${body.id}`,
-    { scope: 'shop', method: 'patch', invalidate },
-  );
-  const duplicateMutation = useMutationQuery<{ id: string }, IShopProduct>(
-    (body) => `${ApiRoutes.shopProductDuplicate}/${body.id}`,
-    { scope: 'shop', invalidate },
-  );
-  const importMutation = useMutationQuery<{ rows: IImportRow[] }, IImportResult>(
-    ApiRoutes.shopProductImport,
-    { scope: 'shop', invalidate },
-  );
+  const mutations = useProductMutations();
 
   const closeForm = useCallback(() => {
     setFormOpen(false);
@@ -84,36 +71,36 @@ export const ShopProductsPage = () => {
   }, [queryClient]);
 
   const handleToggle = useCallback((product: IShopProduct) => {
-    toggleMutation.mutate({ id: product.id, isActive: !product.inStock }, {
+    mutations.toggle.mutate({ id: product.id, isActive: !product.inStock }, {
       onSuccess: () => message.success(product.inStock ? 'Товар скрыт' : 'Товар возвращён в каталог'),
       onError: (error) => message.error(extractErrorMessage(error)),
     });
-  }, [toggleMutation, message]);
+  }, [mutations.toggle, message]);
 
   const handleImport = useCallback((rows: IImportRow[]) => {
     setImportResult(null);
 
-    importMutation.mutate({ rows }, {
+    mutations.importRows.mutate({ rows }, {
       onSuccess: (result) => {
         setImportResult(result);
         message.success(`Создано ${result.created}, обновлено ${result.updated}`);
       },
       onError: (error) => message.error(extractErrorMessage(error)),
     });
-  }, [importMutation, message]);
+  }, [mutations.importRows, message]);
 
   const handleDuplicate = useCallback((product: IShopProduct) => {
-    duplicateMutation.mutate({ id: product.id }, {
+    mutations.duplicate.mutate({ id: product.id }, {
       onSuccess: (created) => message.success(`Создана копия: ${created.name}`),
       onError: (error) => message.error(extractErrorMessage(error)),
     });
-  }, [duplicateMutation, message]);
+  }, [mutations.duplicate, message]);
 
   const handleSubmit = useCallback((values: IProductPayload) => {
     const onError = (error: Error) => message.error(extractErrorMessage(error));
 
     if (editing) {
-      updateMutation.mutate({ ...values, id: editing.id }, {
+      mutations.update.mutate({ ...values, id: editing.id }, {
         onSuccess: () => {
           message.success('Товар обновлён');
           closeForm();
@@ -124,56 +111,43 @@ export const ShopProductsPage = () => {
       return;
     }
 
-    createMutation.mutate(values, {
+    mutations.create.mutate(values, {
       onSuccess: () => {
         message.success('Товар создан');
         closeForm();
       },
       onError,
     });
-  }, [editing, updateMutation, createMutation, message, closeForm]);
+  }, [editing, mutations.update, mutations.create, message, closeForm]);
+
+  const handleImportOpen = useCallback(() => setImportOpen(true), []);
+
+  const handleCategory = useCallback((categoryId: string | undefined) => {
+    setFilter({ categoryId });
+  }, [setFilter]);
+
+  const handleVisibility = useCallback((value: string) => {
+    setFilter({ isActive: value === 'all' ? undefined : value === 'active' });
+  }, [setFilter]);
+
+  const total = productsQuery.data?.total ?? 0;
 
   return (
     <ShopShell>
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <Typography.Title level={3} className="mb-0! text-brand-text!">
-            Товары
-          </Typography.Title>
-          <Typography.Text type="secondary">
-            Всего: {productsQuery.data?.total ?? 0}
-          </Typography.Text>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Tooltip title="Обновить">
-            <Button
-              aria-label="Обновить список товаров"
-              icon={<ReloadOutlined />}
-              loading={productsQuery.isFetching}
-              onClick={handleRefresh}
-              className="cursor-pointer!"
-            />
-          </Tooltip>
-
-          <Button
-            icon={<UploadOutlined />}
-            onClick={() => setImportOpen(true)}
-            className="cursor-pointer!"
-          >
-            Загрузить из таблицы
-          </Button>
-
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleCreate}
-            className="cursor-pointer! transition-colors! duration-200!"
-          >
-            Новый товар
-          </Button>
-        </div>
-      </header>
+      <RenderToolbar
+        total={total}
+        search={draft.search}
+        categoryId={draft.categoryId}
+        isActive={draft.isActive}
+        categories={categoriesQuery.data ?? []}
+        isFetching={productsQuery.isFetching}
+        onSearch={setSearch}
+        onCategory={handleCategory}
+        onVisibility={handleVisibility}
+        onRefresh={handleRefresh}
+        onImport={handleImportOpen}
+        onCreate={handleCreate}
+      />
 
       <If condition={Boolean(productsQuery.error)}>
         <Alert
@@ -194,19 +168,26 @@ export const ShopProductsPage = () => {
         />
       </section>
 
+      <ListPagination
+        current={applied.page}
+        pageSize={ListLimits.default}
+        total={total}
+        onChange={setPage}
+      />
+
       <ProductForm
         open={formOpen}
         editing={editing}
         categories={categoriesQuery.data ?? []}
         attributes={attributesQuery.data ?? []}
-        isSaving={createMutation.isPending || updateMutation.isPending}
+        isSaving={mutations.create.isPending || mutations.update.isPending}
         onSubmit={handleSubmit}
         onCancel={closeForm}
       />
 
       <ProductImport
         open={importOpen}
-        isSaving={importMutation.isPending}
+        isSaving={mutations.importRows.isPending}
         result={importResult}
         onSubmit={handleImport}
         onCancel={() => {

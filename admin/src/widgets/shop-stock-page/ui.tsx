@@ -1,27 +1,34 @@
 import { useCallback, useState } from 'react';
-import { Alert, App as AntApp, Button, Typography } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { Alert, App as AntApp, Select } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/shared/api';
-import { ApiRoutes, Pagination, QueryKeys } from '@/shared/config';
-import { useGetQuery, useMutationQuery } from '@/shared/hooks';
+import { ApiRoutes, ListLimits, QueryKeys } from '@/shared/config';
+import { useGetQuery, useListQuery, useMutationQuery } from '@/shared/hooks';
+import { buildListKey, buildListParams } from '@/shared/lib';
 import { If } from '@/shared/ui/If';
-import { Tooltip } from '@/shared/ui/Tooltip';
+import { ListPagination } from '@/shared/ui/ListPagination';
+import { ListToolbar } from '@/shared/ui/ListToolbar';
 import { StockTable } from '@/features/stock-table';
 import { ShopShell } from '@/widgets/shop-shell';
 import type { IStockItem, IStockList } from '@/entities/shop';
 
-const STOCK_LIMIT = 200;
+const STOCK_FILTER_OPTIONS = [
+  { value: 'all', label: 'Все позиции' },
+  { value: 'empty', label: 'Только закончившиеся' },
+];
 
 export const ShopStockPage = () => {
   const { message } = AntApp.useApp();
   const queryClient = useQueryClient();
   const [savingId, setSavingId] = useState('');
+  const { draft, applied, setFilter, setSearch, setPage } = useListQuery({
+    onlyEmpty: undefined as boolean | undefined,
+  });
 
   const stockQuery = useGetQuery<IStockList>(
-    [QueryKeys.shopStock],
+    [QueryKeys.shopStock, ...buildListKey(applied)],
     ApiRoutes.shopStockSearch,
-    { scope: 'shop', params: { limit: STOCK_LIMIT, page: Pagination.defaultPage } },
+    { scope: 'shop', params: buildListParams(applied, ListLimits.stock) },
   );
 
   const stockMutation = useMutationQuery<{ id: string; stock: number }, IStockItem>(
@@ -42,31 +49,32 @@ export const ShopStockPage = () => {
     });
   }, [stockMutation, message]);
 
+  const handleOnlyEmpty = useCallback((value: string) => {
+    setFilter({ onlyEmpty: value === 'empty' ? true : undefined });
+  }, [setFilter]);
+
   const items = stockQuery.data?.items ?? [];
-  const empty = items.filter((item) => item.stock === 0).length;
+  const total = stockQuery.data?.total ?? 0;
 
   return (
     <ShopShell>
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <Typography.Title level={3} className="mb-0! text-brand-text!">
-            Остатки
-          </Typography.Title>
-          <Typography.Text type="secondary">
-            Позиций: {stockQuery.data?.total ?? 0} · закончилось: {empty}
-          </Typography.Text>
-        </div>
-
-        <Tooltip title="Обновить">
-          <Button
-            aria-label="Обновить остатки"
-            icon={<ReloadOutlined />}
-            loading={stockQuery.isFetching}
-            onClick={handleRefresh}
-            className="cursor-pointer!"
+      <ListToolbar
+        title="Остатки"
+        subtitle={`Найдено позиций: ${total}`}
+        search={draft.search}
+        searchPlaceholder="Название товара или SKU"
+        isFetching={stockQuery.isFetching}
+        onSearch={setSearch}
+        onRefresh={handleRefresh}
+        filters={(
+          <Select
+            value={draft.onlyEmpty ? 'empty' : 'all'}
+            onChange={handleOnlyEmpty}
+            className="min-w-52"
+            options={STOCK_FILTER_OPTIONS}
           />
-        </Tooltip>
-      </header>
+        )}
+      />
 
       <If condition={Boolean(stockQuery.error)}>
         <Alert
@@ -85,6 +93,13 @@ export const ShopStockPage = () => {
           onChange={handleChange}
         />
       </section>
+
+      <ListPagination
+        current={applied.page}
+        pageSize={ListLimits.stock}
+        total={total}
+        onChange={setPage}
+      />
     </ShopShell>
   );
 };

@@ -1,12 +1,19 @@
 import { useCallback, useState } from 'react';
-import { Alert, App as AntApp, Button, Select, Typography } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { Alert, App as AntApp, Select } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/shared/api';
-import { ApiRoutes, OrderStatusLabels, OrderStatuses, QueryKeys } from '@/shared/config';
-import { useGetQuery, useMutationQuery } from '@/shared/hooks';
+import {
+  ApiRoutes,
+  ListLimits,
+  OrderStatusLabels,
+  OrderStatuses,
+  QueryKeys,
+} from '@/shared/config';
+import { useGetQuery, useListQuery, useMutationQuery } from '@/shared/hooks';
+import { buildListKey, buildListParams } from '@/shared/lib';
 import { If } from '@/shared/ui/If';
-import { Tooltip } from '@/shared/ui/Tooltip';
+import { ListPagination } from '@/shared/ui/ListPagination';
+import { ListToolbar } from '@/shared/ui/ListToolbar';
 import { OrdersTable } from '@/features/orders-table';
 import { ShopShell } from '@/widgets/shop-shell';
 import type { IOrder, IOrderList } from '@/entities/shop';
@@ -19,13 +26,15 @@ interface IStatusBody {
 export const ShopOrdersPage = () => {
   const { message } = AntApp.useApp();
   const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
   const [savingId, setSavingId] = useState('');
+  const { draft, applied, setFilter, setSearch, setPage } = useListQuery({
+    status: undefined as string | undefined,
+  });
 
   const ordersQuery = useGetQuery<IOrderList>(
-    [QueryKeys.shopOrders, statusFilter ?? null],
+    [QueryKeys.shopOrders, ...buildListKey(applied)],
     ApiRoutes.shopOrdersSearch,
-    { scope: 'shop', params: statusFilter ? { status: statusFilter } : undefined },
+    { scope: 'shop', params: buildListParams(applied, ListLimits.default) },
   );
 
   const statusMutation = useMutationQuery<IStatusBody, IOrder>(
@@ -36,6 +45,10 @@ export const ShopOrdersPage = () => {
   const handleRefresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: [QueryKeys.shopOrders] });
   }, [queryClient]);
+
+  const handleStatusFilter = useCallback((status: string | undefined) => {
+    setFilter({ status });
+  }, [setFilter]);
 
   const handleStatusChange = useCallback((order: IOrder, status: string) => {
     setSavingId(order.id);
@@ -49,38 +62,28 @@ export const ShopOrdersPage = () => {
 
   return (
     <ShopShell>
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <Typography.Title level={3} className="mb-0! text-brand-text!">
-            Заказы
-          </Typography.Title>
-          <Typography.Text type="secondary">Всего: {ordersQuery.data?.total ?? 0}</Typography.Text>
-        </div>
-
-        <div className="flex items-center gap-2">
+      <ListToolbar
+        title="Заказы"
+        subtitle={`Найдено: ${ordersQuery.data?.total ?? 0}`}
+        search={draft.search}
+        searchPlaceholder="Номер, имя или телефон"
+        isFetching={ordersQuery.isFetching}
+        onSearch={setSearch}
+        onRefresh={handleRefresh}
+        filters={(
           <Select
             allowClear
             placeholder="Все статусы"
-            value={statusFilter}
-            onChange={setStatusFilter}
+            value={draft.status}
+            onChange={handleStatusFilter}
             className="min-w-44"
             options={OrderStatuses.map((status) => ({
               value: status,
               label: OrderStatusLabels[status] ?? status,
             }))}
           />
-
-          <Tooltip title="Обновить">
-            <Button
-              aria-label="Обновить список заказов"
-              icon={<ReloadOutlined />}
-              loading={ordersQuery.isFetching}
-              onClick={handleRefresh}
-              className="cursor-pointer!"
-            />
-          </Tooltip>
-        </div>
-      </header>
+        )}
+      />
 
       <If condition={Boolean(ordersQuery.error)}>
         <Alert
@@ -99,6 +102,13 @@ export const ShopOrdersPage = () => {
           onStatusChange={handleStatusChange}
         />
       </section>
+
+      <ListPagination
+        current={applied.page}
+        pageSize={ListLimits.default}
+        total={ordersQuery.data?.total ?? 0}
+        onChange={setPage}
+      />
     </ShopShell>
   );
 };
