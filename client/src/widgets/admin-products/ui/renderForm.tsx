@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { ApiRoutes, ManageUnits } from '@/shared/config';
 import { extractErrorMessage, uploadImage } from '@/shared/api';
 import { Button, ButtonVariants, Icon, If } from '@/shared/ui';
+import { IAdminAttribute, IVariantRow, ProductOptions } from '@/features/product-options';
 import {
   IAdminCategory,
   IProductFormValues,
@@ -16,9 +17,19 @@ interface IProps {
   editing: boolean;
   values: IProductFormValues;
   categories: IAdminCategory[];
+  details: IAdminAttribute[];
+  options: IAdminAttribute[];
+  attributeValues: Record<string, string>;
+  selected: Record<string, string[]>;
+  rows: IVariantRow[];
+  hasVariants: boolean;
   saving: boolean;
   onChange: (values: IProductFormValues) => void;
   onCreateCategory: (name: string) => void;
+  onAttributeChange: (code: string, value: string) => void;
+  onSelect: (code: string, next: string[]) => void;
+  onRowChange: (key: string, patch: Partial<IVariantRow>) => void;
+  onToggleVariants: (enabled: boolean) => void;
   onSubmit: () => void;
   onClose: () => void;
 }
@@ -32,9 +43,19 @@ export const RenderForm = ({
   editing,
   values,
   categories,
+  details,
+  options,
+  attributeValues,
+  selected,
+  rows,
+  hasVariants,
   saving,
   onChange,
   onCreateCategory,
+  onAttributeChange,
+  onSelect,
+  onRowChange,
+  onToggleVariants,
   onSubmit,
   onClose,
 }: IProps) => {
@@ -261,6 +282,19 @@ export const RenderForm = ({
               textAlignVertical="top"
             />
           </View>
+
+          <ProductOptions
+            details={details}
+            options={options}
+            values={attributeValues}
+            selected={selected}
+            rows={rows}
+            enabled={hasVariants}
+            onValueChange={onAttributeChange}
+            onSelect={onSelect}
+            onRowChange={onRowChange}
+            onToggle={onToggleVariants}
+          />
 
           <If condition={Boolean(error)}>
             <Text className="text-sm font-medium text-danger">{error}</Text>

@@ -9,6 +9,15 @@ import {
   SearchDebounceMs,
 } from '@/shared/config';
 import { useGetQuery } from '@/shared/hooks';
+import {
+  IAdminAttribute,
+  IVariantRow,
+  buildMatrix,
+  mergeRows,
+  readSelectedOptions,
+  readVariantRows,
+  splitAttributes,
+} from '@/features/product-options';
 import { Icon, If, Screen } from '@/shared/ui';
 import { useProductMutations } from '@/widgets/admin-products/lib';
 import {
@@ -31,6 +40,10 @@ export const AdminProducts = () => {
   const [editing, setEditing] = useState<IAdminProduct | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [values, setValues] = useState<IProductFormValues>(EMPTY_FORM);
+  const [attributeValues, setAttributeValues] = useState<Record<string, string>>({});
+  const [selected, setSelected] = useState<Record<string, string[]>>({});
+  const [rows, setRows] = useState<IVariantRow[]>([]);
+  const [hasVariants, setHasVariants] = useState(false);
   const mutations = useProductMutations();
 
   useEffect(() => {
@@ -51,21 +64,56 @@ export const AdminProducts = () => {
     [QueryKeys.categories],
     ApiRoutes.manageCategories,
   );
+  const attributesQuery = useGetQuery<IAdminAttribute[]>(
+    [QueryKeys.adminAttributes],
+    ApiRoutes.manageAttributes,
+  );
+
+  const groups = splitAttributes(attributesQuery.data ?? []);
+  const optionCodes = groups.options.map((item) => item.code);
 
   const handleCreate = useCallback(() => {
     setEditing(null);
     setValues(EMPTY_FORM);
+    setAttributeValues({});
+    setSelected({});
+    setRows([]);
+    setHasVariants(false);
     setFormOpen(true);
   }, []);
 
   const handleEdit = useCallback((product: IAdminProduct) => {
+    const variants = product.variants ?? [];
+
     setEditing(product);
     setValues(toFormValues(product));
+    setAttributeValues(product.attributes ?? {});
+    setSelected(readSelectedOptions(variants, optionCodes));
+    setRows(readVariantRows(variants));
+    setHasVariants(variants.length > 0);
     setFormOpen(true);
+  }, [optionCodes]);
+
+  const handleSelect = useCallback((code: string, next: string[]) => {
+    setSelected((current) => {
+      const merged = { ...current, [code]: next };
+
+      setRows((previous) => mergeRows(buildMatrix(optionCodes, merged), previous));
+
+      return merged;
+    });
+  }, [optionCodes]);
+
+  const handleRowChange = useCallback((key: string, patch: Partial<IVariantRow>) => {
+    setRows((current) => current.map((row) => (row.key === key ? { ...row, ...patch } : row)));
+  }, []);
+
+  const handleAttributeChange = useCallback((code: string, value: string) => {
+    setAttributeValues((current) => ({ ...current, [code]: value }));
   }, []);
 
   const handleSubmit = useCallback(() => {
-    const payload = toPayload(values);
+    const payload = toPayload(values, attributeValues, rows, hasVariants);
     const onSuccess = () => setFormOpen(false);
 
     if (editing) {
@@ -75,7 +123,7 @@ export const AdminProducts = () => {
     }
 
     mutations.create.mutate(payload, { onSuccess });
-  }, [values, editing, mutations.update, mutations.create]);
+  }, [values, attributeValues, rows, hasVariants, editing, mutations.update, mutations.create]);
 
   const handleCreateCategory = useCallback((name: string) => {
     mutations.createCategory.mutate({ name }, {
@@ -201,9 +249,19 @@ export const AdminProducts = () => {
         editing={Boolean(editing)}
         values={values}
         categories={categoriesQuery.data ?? []}
+        details={groups.details}
+        options={groups.options}
+        attributeValues={attributeValues}
+        selected={selected}
+        rows={rows}
+        hasVariants={hasVariants}
         saving={mutations.create.isPending || mutations.update.isPending}
         onChange={setValues}
         onCreateCategory={handleCreateCategory}
+        onAttributeChange={handleAttributeChange}
+        onSelect={handleSelect}
+        onRowChange={handleRowChange}
+        onToggleVariants={setHasVariants}
         onSubmit={handleSubmit}
         onClose={() => setFormOpen(false)}
       />

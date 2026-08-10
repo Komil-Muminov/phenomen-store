@@ -67,6 +67,7 @@ export const ApiRoutes = {
   manageConfig: '/tenants/config',
   manageMediaUpload: '/media/upload',
   manageCategories: '/categories/search',
+  manageAttributes: '/attributes/search',
 } as const;
 
 export const AppRoutes = {
@@ -99,6 +100,7 @@ export const QueryKeys = {
   adminStaff: 'admin-staff',
   adminOrders: 'admin-orders',
   adminProducts: 'admin-products',
+  adminAttributes: 'admin-attributes',
   adminStock: 'admin-stock',
   adminBanners: 'admin-banners',
   adminConfig: 'admin-config',

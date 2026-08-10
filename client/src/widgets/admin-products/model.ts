@@ -1,3 +1,5 @@
+import { IProductVariant, IVariantRow } from '@/features/product-options';
+
 export interface IAdminProduct {
   id: string;
   slug: string;
@@ -10,6 +12,7 @@ export interface IAdminProduct {
   inStock: boolean;
   attributes: Record<string, string>;
   media: string[];
+  variants: IProductVariant[];
   unit?: string;
 }
 
@@ -85,7 +88,12 @@ export const toFormValues = (product: IAdminProduct): IProductFormValues => ({
   media: product.media ?? [],
 });
 
-export const toPayload = (values: IProductFormValues) => ({
+export const toPayload = (
+  values: IProductFormValues,
+  details: Record<string, string>,
+  rows: IVariantRow[],
+  hasVariants: boolean,
+) => ({
   name: values.name.trim(),
   brand: values.brand.trim(),
   description: values.description.trim(),
@@ -94,8 +102,17 @@ export const toPayload = (values: IProductFormValues) => ({
   categoryId: values.categoryId,
   unit: values.unit,
   media: values.media,
-  attributes: {},
-  variants: [],
+  attributes: Object.entries(details).reduce<Record<string, string>>(
+    (acc, [code, value]) => (value.trim() ? { ...acc, [code]: value.trim() } : acc),
+    {},
+  ),
+  variants: hasVariants
+    ? rows.map((row) => ({
+      options: row.options,
+      price: row.price ?? undefined,
+      stock: row.stock,
+    }))
+    : [],
 });
 
 export const isFormValid = (values: IProductFormValues): boolean => (
