@@ -1,6 +1,7 @@
 import { Alert, Button, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { VisibilityOptions } from '@/shared/config';
+import { formatVisibility } from '@/shared/lib';
 import { If } from '@/shared/ui/If';
 import { ListToolbar } from '@/shared/ui/ListToolbar';
 
@@ -38,7 +39,7 @@ export const RenderToolbar = ({
       onRefresh={onRefresh}
       filters={(
         <Select
-          value={isActive === undefined ? 'all' : String(isActive)}
+          value={formatVisibility(isActive)}
           onChange={onVisibility}
           className="min-w-40"
           options={VisibilityOptions}

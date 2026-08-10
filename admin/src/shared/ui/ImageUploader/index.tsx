@@ -7,18 +7,29 @@ import { If } from '@/shared/ui/If';
 import { Tooltip } from '@/shared/ui/Tooltip';
 
 interface IProps {
-  imageUrl: string;
-  onChange: (url: string) => void;
+  value?: string;
+  onChange?: (url: string) => void;
+  title: string;
+  hint: string;
+  previewClass?: string;
 }
 
-export const RenderImage = ({ imageUrl, onChange }: IProps) => {
+const DEFAULT_PREVIEW = 'h-28 w-full sm:w-44';
+
+export const ImageUploader = ({
+  value = '',
+  onChange,
+  title,
+  hint,
+  previewClass = DEFAULT_PREVIEW,
+}: IProps) => {
   const [uploading, setUploading] = useState(false);
 
   const handleUpload = useCallback((file: File) => {
     setUploading(true);
 
     uploadFile<{ url: string }>(ApiRoutes.shopMediaUpload, file)
-      .then((result) => onChange(result.url))
+      .then((result) => onChange?.(result.url))
       .catch((error) => message.error(extractErrorMessage(error)))
       .finally(() => setUploading(false));
 
@@ -26,23 +37,25 @@ export const RenderImage = ({ imageUrl, onChange }: IProps) => {
   }, [onChange]);
 
   return (
-    <section className="mb-4 rounded-xl border border-violet-200 p-4">
+    <section className="rounded-xl border border-violet-200 p-4">
       <Typography.Text strong className="mb-3! block text-brand-text!">
-        Картинка баннера
+        {title}
       </Typography.Text>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-        <span className="flex h-28 w-full shrink-0 items-center justify-center overflow-hidden rounded-lg border border-violet-200 bg-violet-50 sm:w-44">
+        <span
+          className={`flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-violet-200 bg-violet-50 ${previewClass}`}
+        >
           <If
-            condition={Boolean(imageUrl)}
+            condition={Boolean(value)}
             fallback={<PictureOutlined className="text-2xl text-violet-300" aria-hidden="true" />}
           >
             <Image
-              src={imageUrl}
-              alt="Загруженная картинка баннера"
+              src={value}
+              alt={title}
               width="100%"
               height="100%"
-              className="object-cover!"
+              className="cursor-pointer! object-contain!"
               rootClassName="h-full w-full"
             />
           </If>
@@ -62,17 +75,17 @@ export const RenderImage = ({ imageUrl, onChange }: IProps) => {
                 loading={uploading}
                 className="cursor-pointer!"
               >
-                {imageUrl ? 'Заменить файл' : 'Выбрать файл'}
+                {value ? 'Заменить файл' : 'Выбрать файл'}
               </Button>
             </Upload>
 
-            <If condition={Boolean(imageUrl)}>
-              <Tooltip title="Убрать картинку">
+            <If condition={Boolean(value)}>
+              <Tooltip title="Убрать">
                 <Button
                   danger
-                  aria-label="Убрать картинку баннера"
+                  aria-label={`Убрать: ${title}`}
                   icon={<DeleteOutlined />}
-                  onClick={() => onChange('')}
+                  onClick={() => onChange?.('')}
                   className="cursor-pointer!"
                 />
               </Tooltip>
@@ -80,7 +93,7 @@ export const RenderImage = ({ imageUrl, onChange }: IProps) => {
           </div>
 
           <Typography.Text type="secondary" className="mt-2! block text-xs!">
-            {`JPG, PNG, WebP или GIF, до ${MediaMaxSizeLabel}. Лучше горизонтальная картинка шириной от 1200px — она растянется на всю ширину карусели.`}
+            {`${hint} Форматы JPG, PNG, WebP, GIF, до ${MediaMaxSizeLabel}.`}
           </Typography.Text>
         </div>
       </div>

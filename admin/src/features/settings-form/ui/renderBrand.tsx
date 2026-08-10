@@ -1,4 +1,5 @@
 import { Card, Form, Input, Typography } from 'antd';
+import { ImageUploader } from '@/shared/ui/ImageUploader';
 
 const COLOR_FIELDS = [
   { key: 'primary', label: 'Основной' },
@@ -17,8 +18,12 @@ export const RenderBrand = () => (
       <Input placeholder="Одежда, которая работает на вас" />
     </Form.Item>
 
-    <Form.Item name={['brand', 'logoUrl']} label="Ссылка на логотип">
-      <Input placeholder="https://..." />
+    <Form.Item name={['brand', 'logoUrl']} className="mb-6!">
+      <ImageUploader
+        title="Логотип магазина"
+        hint="Квадратная или горизонтальная картинка с прозрачным фоном, от 512px по большей стороне."
+        previewClass="h-24 w-24"
+      />
     </Form.Item>
 
     <Typography.Text strong className="mb-2! block text-brand-text!">

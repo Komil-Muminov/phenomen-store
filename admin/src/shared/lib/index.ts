@@ -33,3 +33,17 @@ export const buildListKey = <T extends object>(state: T): (string | number | boo
       return value === undefined || value === '' ? null : (value as string | number | boolean);
     })
 );
+
+export const VisibilityValues = {
+  all: 'all',
+  visible: 'true',
+  hidden: 'false',
+} as const;
+
+export const parseVisibility = (value: string): boolean | undefined => (
+  value === VisibilityValues.all ? undefined : value === VisibilityValues.visible
+);
+
+export const formatVisibility = (isActive?: boolean): string => (
+  isActive === undefined ? VisibilityValues.all : String(isActive)
+);

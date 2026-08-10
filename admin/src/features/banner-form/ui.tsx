@@ -2,8 +2,8 @@ import { useCallback, useEffect } from 'react';
 import { DatePicker, Form, Input, InputNumber, Modal, Switch } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { BannerActionTypes, BannerDefaults } from '@/shared/config';
+import { ImageUploader } from '@/shared/ui/ImageUploader';
 import { RenderAction } from '@/features/banner-form/ui/renderAction';
-import { RenderImage } from '@/features/banner-form/ui/renderImage';
 import type { IShopBanner, IShopCategory, IShopProduct } from '@/entities/shop';
 
 export interface IBannerFormValues {
@@ -51,7 +51,6 @@ export const BannerForm = ({
   onCancel,
 }: IProps) => {
   const [form] = Form.useForm<IFormState>();
-  const imageUrl = Form.useWatch('imageUrl', form) ?? '';
   const actionType = Form.useWatch('actionType', form) ?? BannerActionTypes.none;
 
   useEffect(() => {
@@ -113,11 +112,10 @@ export const BannerForm = ({
         <Form.Item
           name="imageUrl"
           rules={[{ required: true, message: 'Прикрепите картинку баннера' }]}
-          className="mb-0!"
         >
-          <RenderImage
-            imageUrl={imageUrl}
-            onChange={(url) => form.setFieldValue('imageUrl', url)}
+          <ImageUploader
+            title="Картинка баннера"
+            hint="Лучше горизонтальная картинка шириной от 1200px — она растянется на всю ширину карусели."
           />
         </Form.Item>
 

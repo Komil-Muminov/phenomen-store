@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/shared/api';
 import { ApiRoutes, ListLimits, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery, useListQuery } from '@/shared/hooks';
-import { buildListKey, buildListParams } from '@/shared/lib';
+import { buildListKey, buildListParams, parseVisibility } from '@/shared/lib';
 import { If } from '@/shared/ui/If';
 import { ListPagination } from '@/shared/ui/ListPagination';
 import { ProductsTable } from '@/features/products-table';
@@ -127,7 +127,7 @@ export const ShopProductsPage = () => {
   }, [setFilter]);
 
   const handleVisibility = useCallback((value: string) => {
-    setFilter({ isActive: value === 'all' ? undefined : value === 'active' });
+    setFilter({ isActive: parseVisibility(value) });
   }, [setFilter]);
 
   const total = productsQuery.data?.total ?? 0;

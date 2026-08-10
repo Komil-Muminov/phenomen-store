@@ -1,6 +1,7 @@
 import { Button, Select } from 'antd';
 import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { VisibilityOptions } from '@/shared/config';
+import { formatVisibility } from '@/shared/lib';
 import { ListToolbar } from '@/shared/ui/ListToolbar';
 import type { IShopCategory } from '@/entities/shop';
 
@@ -55,7 +56,7 @@ export const RenderToolbar = ({
         />
 
         <Select
-          value={isActive === undefined ? 'all' : String(isActive)}
+          value={formatVisibility(isActive)}
           onChange={onVisibility}
           className="min-w-40"
           options={VisibilityOptions}

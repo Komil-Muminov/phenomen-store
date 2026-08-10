@@ -5,7 +5,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/shared/api';
 import { ApiRoutes, ListLimits, QueryKeys, VisibilityOptions } from '@/shared/config';
 import { useGetQuery, useListQuery, useMutationQuery } from '@/shared/hooks';
-import { buildListKey, buildListParams } from '@/shared/lib';
+import {
+  buildListKey,
+  buildListParams,
+  formatVisibility,
+  parseVisibility,
+} from '@/shared/lib';
 import { If } from '@/shared/ui/If';
 import { ListPagination } from '@/shared/ui/ListPagination';
 import { ListToolbar } from '@/shared/ui/ListToolbar';
@@ -100,7 +105,7 @@ export const ShopCategoriesPage = () => {
   }, [editing, updateMutation, createMutation, message, closeForm]);
 
   const handleVisibility = useCallback((value: string) => {
-    setFilter({ isActive: value === 'all' ? undefined : value === 'active' });
+    setFilter({ isActive: parseVisibility(value) });
   }, [setFilter]);
 
   const items = categoriesQuery.data?.items ?? [];
@@ -118,7 +123,7 @@ export const ShopCategoriesPage = () => {
         onRefresh={handleRefresh}
         filters={(
           <Select
-            value={draft.isActive === undefined ? 'all' : String(draft.isActive)}
+            value={formatVisibility(draft.isActive)}
             onChange={handleVisibility}
             className="min-w-40"
             options={VisibilityOptions}
