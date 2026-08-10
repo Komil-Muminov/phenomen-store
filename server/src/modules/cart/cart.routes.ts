@@ -7,6 +7,7 @@ import {
   applyPromoCode,
   clearCart,
   getCartState,
+  mergeGuestCart,
   parseDeliveryMethod,
   requireOwner,
   updateCartItem,
@@ -76,6 +77,29 @@ cartRouter.post(CartActions.promo, async (req: IAppRequest, res: Response, next:
     const code = pickString(req.body?.code) || null;
 
     sendOk(res, await applyPromoCode(tenant, owner, code, deliveryMethod));
+  } catch (error) {
+    next(error);
+  }
+});
+
+cartRouter.post('/merge', async (req: IAppRequest, res: Response, next: NextFunction) => {
+  try {
+    if (!req.tenant) {
+      throw new AppError(ErrorMessages.tenantRequired, HttpStatus.badRequest);
+    }
+    if (!req.user) {
+      throw new AppError(ErrorMessages.unauthorized, HttpStatus.unauthorized);
+    }
+
+    const guestKey = pickString(req.headers[GuestHeader]) || pickString(req.body?.guestKey) || null;
+
+    if (guestKey) {
+      await mergeGuestCart(req.tenant, req.user.id, guestKey);
+    }
+
+    const deliveryMethod = parseDeliveryMethod(req.body?.deliveryMethod);
+
+    sendOk(res, await getCartState(req.tenant, { userId: req.user.id, guestKey: null }, deliveryMethod));
   } catch (error) {
     next(error);
   }

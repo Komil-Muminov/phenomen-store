@@ -62,7 +62,7 @@ authRouter.post(AuthActions.code, async (req: IAppRequest, res: Response, next: 
 authRouter.post(AuthActions.verify, async (req: IAppRequest, res: Response, next: NextFunction) => {
   try {
     const tenant = requireTenant(req);
-    const guestKey = pickString(req.headers[GuestHeader]) || null;
+    const guestKey = pickString(req.headers[GuestHeader]) || pickString(req.body?.guestKey) || null;
 
     sendOk(res, await verifyCode(tenant, req.body?.phone, req.body?.code, guestKey));
   } catch (error) {

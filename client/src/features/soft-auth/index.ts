@@ -1,0 +1,1 @@
+export { SoftAuthModal } from './ui';
