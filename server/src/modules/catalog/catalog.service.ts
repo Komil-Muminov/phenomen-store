@@ -620,3 +620,14 @@ export const getFacets = async (tenant: ITenantContext, categoryId: string | nul
     return acc;
   }, {});
 };
+
+export const getPopularSearches = async (tenant: ITenantContext): Promise<string[]> => {
+  const categories = await selectCategories(tenant.id);
+  const names = categories.map((c) => c.name.trim()).filter(Boolean);
+
+  if (names.length > 0) {
+    return names.slice(0, 8);
+  }
+
+  return ['Худи', 'Джинсы', 'Бомбер', 'Куртки', 'Футболки', 'Кроссовки'];
+};

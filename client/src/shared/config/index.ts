@@ -12,6 +12,7 @@ export const ApiRoutes = {
   storefrontLayout: '/storefront/layout',
   productsSearch: '/products/search',
   productsFacets: '/products/facets',
+  popularSearches: '/products/popular-searches',
   productGet: '/products/get',
   categoriesSearch: '/categories/search',
   cartGet: '/cart/get',

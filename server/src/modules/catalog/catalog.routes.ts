@@ -26,6 +26,7 @@ import {
   updateCategory,
   getCategories,
   getFacets,
+  getPopularSearches,
   getProduct,
   listManagedProducts,
   searchProducts,
@@ -78,6 +79,16 @@ productRouter.get(FACETS_ACTION, async (req: IAppRequest, res: Response, next: N
       : null;
 
     sendOk(res, await getFacets(tenant, categoryId));
+  } catch (error) {
+    next(error);
+  }
+});
+
+productRouter.get('/popular-searches', async (req: IAppRequest, res: Response, next: NextFunction) => {
+  try {
+    const tenant = requireTenant(req);
+
+    sendOk(res, await getPopularSearches(tenant));
   } catch (error) {
     next(error);
   }

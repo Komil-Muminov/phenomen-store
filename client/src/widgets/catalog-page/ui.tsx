@@ -17,7 +17,9 @@ import { BottomBar, Button, Icon, If, SkeletonProductGrid, StateView, Toast } fr
 const DEFAULT_SORT = 'popular';
 const PAGE_SIZE = 20;
 
-const QUICK_SEARCH_TAGS = ['Худи', 'Джинсы', 'Бомбер', 'Куртки', 'Футболки', 'Кроссовки'];
+const DEFAULT_QUICK_SEARCH_TAGS = ['Худи', 'Джинсы', 'Бомбер', 'Куртки', 'Футболки', 'Кроссовки'];
+
+
 
 interface IProductList {
   items: IProduct[];
@@ -65,6 +67,11 @@ export const CatalogPage = () => {
     ApiRoutes.tenantConfig,
     { staleTime: StaleTimeMs.long },
   );
+  const { data: popularSearchTerms } = useGetQuery<string[]>(
+    [QueryKeys.products, 'popular-searches'],
+    ApiRoutes.popularSearches,
+    { staleTime: StaleTimeMs.long },
+  );
   const { data: facets } = useGetQuery<TFacets>(
     [QueryKeys.products, 'facets', categoryId ?? null],
     ApiRoutes.productsFacets,
@@ -75,6 +82,13 @@ export const CatalogPage = () => {
     ApiRoutes.productsSearch,
     { params, staleTime: StaleTimeMs.short },
   );
+
+  const popularTags = useMemo(() => {
+    if (popularSearchTerms && popularSearchTerms.length > 0) {
+      return popularSearchTerms;
+    }
+    return DEFAULT_QUICK_SEARCH_TAGS;
+  }, [popularSearchTerms]);
 
   const { data: cart } = useGetQuery<ICart>(
     [QueryKeys.cart],
@@ -159,7 +173,7 @@ export const CatalogPage = () => {
           <View className="px-4 pb-3 gap-2">
             <Text className="text-xs font-bold text-muted">Популярные запросы</Text>
             <View className="flex-row flex-wrap gap-2">
-              {QUICK_SEARCH_TAGS.map((tag) => (
+              {popularTags.map((tag) => (
                 <Pressable
                   key={tag}
                   onPress={() => {
