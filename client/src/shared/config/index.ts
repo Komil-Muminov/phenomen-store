@@ -84,6 +84,7 @@ export const AppRoutes = {
   adminTenants: '/admin/tenants',
   adminOrders: '/admin/orders',
   adminProducts: '/admin/products',
+  adminStock: '/admin/stock',
 } as const;
 
 export const QueryKeys = {

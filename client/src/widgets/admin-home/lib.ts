@@ -20,6 +20,13 @@ const SHOP_SECTIONS: IAdminSection[] = [
     route: AppRoutes.adminProducts,
   },
   {
+    key: 'stock',
+    title: 'Остатки',
+    subtitle: 'Наличие по позициям',
+    icon: 'bag',
+    route: AppRoutes.adminStock,
+  },
+  {
     key: 'orders',
     title: 'Заказы',
     subtitle: 'Статусы и состав заказов',
