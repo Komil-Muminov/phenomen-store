@@ -212,6 +212,34 @@ export const Icon = ({ name, size = 20, color = '#171717' }: IProps) => {
     );
   }
 
+  if (normName === 'grid') {
+    return (
+      <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <SvgPath
+          d="M10 3H3v7h7V3zm11 0h-7v7h7V3zm-11 11H3v7h7v-7zm11 0h-7v7h7v-7z"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </SvgComponent>
+    );
+  }
+
+  if (normName === 'list') {
+    return (
+      <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <SvgPath
+          d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </SvgComponent>
+    );
+  }
+
   return (
     <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
       <SvgPath

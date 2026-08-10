@@ -37,6 +37,7 @@ export const CatalogPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFacets, setSelectedFacets] = useState<TSelectedFacets>({});
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [columnsCount, setColumnsCount] = useState<1 | 2>(2);
   const [quickAddProduct, setQuickAddProduct] = useState<IProduct | null>(null);
   const [showToast, setShowToast] = useState(false);
 
@@ -223,45 +224,48 @@ export const CatalogPage = () => {
             selectedFacets={selectedFacets}
             sort={sort}
             minPrice={minPrice}
-          maxPrice={maxPrice}
-          totalProducts={data?.total ?? 0}
-          onSortChange={setSort}
-          onFacetToggle={handleFacetToggle}
-          onPriceChange={handlePriceChange}
-          onResetAll={handleResetAll}
-        />
+            maxPrice={maxPrice}
+            totalProducts={data?.total ?? 0}
+            columnsCount={columnsCount}
+            onColumnsChange={setColumnsCount}
+            onSortChange={setSort}
+            onFacetToggle={handleFacetToggle}
+            onPriceChange={handlePriceChange}
+            onResetAll={handleResetAll}
+          />
 
-        <If
-          condition={!isLoading && !error}
-          fallback={(
-            <StateView
-              loading={isLoading}
-              errorMessage={error ? error.message : null}
-              skeleton={<SkeletonProductGrid count={6} />}
-              onRetry={handleRetry}
-            />
-          )}
-        >
-          <If condition={(data?.items?.length ?? 0) === 0}>
-            <View className="items-center gap-3 px-6 py-16">
-              <Text className="text-base font-bold text-content">Ничего не найдено</Text>
-              <Text className="text-center text-xs text-muted">
-                {Boolean(minPrice || maxPrice || searchQuery || Object.keys(selectedFacets).length > 0)
-                  ? 'Попробуйте сбросить часть фильтров'
-                  : 'Попробуйте изменить поисковый запрос'}
-              </Text>
-              <If condition={Boolean(minPrice || maxPrice || searchQuery || Object.keys(selectedFacets).length > 0)}>
-                <View className="w-48 pt-2">
-                  <Button title="Сбросить фильтры" onPress={handleResetAll} />
-                </View>
-              </If>
-            </View>
-          </If>
+          <If
+            condition={!isLoading && !error}
+            fallback={(
+              <StateView
+                loading={isLoading}
+                errorMessage={error ? error.message : null}
+                skeleton={<SkeletonProductGrid count={6} />}
+                onRetry={handleRetry}
+              />
+            )}
+          >
+            <If condition={(data?.items?.length ?? 0) === 0}>
+              <View className="items-center gap-3 px-6 py-16">
+                <Text className="text-base font-bold text-content">Ничего не найдено</Text>
+                <Text className="text-center text-xs text-muted">
+                  {Boolean(minPrice || maxPrice || searchQuery || Object.keys(selectedFacets).length > 0)
+                    ? 'Попробуйте сбросить часть фильтров'
+                    : 'Попробуйте изменить поисковый запрос'}
+                </Text>
+                <If condition={Boolean(minPrice || maxPrice || searchQuery || Object.keys(selectedFacets).length > 0)}>
+                  <View className="w-48 pt-2">
+                    <Button title="Сбросить фильтры" onPress={handleResetAll} />
+                  </View>
+                </If>
+              </View>
+            </If>
 
-          <CatalogGrid
-            products={data?.items ?? []}
-            currencySymbol={config?.locale.currencySymbol ?? ''}
-            onProductPress={handleProductPress}
+            <CatalogGrid
+              products={data?.items ?? []}
+              currencySymbol={config?.locale.currencySymbol ?? ''}
+              columnsCount={columnsCount}
+              onProductPress={handleProductPress}
             onAddToCart={handleAddToCart}
             loadingAddToCartId={updateCart.isPending ? updateCart.variables?.productId : null}
           />

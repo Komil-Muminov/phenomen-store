@@ -72,9 +72,16 @@ export const ProductCard = ({
               resizeMode="cover"
             />
             <If condition={Boolean(formatDiscount(product.price, product.oldPrice))}>
-              <View className="absolute left-2.5 top-2.5 rounded-lg bg-accent px-2 py-1 shadow-sm">
-                <Text className="text-[11px] font-bold text-onPrimary">
+              <View className="absolute left-2.5 top-2.5 rounded-lg bg-rose-600 px-2 py-0.5 shadow-sm">
+                <Text className="text-[11px] font-extrabold text-white">
                   {formatDiscount(product.price, product.oldPrice)}
+                </Text>
+              </View>
+            </If>
+            <If condition={!formatDiscount(product.price, product.oldPrice)}>
+              <View className="absolute left-2.5 top-2.5 rounded-lg bg-emerald-600 px-2 py-0.5 shadow-sm">
+                <Text className="text-[10px] font-extrabold text-white">
+                  NEW
                 </Text>
               </View>
             </If>
@@ -97,9 +104,11 @@ export const ProductCard = ({
                   e.stopPropagation();
                   toggleWishlist(product.id);
                 }}
-                className="h-8 w-8 items-center justify-center rounded-full bg-background/90 shadow-sm border border-line active:scale-90"
+                className={`h-8 w-8 items-center justify-center rounded-full shadow-sm border active:scale-90 ${
+                  activeWish ? 'bg-rose-500 border-rose-600' : 'bg-background/90 border-line'
+                }`}
               >
-                <Icon name="heart" size={16} color={activeWish ? '#ef4444' : '#171717'} />
+                <Icon name="heart" size={15} color={activeWish ? '#ffffff' : '#171717'} />
               </Pressable>
             </View>
 

@@ -16,6 +16,8 @@ interface IProps {
   minPrice: string;
   maxPrice: string;
   totalProducts?: number;
+  columnsCount?: 1 | 2;
+  onColumnsChange?: (cols: 1 | 2) => void;
   onSortChange: (value: string) => void;
   onFacetToggle: (code: string, value: string) => void;
   onPriceChange: (min: string, max: string) => void;
@@ -29,6 +31,8 @@ export const CatalogFilters = ({
   minPrice,
   maxPrice,
   totalProducts = 0,
+  columnsCount = 2,
+  onColumnsChange,
   onSortChange,
   onFacetToggle,
   onPriceChange,
@@ -65,25 +69,70 @@ export const CatalogFilters = ({
         showsHorizontalScrollIndicator={false}
         contentContainerClassName="gap-2 px-4 items-center"
       >
-        {/* Кнопка "Все фильтры" со счетчиком (как в WB) */}
+        {/* Кнопка "Фильтры" — только иконка со счетчиком */}
         <Pressable
           onPress={openModal}
-          className={`flex-row items-center gap-2 rounded-2xl border px-3.5 py-2 active:opacity-80 ${
+          className={`h-9 w-9 items-center justify-center rounded-xl border active:opacity-80 relative ${
             activeCount > 0
               ? 'border-primary/80 bg-primary/10'
               : 'border-line bg-surface/70'
           }`}
         >
-          <Icon name="sliders" size={15} color={activeCount > 0 ? '#4f46e5' : '#171717'} />
-          <Text className={`text-xs font-bold ${activeCount > 0 ? 'text-primary' : 'text-content'}`}>
-            Фильтры
-          </Text>
+          <Icon name="sliders" size={16} color={activeCount > 0 ? '#4f46e5' : '#171717'} />
           <If condition={activeCount > 0}>
-            <View className="min-w-[20px] h-5 px-1.5 items-center justify-center rounded-full bg-primary">
-              <Text className="text-[11px] font-extrabold text-white leading-none">{activeCount}</Text>
+            <View className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 items-center justify-center rounded-full bg-primary">
+              <Text className="text-[10px] font-extrabold text-white leading-none">{activeCount}</Text>
             </View>
           </If>
         </Pressable>
+
+        {/* Переключатель вида сетки (1 или 2 колонки) */}
+        <If condition={Boolean(onColumnsChange)}>
+          <Pressable
+            onPress={() => onColumnsChange?.(columnsCount === 1 ? 2 : 1)}
+            className="h-9 w-9 items-center justify-center rounded-xl border border-line bg-surface/70 active:bg-surface"
+          >
+            <Icon name={columnsCount === 1 ? 'grid' : 'list'} size={16} color="#171717" />
+          </Pressable>
+        </If>
+
+        {/* Чипы активных применённых фильтров с крестиком ✕ */}
+        <If condition={Boolean(minPrice || maxPrice)}>
+          <Pressable
+            onPress={() => onPriceChange('', '')}
+            className="flex-row items-center gap-1.5 rounded-2xl border border-primary/40 bg-primary/10 px-3 py-2 active:bg-primary/20"
+          >
+            <Text className="text-xs font-bold text-primary">
+              {`Цена: ${minPrice || '0'}${maxPrice ? `–${maxPrice}` : '+'} смн`}
+            </Text>
+            <Icon name="close" size={12} color="#4f46e5" />
+          </Pressable>
+        </If>
+
+        {Object.entries(selectedFacets).map(([code, values]) =>
+          values.map((val) => (
+            <Pressable
+              key={`${code}-${val}`}
+              onPress={() => onFacetToggle(code, val)}
+              className="flex-row items-center gap-1.5 rounded-2xl border border-primary/40 bg-primary/10 px-3 py-2 active:bg-primary/20"
+            >
+              <Text className="text-xs font-bold text-primary">
+                {`${FacetLabels[code] ?? code}: ${val}`}
+              </Text>
+              <Icon name="close" size={12} color="#4f46e5" />
+            </Pressable>
+          ))
+        )}
+
+        <If condition={activeCount > 0}>
+          <Pressable
+            onPress={onResetAll}
+            className="flex-row items-center gap-1 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 active:bg-rose-100"
+          >
+            <Text className="text-xs font-bold text-rose-600">Сбросить всё</Text>
+            <Icon name="close" size={12} color="#e11d48" />
+          </Pressable>
+        </If>
 
         {/* Чипы быстрой сортировки */}
         {SortOptions.map((option) => {
@@ -92,7 +141,7 @@ export const CatalogFilters = ({
             <Pressable
               key={option.value}
               onPress={() => onSortChange(option.value)}
-              className={`rounded-xl border px-3 py-2 active:bg-surface ${
+              className={`rounded-2xl border px-3 py-2 active:bg-surface ${
                 isActive
                   ? 'border-primary bg-primary'
                   : 'border-line bg-surface/50'
