@@ -2,21 +2,11 @@ import { NextFunction, Response, Router } from 'express';
 import { ErrorMessages, HttpStatus, UserRoles } from '@/shared/config';
 import { authMiddleware, rbacMiddleware } from '@/shared/middlewares';
 import { IAppRequest } from '@/shared/types';
-import {
-  AppError,
-  parsePagination,
-  pickFlag,
-  pickSearch,
-  requireUuid,
-  sendCreated,
-  sendList,
-  sendOk,
-} from '@/shared/utils';
+import { AppError, requireUuid, sendCreated, sendOk } from '@/shared/utils';
 import {
   createAttribute,
   deleteAttribute,
   listAttributes,
-  listManagedAttributes,
   updateAttribute,
 } from '@/modules/attributes/attributes.service';
 import { AttributePaths } from '@/modules/attributes/types';
@@ -38,26 +28,6 @@ attributeRouter.get(
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       sendOk(res, await listAttributes(requireTenant(req)));
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-attributeRouter.get(
-  AttributePaths.manageSearch,
-  authMiddleware,
-  rbacMiddleware(STAFF_ROLES),
-  async (req: IAppRequest, res: Response, next: NextFunction) => {
-    try {
-      const params = req.query as Record<string, unknown>;
-      const { page, limit, offset } = parsePagination(params);
-      const filters = {
-        search: pickSearch(params.search),
-        isVariantOption: pickFlag(params.isVariantOption),
-      };
-
-      sendList(res, await listManagedAttributes(requireTenant(req), filters, page, limit, offset));
     } catch (error) {
       next(error);
     }

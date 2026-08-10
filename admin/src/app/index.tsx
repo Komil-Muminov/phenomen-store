@@ -14,7 +14,6 @@ const PlatformAudit = lazy(() => import('@/pages/platform-audit'));
 const ShopOrders = lazy(() => import('@/pages/shop-orders'));
 const ShopProducts = lazy(() => import('@/pages/shop-products'));
 const ShopStock = lazy(() => import('@/pages/shop-stock'));
-const ShopAttributes = lazy(() => import('@/pages/shop-attributes'));
 const ShopBanners = lazy(() => import('@/pages/shop-banners'));
 const ShopSettings = lazy(() => import('@/pages/shop-settings'));
 
@@ -126,10 +125,6 @@ const Router = () => (
       <Route
         path={AppRoutes.shopStock}
         element={<ShopRoute><ShopStock /></ShopRoute>}
-      />
-      <Route
-        path={AppRoutes.shopAttributes}
-        element={<ShopRoute><ShopAttributes /></ShopRoute>}
       />
       <Route
         path={AppRoutes.shopBanners}

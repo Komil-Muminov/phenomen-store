@@ -1,11 +1,5 @@
-export interface IAttributeFilters {
-  search: string | null;
-  isVariantOption: boolean | null;
-}
-
 export const AttributePaths = {
   search: '/search',
-  manageSearch: '/manage/search',
   create: '/create',
   update: '/update/:id',
   deactivate: '/deactivate/:id',

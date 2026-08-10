@@ -1,6 +1,5 @@
 import { ReactNode } from 'react';
 import {
-  ApartmentOutlined,
   DatabaseOutlined,
   PictureOutlined,
   SettingOutlined,
@@ -25,11 +24,6 @@ export const CatalogNavItems: INavItem[] = [
   { to: AppRoutes.shopProducts, label: 'Товары', icon: <TagsOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopStock, label: 'Остатки', icon: <DatabaseOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopBanners, label: 'Баннеры', icon: <PictureOutlined aria-hidden="true" /> },
-  {
-    to: AppRoutes.shopAttributes,
-    label: 'Характеристики',
-    icon: <ApartmentOutlined aria-hidden="true" />,
-  },
 ];
 
 const CatalogRoutes = CatalogNavItems.map((item) => item.to);
