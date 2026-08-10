@@ -16,7 +16,6 @@ import {
   selectProductVariants,
   selectStockRows,
   updateVariantStock,
-  selectCategoryPage,
   selectManagedCategories,
   selectCategoryById,
   existsCategorySlug,
@@ -32,7 +31,6 @@ import {
 } from '@/modules/catalog/catalog.db';
 import {
   ICategoryRow,
-  IManagedListFilters,
   IManagedProductFilters,
   IProductRow,
   IProductSearchParams,
@@ -521,23 +519,6 @@ export const getCategories = async (tenant: ITenantContext) => {
   return rows.map(mapCategory);
 };
 
-export const listManagedCategories = async (
-  tenant: ITenantContext,
-  filters: IManagedListFilters,
-  page: number,
-  limit: number,
-  offset: number,
-) => {
-  const { items, total } = await selectCategoryPage(tenant.id, filters, limit, offset);
-
-  return {
-    items: items.map((row) => ({ ...mapCategory(row), isActive: row.is_active !== false })),
-    total,
-    page,
-    limit,
-  };
-};
-
 const requireCategory = async (tenant: ITenantContext, id: string) => {
   const row = await selectCategoryById(tenant.id, id);
 
@@ -625,25 +606,6 @@ export const removeCategory = async (tenant: ITenantContext, id: string) => {
   await deleteCategoryById(tenant.id, id);
 
   return { deleted: true };
-};
-
-export const deactivateCategory = async (tenant: ITenantContext, id: string) => {
-  await requireCategory(tenant, id);
-
-  const used = await countCategoryProducts(tenant.id, id);
-
-  if (used > 0) {
-    throw new AppError(
-      `Категория используется в ${used} товарах. Сначала перенесите их в другую категорию`,
-      HttpStatus.conflict,
-    );
-  }
-
-  await updateCategoryFields(tenant.id, id, null, null, null, null, false);
-
-  const row = await requireCategory(tenant, id);
-
-  return { ...mapCategory(row), isActive: false };
 };
 
 export const getFacets = async (tenant: ITenantContext, categoryId: string | null) => {

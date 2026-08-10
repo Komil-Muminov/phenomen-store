@@ -3,7 +3,6 @@ import {
   DemoProducts,
   DemoSizes,
   ICategoryRow,
-  IManagedListFilters,
   IManagedProductFilters,
   IProductRow,
   IProductSearchParams,
@@ -48,12 +47,6 @@ export const selectCategories = async (tenantId: string): Promise<ICategoryRow[]
 
 const CATEGORY_COLUMNS = 'id, parent_id, slug, name, description, image_url, position, is_active';
 
-const MANAGED_CATEGORIES_FILTER = `
-  WHERE tenant_id = $1
-    AND ($2::text IS NULL OR name ILIKE $2 OR slug ILIKE $2)
-    AND ($3::boolean IS NULL OR is_active = $3)
-`;
-
 export const selectManagedCategories = async (tenantId: string): Promise<ICategoryRow[]> => (
   tenantQuery<ICategoryRow>(
     tenantId,
@@ -61,26 +54,6 @@ export const selectManagedCategories = async (tenantId: string): Promise<ICatego
     [tenantId],
   )
 );
-
-export const selectCategoryPage = async (
-  tenantId: string,
-  filters: IManagedListFilters,
-  limit: number,
-  offset: number,
-): Promise<{ items: ICategoryRow[]; total: number }> => withTenant(tenantId, async (client) => {
-  const scope = [tenantId, filters.search, filters.isActive];
-  const items = await client.query<ICategoryRow>(
-    `SELECT ${CATEGORY_COLUMNS} FROM categories ${MANAGED_CATEGORIES_FILTER}
-     ORDER BY position, name LIMIT $4 OFFSET $5`,
-    [...scope, limit, offset],
-  );
-  const counted = await client.query<{ total: string }>(
-    `SELECT COUNT(*)::text AS total FROM categories ${MANAGED_CATEGORIES_FILTER}`,
-    scope,
-  );
-
-  return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
-});
 
 export const selectCategoryById = async (
   tenantId: string,

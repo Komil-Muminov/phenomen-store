@@ -18,11 +18,9 @@ import {
   changeStock,
   createCategory,
   createProduct,
-  deactivateCategory,
   deactivateProduct,
   duplicateProduct,
   importProducts,
-  listManagedCategories,
   removeCategory,
   listStock,
   updateCategory,
@@ -230,23 +228,6 @@ categoryRouter.get(ApiActions.search, async (req: IAppRequest, res: Response, ne
   }
 });
 
-categoryRouter.get(
-  MANAGE_SEARCH_ACTION,
-  authMiddleware,
-  rbacMiddleware(STAFF_ROLES),
-  async (req: IAppRequest, res: Response, next: NextFunction) => {
-    try {
-      const params = req.query as Record<string, unknown>;
-      const { page, limit, offset } = parsePagination(params);
-      const filters = { search: pickSearch(params.search), isActive: pickFlag(params.isActive) };
-
-      sendList(res, await listManagedCategories(requireTenant(req), filters, page, limit, offset));
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
 categoryRouter.post(
   ApiActions.create,
   authMiddleware,
@@ -269,21 +250,6 @@ categoryRouter.patch(
       const id = requireUuid(req.params.id, 'id');
 
       sendOk(res, await updateCategory(requireTenant(req), id, req.body ?? {}));
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-categoryRouter.patch(
-  ApiActions.deactivate,
-  authMiddleware,
-  rbacMiddleware(STAFF_ROLES),
-  async (req: IAppRequest, res: Response, next: NextFunction) => {
-    try {
-      const id = requireUuid(req.params.id, 'id');
-
-      sendOk(res, await deactivateCategory(requireTenant(req), id));
     } catch (error) {
       next(error);
     }

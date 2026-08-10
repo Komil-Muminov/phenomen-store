@@ -1,9 +1,6 @@
-export interface IManagedListFilters {
+export interface IManagedProductFilters {
   search: string | null;
   isActive: boolean | null;
-}
-
-export interface IManagedProductFilters extends IManagedListFilters {
   categoryId: string | null;
 }
 
