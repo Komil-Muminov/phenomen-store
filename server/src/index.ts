@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import { ApiRoutes, Env } from '@/shared/config';
+import { ApiRoutes, Env, HttpStatus } from '@/shared/config';
+import { AppError } from '@/shared/utils';
 import { initDb } from '@/shared/db/initDb';
 import { errorMiddleware, notFoundMiddleware } from '@/shared/middlewares';
 import { resolveTenantByKey, tenantMiddleware, tenantRouter } from '@/modules/tenant';
@@ -48,14 +49,31 @@ app.use(ApiRoutes.notifications, notificationsRouter);
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 
+const DEMO_VERTICAL = 'fashion';
+
+const seedDemoContent = async (): Promise<void> => {
+  try {
+    const demoTenant = await resolveTenantByKey(Env.defaultTenantKey);
+
+    await applyVerticalPreset(demoTenant.id, DEMO_VERTICAL);
+    await seedDemoCatalog(demoTenant.id);
+  } catch (error) {
+    const isMissingTenant = error instanceof AppError && error.status === HttpStatus.notFound;
+
+    if (!isMissingTenant) {
+      throw error;
+    }
+
+    console.warn(
+      `[bootstrap] демо-магазин "${Env.defaultTenantKey}" не найден или отключён — демо-данные пропущены`,
+    );
+  }
+};
+
 const bootstrap = async (): Promise<void> => {
   await initDb();
   await ensurePlatformAdmin();
-
-  const demoTenant = await resolveTenantByKey(Env.defaultTenantKey);
-
-  await applyVerticalPreset(demoTenant.id, 'fashion');
-  await seedDemoCatalog(demoTenant.id);
+  await seedDemoContent();
 
   app.listen(Env.port, () => {
     console.log(`[server] http://localhost:${Env.port} (${Env.nodeEnv})`);
