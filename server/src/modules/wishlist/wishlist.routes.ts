@@ -1,6 +1,6 @@
 import { NextFunction, Response, Router } from 'express';
 import { ErrorMessages, HttpStatus } from '@/shared/config';
-import { authMiddleware } from '@/shared/middlewares';
+import { authMiddleware, optionalAuthMiddleware } from '@/shared/middlewares';
 import { IAppRequest } from '@/shared/types';
 import { AppError, requireUuid, sendOk } from '@/shared/utils';
 import { getWishlistProductIds, toggleWishlistItem } from '@/modules/wishlist/wishlist.service';
@@ -25,10 +25,21 @@ export const wishlistRouter = Router();
 
 wishlistRouter.get(
   GET_ACTION,
-  authMiddleware,
+  optionalAuthMiddleware,
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
-      const { tenantId, userId } = requireContext(req);
+      if (!req.tenant) {
+        throw new AppError(ErrorMessages.tenantRequired, HttpStatus.badRequest);
+      }
+
+      if (!req.user) {
+        sendOk(res, { ids: [] });
+
+        return;
+      }
+
+      const tenantId = req.tenant.id;
+      const userId = req.user.id;
 
       sendOk(res, { ids: await getWishlistProductIds(tenantId, userId) });
     } catch (error) {

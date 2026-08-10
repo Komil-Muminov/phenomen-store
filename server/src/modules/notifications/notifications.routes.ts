@@ -10,7 +10,16 @@ export const notificationsRouter = Router();
 
 notificationsRouter.get('/get', async (req: any, res: any, next: any) => {
   try {
-    const tenantId = req.tenant.id;
+    const tenantId = req.tenant?.id;
+    if (!tenantId) {
+      res.json({
+        success: true,
+        data: { items: [], total: 0, unreadCount: 0, page: 1, limit: 20, totalPages: 0 },
+      });
+
+      return;
+    }
+
     const kind = req.query.kind as string | undefined;
     const page = parseInt((req.query.page as string) || '1', 10);
     const limit = parseInt((req.query.limit as string) || '20', 10);
