@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Form, Input, InputNumber, Modal, Select } from 'antd';
+import { App as AntApp, Form, Input, InputNumber, Modal, Select } from 'antd';
 import { ProductUnits, UiMessages } from '@/shared/config';
 import { RenderAttributes } from '@/features/product-form/ui/renderAttributes';
 import { RenderMedia } from '@/features/product-form/ui/renderMedia';
@@ -15,15 +15,22 @@ import {
   splitAttributes,
 } from '@/features/product-form/model';
 import { CategoryPicker, ICategoryPickerHandlers } from '@/features/category-picker';
+import {
+  AttributeTexts,
+  IAttributeDraft,
+  IAttributeHandlers,
+  RenderAttributeModal,
+} from '@/features/attribute-value-picker';
 import type { IShopAttribute, IShopCategory, IShopProduct } from '@/entities/shop';
 
-interface IProps extends ICategoryPickerHandlers {
+interface IProps extends ICategoryPickerHandlers, IAttributeHandlers {
   open: boolean;
   editing: IShopProduct | null;
   categories: IShopCategory[];
   attributes: IShopAttribute[];
   isSaving: boolean;
   isCategoryBusy: boolean;
+  isAttributeBusy: boolean;
   onSubmit: (payload: IProductPayload) => void;
   onCancel: () => void;
 }
@@ -35,12 +42,19 @@ export const ProductForm = ({
   attributes,
   isSaving,
   isCategoryBusy,
+  isAttributeBusy,
   onSubmit,
   onCancel,
   onCreateCategory,
   onRenameCategory,
   onDeleteCategory,
+  onCreateAttribute,
+  onRenameAttribute,
+  onDeleteAttribute,
+  onSaveValues,
 }: IProps) => {
+  const { modal } = AntApp.useApp();
+  const [attributeDraft, setAttributeDraft] = useState<IAttributeDraft | null>(null);
   const [form] = Form.useForm<IProductFormValues>();
   const [details, setDetails] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<Record<string, string[]>>({});
@@ -73,6 +87,31 @@ export const ProductForm = ({
     setBasePrice(editing?.price ?? 0);
     setMedia(editing?.media ?? []);
   }, [open, editing, optionCodes, form]);
+
+  const handleAttributeSubmit = useCallback(async () => {
+    const name = attributeDraft?.name.trim() ?? '';
+
+    if (!name) {
+      return;
+    }
+
+    await (attributeDraft?.id
+      ? onRenameAttribute(attributeDraft.id, name)
+      : onCreateAttribute(name, attributeDraft?.isVariantOption === true));
+
+    setAttributeDraft(null);
+  }, [attributeDraft, onCreateAttribute, onRenameAttribute]);
+
+  const handleDeleteAttribute = useCallback((id: string, name: string) => {
+    modal.confirm({
+      title: AttributeTexts.deleteTitle,
+      content: `«${name}». ${AttributeTexts.deleteHint}`,
+      okText: 'Удалить',
+      okButtonProps: { danger: true },
+      cancelText: 'Отмена',
+      onOk: () => onDeleteAttribute(id),
+    });
+  }, [modal, onDeleteAttribute]);
 
   const handleSelect = useCallback((code: string, values: string[]) => {
     setSelected((current) => {
@@ -178,11 +217,21 @@ export const ProductForm = ({
       <RenderAttributes
         attributes={groups.details}
         values={details}
+        isBusy={isAttributeBusy}
         onChange={(code, value) => setDetails((current) => ({ ...current, [code]: value }))}
+        onSaveValues={onSaveValues}
+        onAdd={() => setAttributeDraft({ id: null, name: '', isVariantOption: false })}
+        onRename={(attribute) => setAttributeDraft({
+          id: attribute.id,
+          name: attribute.name,
+          isVariantOption: false,
+        })}
+        onDelete={(attribute) => handleDeleteAttribute(attribute.id, attribute.name)}
       />
 
       <RenderVariants
         options={groups.options}
+        isBusy={isAttributeBusy}
         enabled={hasVariants}
         selected={selected}
         rows={rows}
@@ -190,6 +239,22 @@ export const ProductForm = ({
         onToggle={setHasVariants}
         onSelect={handleSelect}
         onRowChange={handleRowChange}
+        onSaveValues={onSaveValues}
+        onAdd={() => setAttributeDraft({ id: null, name: '', isVariantOption: true })}
+        onRename={(attribute) => setAttributeDraft({
+          id: attribute.id,
+          name: attribute.name,
+          isVariantOption: true,
+        })}
+        onDelete={(attribute) => handleDeleteAttribute(attribute.id, attribute.name)}
+      />
+
+      <RenderAttributeModal
+        draft={attributeDraft}
+        isBusy={isAttributeBusy}
+        onChange={(name) => setAttributeDraft((current) => (current ? { ...current, name } : current))}
+        onSubmit={handleAttributeSubmit}
+        onCancel={() => setAttributeDraft(null)}
       />
     </Modal>
   );

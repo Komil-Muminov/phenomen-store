@@ -6,7 +6,6 @@ export const AppRoutes = {
   shopOrders: '/shop/orders',
   shopProducts: '/shop/products',
   shopStock: '/shop/stock',
-  shopAttributes: '/shop/attributes',
   shopBanners: '/shop/banners',
   shopSettings: '/shop/settings',
   root: '/',
@@ -37,7 +36,6 @@ export const ApiRoutes = {
   shopProductDeactivate: '/products/deactivate',
   shopCategoriesSearch: '/categories/search',
   shopAttributesSearch: '/attributes/search',
-  shopAttributesManage: '/attributes/manage/search',
   shopStockSearch: '/products/stock/search',
   shopStockUpdate: '/products/stock/update',
   shopProductDuplicate: '/products/duplicate',
@@ -167,12 +165,6 @@ export const MediaAccept = '.jpg,.jpeg,.png,.webp,.gif';
 export const MediaMaxSizeLabel = '5 МБ';
 
 export const SearchDebounceMs = 400;
-
-export const AttributeKindOptions = [
-  { value: 'all', label: 'Все характеристики' },
-  { value: 'option', label: 'Для вариантов' },
-  { value: 'detail', label: 'Описательные' },
-];
 
 export const VisibilityOptions = [
   { value: 'all', label: 'Все' },

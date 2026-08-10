@@ -147,6 +147,28 @@ export const ShopProductsPage = () => {
     'Категория удалена',
   ), [mutations.removeCategory, runCategoryAction]);
 
+  const handleCreateAttribute = useCallback((name: string, isVariantOption: boolean) => (
+    runCategoryAction(
+      mutations.createAttribute.mutateAsync({ name, isVariantOption }),
+      'Характеристика добавлена',
+    )
+  ), [mutations.createAttribute, runCategoryAction]);
+
+  const handleRenameAttribute = useCallback((id: string, name: string) => runCategoryAction(
+    mutations.updateAttribute.mutateAsync({ id, name }),
+    'Характеристика переименована',
+  ), [mutations.updateAttribute, runCategoryAction]);
+
+  const handleDeleteAttribute = useCallback((id: string) => runCategoryAction(
+    mutations.removeAttribute.mutateAsync({ id }),
+    'Характеристика удалена',
+  ), [mutations.removeAttribute, runCategoryAction]);
+
+  const handleSaveValues = useCallback((id: string, values: string[]) => runCategoryAction(
+    mutations.updateAttribute.mutateAsync({ id, values }),
+    'Значения обновлены',
+  ), [mutations.updateAttribute, runCategoryAction]);
+
   const handleImportOpen = useCallback(() => setImportOpen(true), []);
 
   const handleCategory = useCallback((categoryId: string | undefined) => {
@@ -216,6 +238,15 @@ export const ShopProductsPage = () => {
         onCreateCategory={handleCreateCategory}
         onRenameCategory={handleRenameCategory}
         onDeleteCategory={handleDeleteCategory}
+        isAttributeBusy={
+          mutations.createAttribute.isPending
+          || mutations.updateAttribute.isPending
+          || mutations.removeAttribute.isPending
+        }
+        onCreateAttribute={handleCreateAttribute}
+        onRenameAttribute={handleRenameAttribute}
+        onDeleteAttribute={handleDeleteAttribute}
+        onSaveValues={handleSaveValues}
         onSubmit={handleSubmit}
         onCancel={closeForm}
       />

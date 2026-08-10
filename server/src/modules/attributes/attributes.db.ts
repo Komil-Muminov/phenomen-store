@@ -1,5 +1,5 @@
 import { tenantQuery, withTenant } from '@/shared/db';
-import { IAttributeFilters, IAttributePreset, IAttributeRow } from '@/modules/attributes/types';
+import { IAttributePreset, IAttributeRow } from '@/modules/attributes/types';
 
 const COLUMNS = 'id, code, name, value_type, is_variant_option, is_filterable, position, values';
 
@@ -8,31 +8,6 @@ export const selectAttributes = async (tenantId: string): Promise<IAttributeRow[
   `SELECT ${COLUMNS} FROM attributes WHERE tenant_id = $1 ORDER BY position, name`,
   [tenantId],
 );
-
-const MANAGED_FILTER = `
-  WHERE tenant_id = $1
-    AND ($2::text IS NULL OR name ILIKE $2 OR code ILIKE $2)
-    AND ($3::boolean IS NULL OR is_variant_option = $3)
-`;
-
-export const selectManagedAttributes = async (
-  tenantId: string,
-  filters: IAttributeFilters,
-  limit: number,
-  offset: number,
-): Promise<{ items: IAttributeRow[]; total: number }> => withTenant(tenantId, async (client) => {
-  const scope = [tenantId, filters.search, filters.isVariantOption];
-  const items = await client.query<IAttributeRow>(
-    `SELECT ${COLUMNS} FROM attributes ${MANAGED_FILTER} ORDER BY position, name LIMIT $4 OFFSET $5`,
-    [...scope, limit, offset],
-  );
-  const counted = await client.query<{ total: string }>(
-    `SELECT COUNT(*)::text AS total FROM attributes ${MANAGED_FILTER}`,
-    scope,
-  );
-
-  return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
-});
 
 export const selectAttributeById = async (
   tenantId: string,
