@@ -25,6 +25,11 @@ export const CatalogNavItems: INavItem[] = [
   { to: AppRoutes.shopProducts, label: 'Товары', icon: <TagsOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopStock, label: 'Остатки', icon: <DatabaseOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopBanners, label: 'Баннеры', icon: <PictureOutlined aria-hidden="true" /> },
+  {
+    to: AppRoutes.shopAttributes,
+    label: 'Характеристики',
+    icon: <ApartmentOutlined aria-hidden="true" />,
+  },
 ];
 
 const CatalogRoutes = CatalogNavItems.map((item) => item.to);
@@ -36,11 +41,6 @@ export const ShopNavItems: INavItem[] = [
     label: 'Товары',
     icon: <TagsOutlined aria-hidden="true" />,
     match: CatalogRoutes,
-  },
-  {
-    to: AppRoutes.shopAttributes,
-    label: 'Характеристики',
-    icon: <ApartmentOutlined aria-hidden="true" />,
   },
   { to: AppRoutes.shopSettings, label: 'Настройки', icon: <SettingOutlined aria-hidden="true" /> },
 ];
