@@ -27,6 +27,13 @@ const SHOP_SECTIONS: IAdminSection[] = [
     route: AppRoutes.adminStock,
   },
   {
+    key: 'banners',
+    title: 'Баннеры',
+    subtitle: 'Карусель на главной',
+    icon: 'sparkles',
+    route: AppRoutes.adminBanners,
+  },
+  {
     key: 'orders',
     title: 'Заказы',
     subtitle: 'Статусы и состав заказов',

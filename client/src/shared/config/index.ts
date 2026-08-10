@@ -58,6 +58,7 @@ export const ApiRoutes = {
   manageBannerCreate: '/banners/create',
   manageBannerUpdate: '/banners/update',
   manageBannerDelete: '/banners/delete',
+  manageBannerReorder: '/banners/reorder',
   manageCategoryCreate: '/categories/create',
   manageCategoryUpdate: '/categories/update',
   manageCategoryDelete: '/categories/delete',
@@ -85,6 +86,7 @@ export const AppRoutes = {
   adminOrders: '/admin/orders',
   adminProducts: '/admin/products',
   adminStock: '/admin/stock',
+  adminBanners: '/admin/banners',
 } as const;
 
 export const QueryKeys = {
