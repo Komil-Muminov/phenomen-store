@@ -13,6 +13,13 @@ const PLATFORM_SECTIONS: IAdminSection[] = [
 
 const SHOP_SECTIONS: IAdminSection[] = [
   {
+    key: 'products',
+    title: 'Товары',
+    subtitle: 'Карточки, цены, фото, категории',
+    icon: 'bag',
+    route: AppRoutes.adminProducts,
+  },
+  {
     key: 'orders',
     title: 'Заказы',
     subtitle: 'Статусы и состав заказов',

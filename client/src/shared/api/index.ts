@@ -107,3 +107,24 @@ export const requestData = async <T>(config: AxiosRequestConfig): Promise<T> => 
 
   return response.data.data;
 };
+
+export const uploadImage = async <T>(
+  url: string,
+  file: { uri: string; name: string; type: string },
+): Promise<T> => {
+  const form = new FormData();
+
+  form.append('file', file as unknown as Blob);
+
+  const response = await apiClient
+    .post<IApiResponse<T>>(url, form, { headers: { 'Content-Type': 'multipart/form-data' } })
+    .catch((error: unknown) => {
+      throw new Error(extractErrorMessage(error));
+    });
+
+  if (!response.data?.success) {
+    throw new Error(response.data?.message ?? UiMessages.loadError);
+  }
+
+  return response.data.data;
+};

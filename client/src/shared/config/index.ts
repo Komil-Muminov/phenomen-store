@@ -65,6 +65,8 @@ export const ApiRoutes = {
   manageAttributeUpdate: '/attributes/update',
   manageAttributeDelete: '/attributes/delete',
   manageConfig: '/tenants/config',
+  manageMediaUpload: '/media/upload',
+  manageCategories: '/categories/search',
 } as const;
 
 export const AppRoutes = {
@@ -80,6 +82,7 @@ export const AppRoutes = {
   admin: '/admin',
   adminTenants: '/admin/tenants',
   adminOrders: '/admin/orders',
+  adminProducts: '/admin/products',
 } as const;
 
 export const QueryKeys = {
@@ -111,6 +114,16 @@ export const ManageOrderStatuses = [
 ] as const;
 
 export const ManageListLimit = 10;
+
+export const SearchDebounceMs = 400;
+
+export const ManageUnits = [
+  { value: 'piece', label: 'шт' },
+  { value: 'kg', label: 'кг' },
+  { value: 'liter', label: 'л' },
+  { value: 'pack', label: 'упак' },
+  { value: 'meter', label: 'м' },
+] as const;
 
 export const EntityStatuses = {
   active: 'active',
