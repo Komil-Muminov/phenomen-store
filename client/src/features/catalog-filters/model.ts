@@ -31,3 +31,23 @@ export const toggleFacetValue = (
 
   return { ...facets, [code]: next };
 };
+export const countActiveFilters = (
+  selectedFacets: TSelectedFacets,
+  minPrice?: string,
+  maxPrice?: string,
+  sort?: string,
+): number => {
+  let count = Object.values(selectedFacets).reduce((acc, items) => acc + items.length, 0);
+
+  if (minPrice && minPrice.trim() !== '') {
+    count += 1;
+  }
+  if (maxPrice && maxPrice.trim() !== '') {
+    count += 1;
+  }
+  if (sort && sort !== 'popular') {
+    count += 1;
+  }
+
+  return count;
+};

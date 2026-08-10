@@ -34,39 +34,40 @@ export const SearchHistoryView = ({
   }
 
   return (
-    <View className="py-2 gap-4">
-      {/* Секция истории недавних запросов */}
+    <View className="mb-3 gap-3">
+      {/* Аккуратная плашка с историей недавних поисков */}
       <If condition={history.length > 0}>
-        <View className="px-4 gap-2.5">
+        <View className="mx-4 rounded-2xl border border-line/60 bg-surface/40 p-3 gap-2">
           <View className="flex-row items-center justify-between">
-            <Text className="text-xs font-bold uppercase tracking-wider text-muted">
-              Недавние поиски
-            </Text>
-            <Pressable onPress={handleClear} className="active:opacity-60">
-              <Text className="text-xs font-semibold text-muted">Очистить</Text>
+            <View className="flex-row items-center gap-1.5">
+              <Icon name="clock" size={12} color="#737373" />
+              <Text className="text-xs font-bold text-muted">Вы искали</Text>
+            </View>
+            <Pressable onPress={handleClear} className="active:opacity-60 px-1 py-0.5">
+              <Text className="text-[11px] font-bold text-rose-500">Очистить</Text>
             </Pressable>
           </View>
-          <View className="flex-row flex-wrap gap-2">
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pt-0.5">
             {history.map((term) => (
               <Pressable
                 key={term}
                 onPress={() => onSelectTerm(term)}
-                className="flex-row items-center gap-1.5 rounded-xl border border-line bg-surface/80 px-3 py-1.5 active:border-primary active:bg-surface"
+                className="flex-row items-center gap-1.5 rounded-full border border-line bg-background px-3 py-1.5 active:border-primary active:bg-surface"
               >
-                <Icon name="search" size={12} color="#737373" />
                 <Text className="text-xs font-semibold text-content">{term}</Text>
               </Pressable>
             ))}
-          </View>
+          </ScrollView>
         </View>
       </If>
 
-      {/* Секция недавно просмотренных товаров */}
+      {/* Компактная секция недавно просмотренных товаров */}
       <If condition={recentProducts.length > 0}>
-        <View className="gap-2.5 pt-1">
-          <Text className="px-4 text-xs font-bold uppercase tracking-wider text-muted">
-            Вы недавно смотрели
-          </Text>
+        <View className="gap-2 pt-1">
+          <View className="flex-row items-center justify-between px-4">
+            <Text className="text-xs font-bold text-muted">Вы недавно смотрели</Text>
+          </View>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -76,18 +77,18 @@ export const SearchHistoryView = ({
               <Pressable
                 key={item.id}
                 onPress={() => onSelectProduct(item)}
-                className="w-32 rounded-xl border border-line bg-background overflow-hidden active:border-primary"
+                className="w-28 rounded-2xl border border-line/80 bg-background overflow-hidden active:border-primary shadow-2xs"
               >
                 <Image
                   source={{ uri: item.media[0] ?? ProductPlaceholderImage }}
-                  className="h-32 w-full bg-surface"
+                  className="h-28 w-full bg-surface"
                   resizeMode="cover"
                 />
                 <View className="p-2 gap-0.5">
-                  <Text numberOfLines={1} className="text-xs font-medium text-content">
+                  <Text numberOfLines={1} className="text-[11px] font-bold text-content leading-4">
                     {item.name}
                   </Text>
-                  <Text className="text-xs font-bold text-content">
+                  <Text className="text-xs font-extrabold text-primary">
                     {formatUnitPrice(item.price, currencySymbol, item.unit)}
                   </Text>
                 </View>

@@ -12,7 +12,7 @@ import { SearchHistoryView, addSearchTerm, addRecentlyViewed } from '@/features/
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { formatItemCount } from '@/shared/lib';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { BottomBar, Button, Icon, If, SkeletonProductGrid, StateView } from '@/shared/ui';
+import { BottomBar, Button, Icon, If, SkeletonProductGrid, StateView, Toast } from '@/shared/ui';
 
 const DEFAULT_SORT = 'popular';
 const PAGE_SIZE = 20;
@@ -30,23 +30,35 @@ export const CatalogPage = () => {
   const insets = useSafeAreaInsets();
   const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
   const [sort, setSort] = useState(DEFAULT_SORT);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFacets, setSelectedFacets] = useState<TSelectedFacets>({});
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [quickAddProduct, setQuickAddProduct] = useState<IProduct | null>(null);
   const [showToast, setShowToast] = useState(false);
-
-  const activeFilterCount = useMemo(
-    () => Object.values(selectedFacets).reduce((acc, items) => acc + items.length, 0),
-    [selectedFacets],
-  );
 
   const params = useMemo(() => ({
     categoryId: categoryId ?? undefined,
     query: searchQuery.trim() || undefined,
     sort,
+    minPrice: minPrice.trim() ? Number(minPrice) : undefined,
+    maxPrice: maxPrice.trim() ? Number(maxPrice) : undefined,
     options: serializeFacets(selectedFacets) || undefined,
     limit: PAGE_SIZE,
-  }), [categoryId, searchQuery, sort, selectedFacets]);
+  }), [categoryId, searchQuery, sort, minPrice, maxPrice, selectedFacets]);
+
+  const handlePriceChange = useCallback((min: string, max: string) => {
+    setMinPrice(min);
+    setMaxPrice(max);
+  }, []);
+
+  const handleResetAll = useCallback(() => {
+    setSelectedFacets({});
+    setMinPrice('');
+    setMaxPrice('');
+    setSort(DEFAULT_SORT);
+  }, []);
 
   const { data: config } = useGetQuery<ITenantConfig>(
     [QueryKeys.tenantConfig],
@@ -88,10 +100,7 @@ export const CatalogPage = () => {
     setSelectedFacets((current) => toggleFacetValue(current, code, value));
   }, []);
 
-  const handleResetFilters = useCallback(() => {
-    setSelectedFacets({});
-    setSearchQuery('');
-  }, []);
+
 
   const handleRetry = useCallback(() => {
     refetch();
@@ -99,9 +108,15 @@ export const CatalogPage = () => {
 
   return (
     <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
-      <View className="flex-row items-center gap-3 px-4 py-2 border-b border-line">
+      <View className="flex-row items-center gap-2.5 px-4 py-2 border-b border-line">
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => {
+            if (isSearchFocused) {
+              setIsSearchFocused(false);
+            } else {
+              router.back();
+            }
+          }}
           className="h-10 w-10 items-center justify-center rounded-xl border border-line bg-background active:border-primary active:bg-surface"
         >
           <Icon name="chevronLeft" size={18} color="#171717" />
@@ -113,6 +128,7 @@ export const CatalogPage = () => {
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
+            onFocus={() => setIsSearchFocused(true)}
             placeholder="Поиск одежды, обуви..."
             placeholderTextColor="#a3a3a3"
             style={{ paddingVertical: 0 }}
@@ -120,83 +136,85 @@ export const CatalogPage = () => {
             className="flex-1 text-sm font-semibold text-content ml-2"
           />
           <If condition={Boolean(searchQuery)}>
-            <Pressable onPress={() => setSearchQuery('')}>
+            <Pressable onPress={() => setSearchQuery('')} className="p-1">
               <Icon name="close" size={16} color="#a3a3a3" />
             </Pressable>
           </If>
         </View>
+
+        <If condition={isSearchFocused}>
+          <Pressable
+            onPress={() => setIsSearchFocused(false)}
+            className="px-2 py-2 active:opacity-70"
+          >
+            <Text className="text-xs font-bold text-primary">Отмена</Text>
+          </Pressable>
+        </If>
       </View>
 
-      {/* Быстрые теги подсказок поиска с комфортным вертикальным отступом */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="h-12 flex-grow-0 my-1.5"
-        contentContainerStyle={{ alignItems: 'center', paddingHorizontal: 16, paddingVertical: 4, gap: 8 }}
-      >
-        {QUICK_SEARCH_TAGS.map((tag) => (
-          <Pressable
-            key={tag}
-            onPress={() => {
-              const nextTag = searchQuery === tag ? '' : tag;
-              setSearchQuery(nextTag);
-              if (nextTag) {
-                addSearchTerm(nextTag);
-              }
-            }}
-            className={`rounded-full px-3.5 py-1.5 border items-center justify-center ${
-              searchQuery === tag ? 'border-primary bg-primary' : 'border-line bg-surface/60'
-            }`}
-          >
-            <Text className={`text-xs font-semibold ${searchQuery === tag ? 'text-white' : 'text-muted'}`}>
-              {tag}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      {/* Всплывающий красивый тост успешного добавления в корзину */}
-      <If condition={showToast}>
-        <View className="mx-4 my-1 flex-row items-center gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-3 shadow-sm">
-          <View className="h-6 w-6 items-center justify-center rounded-full bg-emerald-600">
-            <Icon name="check" size={12} color="#ffffff" />
+      {/* Оверлей встроенного поиска (появляется при фокусе на поиске) */}
+      <If condition={isSearchFocused}>
+        <ScrollView className="flex-1 bg-background pt-3" showsVerticalScrollIndicator={false}>
+          {/* Быстрые теги подсказок */}
+          <View className="px-4 pb-3 gap-2">
+            <Text className="text-xs font-bold text-muted">Популярные запросы</Text>
+            <View className="flex-row flex-wrap gap-2">
+              {QUICK_SEARCH_TAGS.map((tag) => (
+                <Pressable
+                  key={tag}
+                  onPress={() => {
+                    setSearchQuery(tag);
+                    addSearchTerm(tag);
+                    setIsSearchFocused(false);
+                  }}
+                  className={`rounded-full px-3.5 py-1.5 border items-center justify-center ${
+                    searchQuery === tag ? 'border-primary bg-primary' : 'border-line bg-surface/60'
+                  }`}
+                >
+                  <Text className={`text-xs font-semibold ${searchQuery === tag ? 'text-white' : 'text-content'}`}>
+                    {tag}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
-          <Text className="flex-1 text-xs font-bold text-emerald-800">
-            Товар добавлен в корзину! 🛍️
-          </Text>
-          <Pressable
-            onPress={() => router.push(AppRoutes.cart)}
-            className="flex-row items-center gap-1 rounded-xl bg-emerald-600 px-3 py-1.5 active:bg-emerald-700"
-          >
-            <Text className="text-xs font-bold text-white">В корзину</Text>
-          </Pressable>
-        </View>
+
+          {/* История недавних поисков и недавно просмотренные товары */}
+          <SearchHistoryView
+            onSelectTerm={(term) => {
+              setSearchQuery(term);
+              addSearchTerm(term);
+              setIsSearchFocused(false);
+            }}
+            onSelectProduct={(prod) => {
+              setIsSearchFocused(false);
+              handleProductPress(prod);
+            }}
+            currencySymbol={config?.locale.currencySymbol ?? ''}
+          />
+        </ScrollView>
       </If>
 
-      <View className="flex-row items-center justify-between px-4 py-2">
-        <Text className="text-xl font-extrabold tracking-tight text-content">Каталог</Text>
-        <Text className="text-xs font-semibold text-muted">
-          {formatItemCount(data?.total ?? 0)}
-        </Text>
-      </View>
+      <If condition={!isSearchFocused}>
+        <View className="flex-row items-center justify-between px-4 pt-3 pb-1">
+          <Text className="text-xl font-extrabold tracking-tight text-content">Каталог</Text>
+          <Text className="text-xs font-semibold text-muted">
+            {formatItemCount(data?.total ?? 0)}
+          </Text>
+        </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 76 }} showsVerticalScrollIndicator={false}>
-        {/* История недавних поисков и недавно просмотренные товары */}
-        <SearchHistoryView
-          onSelectTerm={(term) => {
-            setSearchQuery(term);
-            addSearchTerm(term);
-          }}
-          onSelectProduct={handleProductPress}
-          currencySymbol={config?.locale.currencySymbol ?? ''}
-        />
-
-        <CatalogFilters
-          facets={facets ?? {}}
-          selectedFacets={selectedFacets}
-          sort={sort}
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 76 }} showsVerticalScrollIndicator={false}>
+          <CatalogFilters
+            facets={facets ?? {}}
+            selectedFacets={selectedFacets}
+            sort={sort}
+            minPrice={minPrice}
+          maxPrice={maxPrice}
+          totalProducts={data?.total ?? 0}
           onSortChange={setSort}
           onFacetToggle={handleFacetToggle}
+          onPriceChange={handlePriceChange}
+          onResetAll={handleResetAll}
         />
 
         <If
@@ -214,13 +232,13 @@ export const CatalogPage = () => {
             <View className="items-center gap-3 px-6 py-16">
               <Text className="text-base font-bold text-content">Ничего не найдено</Text>
               <Text className="text-center text-xs text-muted">
-                {activeFilterCount > 0
-                  ? 'Попробуйте убрать часть фильтров'
+                {Boolean(minPrice || maxPrice || searchQuery || Object.keys(selectedFacets).length > 0)
+                  ? 'Попробуйте сбросить часть фильтров'
                   : 'Попробуйте изменить поисковый запрос'}
               </Text>
-              <If condition={activeFilterCount > 0 || Boolean(searchQuery)}>
+              <If condition={Boolean(minPrice || maxPrice || searchQuery || Object.keys(selectedFacets).length > 0)}>
                 <View className="w-48 pt-2">
-                  <Button title="Сбросить фильтры" onPress={handleResetFilters} />
+                  <Button title="Сбросить фильтры" onPress={handleResetAll} />
                 </View>
               </If>
             </View>
@@ -235,6 +253,7 @@ export const CatalogPage = () => {
           />
         </If>
       </ScrollView>
+    </If>
 
       {/* Быстрая шторка выбора размера и цвета */}
       <QuickAddModal
@@ -245,6 +264,14 @@ export const CatalogPage = () => {
           setShowToast(true);
           setTimeout(() => setShowToast(false), 3000);
         }}
+      />
+
+      <Toast
+        visible={showToast}
+        message="Товар добавлен в корзину! 🛍️"
+        actionText="В корзину"
+        onAction={() => router.push(AppRoutes.cart)}
+        onClose={() => setShowToast(false)}
       />
 
       <BottomBar cartCount={countCartItems(cart)} />
