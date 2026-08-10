@@ -6,7 +6,6 @@ import { ApiRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { If } from '@/shared/ui/If';
 import { SettingsForm } from '@/features/settings-form';
-import { ShopShell } from '@/widgets/shop-shell';
 import type { ITenantConfig, ITenantConfigPatch } from '@/entities/tenant-config';
 
 export const ShopSettingsPage = () => {
@@ -31,7 +30,7 @@ export const ShopSettingsPage = () => {
   }, [saveMutation, message]);
 
   return (
-    <ShopShell>
+    <>
       <header className="mb-8 flex items-start gap-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-xs">
           <SettingOutlined className="text-2xl" />
@@ -69,6 +68,6 @@ export const ShopSettingsPage = () => {
           onSubmit={handleSubmit}
         />
       </If>
-    </ShopShell>
+    </>
   );
 };

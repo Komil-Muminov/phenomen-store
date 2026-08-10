@@ -6,7 +6,6 @@ import { ApiRoutes, Pagination, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery } from '@/shared/hooks';
 import { If } from '@/shared/ui/If';
 import { AuditTable } from '@/features/audit-table';
-import { PlatformShell } from '@/widgets/platform-shell';
 import { RenderFilters } from '@/widgets/platform-audit-page/ui/renderFilters';
 import {
   buildParams,
@@ -63,7 +62,7 @@ export const PlatformAuditPage = () => {
   const total = auditQuery.data?.total ?? 0;
 
   return (
-    <PlatformShell>
+    <>
       <header className="mb-4">
         <Typography.Title level={3} className="mb-0! text-brand-text!">
           Журнал действий
@@ -108,6 +107,6 @@ export const PlatformAuditPage = () => {
           />
         </div>
       </If>
-    </PlatformShell>
+    </>
   );
 };

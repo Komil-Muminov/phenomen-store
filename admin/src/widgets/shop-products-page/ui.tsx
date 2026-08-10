@@ -10,7 +10,6 @@ import { ListPagination } from '@/shared/ui/ListPagination';
 import { ProductsTable } from '@/features/products-table';
 import { ProductForm, IProductPayload } from '@/features/product-form';
 import { ProductImport, IImportRow, IImportResult } from '@/features/product-import';
-import { ShopShell } from '@/widgets/shop-shell';
 import { useProductMutations } from '@/widgets/shop-products-page/lib';
 import { RenderToolbar } from '@/widgets/shop-products-page/ui/renderToolbar';
 import type {
@@ -182,7 +181,7 @@ export const ShopProductsPage = () => {
   const total = productsQuery.data?.total ?? 0;
 
   return (
-    <ShopShell>
+    <>
       <RenderToolbar
         total={total}
         search={draft.search}
@@ -261,6 +260,6 @@ export const ShopProductsPage = () => {
           setImportResult(null);
         }}
       />
-    </ShopShell>
+    </>
   );
 };

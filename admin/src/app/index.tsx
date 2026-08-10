@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { App as AntApp, ConfigProvider, Spin } from 'antd';
 import ruRU from 'antd/locale/ru_RU';
@@ -7,6 +7,9 @@ import { AppRoutes } from '@/shared/config';
 import { AuthProvider, useAuth } from '@/shared/auth';
 import { ShopAuthProvider, useShopAuth } from '@/shared/shop-auth';
 import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
+import { PlatformShell } from '@/widgets/platform-shell';
+import { ShopShell } from '@/widgets/shop-shell';
+import { antTheme } from '@/app/theme';
 
 const Login = lazy(() => import('@/pages/login'));
 const Tenants = lazy(() => import('@/pages/tenants'));
@@ -23,120 +26,86 @@ const queryClient = new QueryClient({
   },
 });
 
-const antTheme = {
-  token: {
-    colorPrimary: '#6366f1',
-    colorLink: '#6366f1',
-    colorLinkHover: '#4f46e5',
-    colorSuccess: '#10b981',
-    colorWarning: '#f59e0b',
-    colorError: '#ef4444',
-    colorInfo: '#3b82f6',
-    colorTextBase: '#0f172a',
-    colorTextSecondary: '#64748b',
-    colorBgBase: '#ffffff',
-    colorBgContainer: '#ffffff',
-    colorBgLayout: '#f8fafc',
-    colorBorder: '#e2e8f0',
-    colorBorderSecondary: '#f1f5f9',
-    borderRadius: 10,
-    borderRadiusLG: 14,
-    borderRadiusSM: 8,
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    controlHeight: 40,
-    fontSize: 14,
-    fontSizeHeading3: 20,
-    fontSizeHeading4: 18,
-  },
-  components: {
-    Card: {
-      paddingLG: 24,
-      borderRadiusLG: 14,
-      colorBorderSecondary: '#e2e8f0',
-    },
-    Button: {
-      controlHeight: 40,
-      borderRadius: 10,
-      fontWeight: 500,
-      paddingInline: 16,
-    },
-    Input: {
-      controlHeight: 40,
-      borderRadius: 10,
-      colorBorder: '#cbd5e1',
-    },
-    InputNumber: {
-      controlHeight: 40,
-      borderRadius: 10,
-      colorBorder: '#cbd5e1',
-    },
-    Select: {
-      controlHeight: 40,
-      borderRadius: 10,
-      colorBorder: '#cbd5e1',
-    },
-    Table: {
-      borderRadius: 12,
-      headerBg: '#f8fafc',
-      headerColor: '#475569',
-    },
-  },
-};
-
 const Fallback = () => (
   <div className="flex min-h-screen items-center justify-center">
     <Spin size="large" />
   </div>
 );
 
-const PlatformRoute = ({ children }: { children: JSX.Element }) => {
-  const { isAuthorized } = useAuth();
+const ContentFallback = () => (
+  <div className="flex min-h-64 items-center justify-center">
+    <Spin />
+  </div>
+);
 
-  return isAuthorized ? children : <Navigate to={AppRoutes.login} replace />;
+const preloadShopPages = (): void => {
+  void import('@/pages/shop-orders');
+  void import('@/pages/shop-products');
+  void import('@/pages/shop-stock');
+  void import('@/pages/shop-banners');
+  void import('@/pages/shop-settings');
 };
 
-const ShopRoute = ({ children }: { children: JSX.Element }) => {
+const preloadPlatformPages = (): void => {
+  void import('@/pages/tenants');
+  void import('@/pages/platform-audit');
+};
+
+const PlatformLayout = () => {
+  const { isAuthorized } = useAuth();
+
+  useEffect(preloadPlatformPages, []);
+
+  return isAuthorized ? (
+    <PlatformShell>
+      <Suspense fallback={<ContentFallback />}>
+        <Outlet />
+      </Suspense>
+    </PlatformShell>
+  ) : (
+    <Navigate to={AppRoutes.login} replace />
+  );
+};
+
+const ShopLayout = () => {
   const { isAuthorized } = useShopAuth();
 
-  return isAuthorized ? children : <Navigate to={AppRoutes.login} replace />;
+  useEffect(preloadShopPages, []);
+
+  return isAuthorized ? (
+    <ShopShell>
+      <Suspense fallback={<ContentFallback />}>
+        <Outlet />
+      </Suspense>
+    </ShopShell>
+  ) : (
+    <Navigate to={AppRoutes.login} replace />
+  );
 };
 
 const Router = () => (
-  <Suspense fallback={<Fallback />}>
-    <Routes>
-      <Route path={AppRoutes.login} element={<Login />} />
-      <Route
-        path={AppRoutes.tenants}
-        element={<PlatformRoute><Tenants /></PlatformRoute>}
-      />
-      <Route
-        path={AppRoutes.audit}
-        element={<PlatformRoute><PlatformAudit /></PlatformRoute>}
-      />
-      <Route path={AppRoutes.shopLogin} element={<Navigate to={AppRoutes.login} replace />} />
-      <Route
-        path={AppRoutes.shopOrders}
-        element={<ShopRoute><ShopOrders /></ShopRoute>}
-      />
-      <Route
-        path={AppRoutes.shopProducts}
-        element={<ShopRoute><ShopProducts /></ShopRoute>}
-      />
-      <Route
-        path={AppRoutes.shopStock}
-        element={<ShopRoute><ShopStock /></ShopRoute>}
-      />
-      <Route
-        path={AppRoutes.shopBanners}
-        element={<ShopRoute><ShopBanners /></ShopRoute>}
-      />
-      <Route
-        path={AppRoutes.shopSettings}
-        element={<ShopRoute><ShopSettings /></ShopRoute>}
-      />
-      <Route path="*" element={<Navigate to={AppRoutes.login} replace />} />
-    </Routes>
-  </Suspense>
+  <Routes>
+    <Route
+      path={AppRoutes.login}
+      element={<Suspense fallback={<Fallback />}><Login /></Suspense>}
+    />
+    <Route path={AppRoutes.shopLogin} element={<Navigate to={AppRoutes.login} replace />} />
+
+    <Route element={<PlatformLayout />}>
+      <Route path={AppRoutes.tenants} element={<Tenants />} />
+      <Route path={AppRoutes.audit} element={<PlatformAudit />} />
+    </Route>
+
+    <Route element={<ShopLayout />}>
+      <Route path={AppRoutes.shopOrders} element={<ShopOrders />} />
+      <Route path={AppRoutes.shopProducts} element={<ShopProducts />} />
+      <Route path={AppRoutes.shopStock} element={<ShopStock />} />
+      <Route path={AppRoutes.shopBanners} element={<ShopBanners />} />
+      <Route path={AppRoutes.shopSettings} element={<ShopSettings />} />
+    </Route>
+
+    <Route path="*" element={<Navigate to={AppRoutes.login} replace />} />
+  </Routes>
 );
 
 export const App = () => (

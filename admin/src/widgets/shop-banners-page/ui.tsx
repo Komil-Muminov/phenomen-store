@@ -9,7 +9,6 @@ import { If } from '@/shared/ui/If';
 import { ListPagination } from '@/shared/ui/ListPagination';
 import { BannersTable } from '@/features/banners-table';
 import { BannerForm, IBannerFormValues } from '@/features/banner-form';
-import { ShopShell } from '@/widgets/shop-shell';
 import { useBannerMutations } from '@/widgets/shop-banners-page/lib';
 import { RenderToolbar } from '@/widgets/shop-banners-page/ui/renderToolbar';
 import type {
@@ -131,7 +130,7 @@ export const ShopBannersPage = () => {
   const canReorder = applied.page === 1 && !applied.search && applied.isActive === undefined;
 
   return (
-    <ShopShell>
+    <>
       <RenderToolbar
         total={total}
         search={draft.search}
@@ -193,6 +192,6 @@ export const ShopBannersPage = () => {
         onSubmit={handleSubmit}
         onCancel={closeForm}
       />
-    </ShopShell>
+    </>
   );
 };

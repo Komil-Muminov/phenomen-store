@@ -15,7 +15,6 @@ import { If } from '@/shared/ui/If';
 import { ListPagination } from '@/shared/ui/ListPagination';
 import { ListToolbar } from '@/shared/ui/ListToolbar';
 import { OrdersTable } from '@/features/orders-table';
-import { ShopShell } from '@/widgets/shop-shell';
 import type { IOrder, IOrderList } from '@/entities/shop';
 
 interface IStatusBody {
@@ -61,7 +60,7 @@ export const ShopOrdersPage = () => {
   }, [statusMutation, message]);
 
   return (
-    <ShopShell>
+    <>
       <ListToolbar
         title="Заказы"
         subtitle={`Найдено: ${ordersQuery.data?.total ?? 0}`}
@@ -109,6 +108,6 @@ export const ShopOrdersPage = () => {
         total={ordersQuery.data?.total ?? 0}
         onChange={setPage}
       />
-    </ShopShell>
+    </>
   );
 };

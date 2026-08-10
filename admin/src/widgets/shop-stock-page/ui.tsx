@@ -9,7 +9,6 @@ import { If } from '@/shared/ui/If';
 import { ListPagination } from '@/shared/ui/ListPagination';
 import { ListToolbar } from '@/shared/ui/ListToolbar';
 import { StockTable } from '@/features/stock-table';
-import { ShopShell } from '@/widgets/shop-shell';
 import type { IStockItem, IStockList } from '@/entities/shop';
 
 const STOCK_FILTER_OPTIONS = [
@@ -57,7 +56,7 @@ export const ShopStockPage = () => {
   const total = stockQuery.data?.total ?? 0;
 
   return (
-    <ShopShell>
+    <>
       <ListToolbar
         title="Остатки"
         subtitle={`Найдено позиций: ${total}`}
@@ -100,6 +99,6 @@ export const ShopStockPage = () => {
         total={total}
         onChange={setPage}
       />
-    </ShopShell>
+    </>
   );
 };

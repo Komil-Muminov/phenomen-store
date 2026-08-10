@@ -11,7 +11,6 @@ import { TenantsTable } from '@/features/tenants-table';
 import { TenantForm, ITenantFormValues } from '@/features/tenant-form';
 import { TenantCard, ITenantCardValues } from '@/features/tenant-card';
 import { OwnerForm, IOwnerFormValues } from '@/features/owner-form';
-import { PlatformShell } from '@/widgets/platform-shell';
 import { RenderHeader } from '@/widgets/tenants-page/ui/renderHeader';
 import { INITIAL_STATE, buildUpdateUrl } from '@/widgets/tenants-page/model';
 import { useTenantMutations } from '@/widgets/tenants-page/lib';
@@ -190,7 +189,7 @@ export const TenantsPage = () => {
   ]);
 
   return (
-    <PlatformShell>
+    <>
       <RenderHeader
         total={tenantsQuery.data?.total ?? 0}
         isFetching={tenantsQuery.isFetching}
@@ -249,6 +248,6 @@ export const TenantsPage = () => {
         onSubmit={handleStaffSubmit}
         onCancel={closeStaffForm}
       />
-    </PlatformShell>
+    </>
   );
 };
