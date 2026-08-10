@@ -49,6 +49,7 @@ export const ApiRoutes = {
   shopCategoryCreate: '/categories/create',
   shopCategoryUpdate: '/categories/update',
   shopCategoryDeactivate: '/categories/deactivate',
+  shopCategoryDelete: '/categories/delete',
   shopBannersManage: '/banners/manage/search',
   shopBannerCreate: '/banners/create',
   shopBannerUpdate: '/banners/update',

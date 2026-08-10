@@ -23,6 +23,8 @@ import {
   insertCategory,
   updateCategoryFields,
   countCategoryProducts,
+  countChildCategories,
+  deleteCategoryById,
   IVariantInput,
   selectProductById,
   selectProducts,
@@ -597,6 +599,32 @@ export const updateCategory = async (
   const row = await requireCategory(tenant, id);
 
   return { ...mapCategory(row), isActive: row.is_active !== false };
+};
+
+export const removeCategory = async (tenant: ITenantContext, id: string) => {
+  await requireCategory(tenant, id);
+
+  const children = await countChildCategories(tenant.id, id);
+
+  if (children > 0) {
+    throw new AppError(
+      `Внутри категории ещё ${children} подкатегорий. Сначала удалите или перенесите их`,
+      HttpStatus.conflict,
+    );
+  }
+
+  const used = await countCategoryProducts(tenant.id, id);
+
+  if (used > 0) {
+    throw new AppError(
+      `Категория используется в ${used} товарах. Сначала перенесите их в другую категорию`,
+      HttpStatus.conflict,
+    );
+  }
+
+  await deleteCategoryById(tenant.id, id);
+
+  return { deleted: true };
 };
 
 export const deactivateCategory = async (tenant: ITenantContext, id: string) => {

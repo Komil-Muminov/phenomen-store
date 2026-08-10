@@ -23,6 +23,7 @@ import {
   duplicateProduct,
   importProducts,
   listManagedCategories,
+  removeCategory,
   listStock,
   updateCategory,
   getCategories,
@@ -283,6 +284,21 @@ categoryRouter.patch(
       const id = requireUuid(req.params.id, 'id');
 
       sendOk(res, await deactivateCategory(requireTenant(req), id));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+categoryRouter.delete(
+  ApiActions.delete,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
+
+      sendOk(res, await removeCategory(requireTenant(req), id));
     } catch (error) {
       next(error);
     }

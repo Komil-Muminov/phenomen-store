@@ -156,6 +156,24 @@ export const countCategoryProducts = async (tenantId: string, id: string): Promi
   return Number(rows[0]?.total ?? 0);
 };
 
+export const countChildCategories = async (tenantId: string, id: string): Promise<number> => {
+  const rows = await tenantQuery<{ total: string }>(
+    tenantId,
+    'SELECT COUNT(*)::text AS total FROM categories WHERE tenant_id = $1 AND parent_id = $2',
+    [tenantId, id],
+  );
+
+  return Number(rows[0]?.total ?? 0);
+};
+
+export const deleteCategoryById = async (tenantId: string, id: string): Promise<void> => {
+  await tenantQuery(
+    tenantId,
+    'DELETE FROM categories WHERE tenant_id = $1 AND id = $2',
+    [tenantId, id],
+  );
+};
+
 const buildFilters = (tenantId: string, params: IProductSearchParams) => {
   const values: unknown[] = [tenantId];
   const conditions: string[] = ['p.tenant_id = $1', 'p.is_active'];

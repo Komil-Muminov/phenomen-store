@@ -2,7 +2,6 @@ import { ReactNode } from 'react';
 import {
   ApartmentOutlined,
   DatabaseOutlined,
-  FolderOutlined,
   PictureOutlined,
   SettingOutlined,
   ShoppingOutlined,
@@ -24,7 +23,6 @@ export const buildMenuLinkClass = buildNavLinkClass(NavLinkBases.menu);
 
 export const CatalogNavItems: INavItem[] = [
   { to: AppRoutes.shopProducts, label: 'Товары', icon: <TagsOutlined aria-hidden="true" /> },
-  { to: AppRoutes.shopCategories, label: 'Категории', icon: <FolderOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopStock, label: 'Остатки', icon: <DatabaseOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopBanners, label: 'Баннеры', icon: <PictureOutlined aria-hidden="true" /> },
 ];

@@ -120,6 +120,33 @@ export const ShopProductsPage = () => {
     });
   }, [editing, mutations.update, mutations.create, message, closeForm]);
 
+  const runCategoryAction = useCallback(
+    (action: Promise<unknown>, success: string) => action
+      .then(() => message.success(success))
+      .catch((error: Error) => {
+        message.error(extractErrorMessage(error));
+
+        throw error;
+      })
+      .then(() => undefined),
+    [message],
+  );
+
+  const handleCreateCategory = useCallback((name: string) => runCategoryAction(
+    mutations.createCategory.mutateAsync({ name }),
+    'Категория создана',
+  ), [mutations.createCategory, runCategoryAction]);
+
+  const handleRenameCategory = useCallback((id: string, name: string) => runCategoryAction(
+    mutations.renameCategory.mutateAsync({ id, name }),
+    'Категория переименована',
+  ), [mutations.renameCategory, runCategoryAction]);
+
+  const handleDeleteCategory = useCallback((id: string) => runCategoryAction(
+    mutations.removeCategory.mutateAsync({ id }),
+    'Категория удалена',
+  ), [mutations.removeCategory, runCategoryAction]);
+
   const handleImportOpen = useCallback(() => setImportOpen(true), []);
 
   const handleCategory = useCallback((categoryId: string | undefined) => {
@@ -181,6 +208,14 @@ export const ShopProductsPage = () => {
         categories={categoriesQuery.data ?? []}
         attributes={attributesQuery.data ?? []}
         isSaving={mutations.create.isPending || mutations.update.isPending}
+        isCategoryBusy={
+          mutations.createCategory.isPending
+          || mutations.renameCategory.isPending
+          || mutations.removeCategory.isPending
+        }
+        onCreateCategory={handleCreateCategory}
+        onRenameCategory={handleRenameCategory}
+        onDeleteCategory={handleDeleteCategory}
         onSubmit={handleSubmit}
         onCancel={closeForm}
       />

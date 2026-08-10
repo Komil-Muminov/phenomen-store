@@ -14,14 +14,16 @@ import {
   readVariantRows,
   splitAttributes,
 } from '@/features/product-form/model';
+import { CategoryPicker, ICategoryPickerHandlers } from '@/features/category-picker';
 import type { IShopAttribute, IShopCategory, IShopProduct } from '@/entities/shop';
 
-interface IProps {
+interface IProps extends ICategoryPickerHandlers {
   open: boolean;
   editing: IShopProduct | null;
   categories: IShopCategory[];
   attributes: IShopAttribute[];
   isSaving: boolean;
+  isCategoryBusy: boolean;
   onSubmit: (payload: IProductPayload) => void;
   onCancel: () => void;
 }
@@ -32,8 +34,12 @@ export const ProductForm = ({
   categories,
   attributes,
   isSaving,
+  isCategoryBusy,
   onSubmit,
   onCancel,
+  onCreateCategory,
+  onRenameCategory,
+  onDeleteCategory,
 }: IProps) => {
   const [form] = Form.useForm<IProductFormValues>();
   const [details, setDetails] = useState<Record<string, string>>({});
@@ -138,10 +144,12 @@ export const ProductForm = ({
           </Form.Item>
 
           <Form.Item name="categoryId" label="Категория">
-            <Select
-              allowClear
-              placeholder="Без категории"
-              options={categories.map((item) => ({ value: item.id, label: item.name }))}
+            <CategoryPicker
+              categories={categories}
+              isBusy={isCategoryBusy}
+              onCreateCategory={onCreateCategory}
+              onRenameCategory={onRenameCategory}
+              onDeleteCategory={onDeleteCategory}
             />
           </Form.Item>
         </div>
