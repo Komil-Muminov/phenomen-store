@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Env, HttpStatus, UserRoles } from '@/shared/config';
+import { EntityStatus, Env, HttpStatus, UserRoles } from '@/shared/config';
 import { ITenantContext, IUserContext, TUserRole } from '@/shared/types';
 import { AppError, pickString } from '@/shared/utils';
 import { mergeGuestCart } from '@/modules/cart';
@@ -23,7 +23,6 @@ import {
   IUserRow,
   OtpSettings,
   PasswordSettings,
-  UserStatus,
   normalizePhone,
 } from '@/modules/auth/types';
 
@@ -81,7 +80,7 @@ export const loginWithPassword = async (
     throw new AppError(AuthErrors.invalidCredentials, HttpStatus.unauthorized);
   }
 
-  if (user.status !== UserStatus.active) {
+  if (user.status !== EntityStatus.active) {
     throw new AppError(AuthErrors.userBlocked, HttpStatus.forbidden);
   }
 
@@ -186,7 +185,7 @@ export const verifyCode = async (
 
   const user = await upsertUserByPhone(tenant.id, phone);
 
-  if (user.status === UserStatus.blocked) {
+  if (user.status === EntityStatus.disabled) {
     throw new AppError(AuthErrors.userBlocked, HttpStatus.forbidden);
   }
 

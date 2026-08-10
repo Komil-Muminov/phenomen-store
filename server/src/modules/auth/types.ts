@@ -40,11 +40,6 @@ export const PasswordSettings = {
   dummyHash: '$2a$10$qKgTmfdTEmsyve5nbppwfuorWT/tOb2fYIkjRyRJE1Fd56kSM9kMm',
 } as const;
 
-export const UserStatus = {
-  active: 'active',
-  blocked: 'blocked',
-} as const;
-
 export const OtpSettings = {
   length: 4,
   ttlSeconds: 300,

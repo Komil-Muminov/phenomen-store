@@ -58,6 +58,11 @@ export const Env = {
     adminPassword: readString('PLATFORM_ADMIN_PASSWORD', ''),
     adminName: readString('PLATFORM_ADMIN_NAME', 'Платформенный администратор'),
   },
+  demoOwner: {
+    login: readString('DEMO_OWNER_LOGIN', ''),
+    password: readString('DEMO_OWNER_PASSWORD', ''),
+    name: readString('DEMO_OWNER_NAME', 'Владелец демо-магазина'),
+  },
   db: {
     host: readString('PGHOST', 'localhost'),
     port: readNumber('PGPORT', 5432),

@@ -1,10 +1,10 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Env, EntityStatus, ErrorMessages, HttpStatus, PlatformRoles, UserRoles } from '@/shared/config';
-import { IListResult, IPlatformContext } from '@/shared/types';
+import { IListResult, IPlatformContext, ITenantContext } from '@/shared/types';
 import { AppError, pickString } from '@/shared/utils';
 import { invalidateTenantCache } from '@/modules/tenant';
-import { loginWithPassword } from '@/modules/auth';
+import { loginWithPassword, normalizePhone } from '@/modules/auth';
 import { applyVerticalPreset } from '@/modules/attributes';
 import {
   countTenantOwners,
@@ -50,6 +50,8 @@ import {
 } from '@/modules/platform/types';
 
 const KEY_PATTERN = /^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/;
+
+const EMAIL_MARKER = '@';
 
 const requireTenantRow = async (id: string): Promise<ITenantSummary> => {
   const tenant = await selectTenantById(id);
@@ -121,6 +123,40 @@ export const ensurePlatformAdmin = async (): Promise<void> => {
     pickString(Env.platform.adminName, login),
     PlatformRoles.superadmin,
   );
+};
+
+export const ensureDemoOwner = async (tenant: ITenantContext): Promise<void> => {
+  const login = pickString(Env.demoOwner.login).toLowerCase();
+  const password = pickString(Env.demoOwner.password);
+
+  if (Env.isProduction || !login || !password) {
+    return;
+  }
+
+  const email = login.includes(EMAIL_MARKER) ? login : null;
+  const phone = email ? null : normalizePhone(login);
+
+  if (!email && !phone) {
+    console.warn(`[bootstrap] DEMO_OWNER_LOGIN должен быть email или телефоном, получено: ${login}`);
+
+    return;
+  }
+
+  if (await existsStaffLogin(login)) {
+    return;
+  }
+
+  const ownerId = await insertTenantOwner(
+    tenant.id,
+    await bcrypt.hash(password, SALT_ROUNDS),
+    pickString(Env.demoOwner.name, tenant.name),
+    UserRoles.owner,
+    phone,
+    email,
+  );
+
+  await insertStaffLogin(login, tenant.id, ownerId);
+  console.log(`[bootstrap] владелец демо-магазина: ${login}`);
 };
 
 export const authenticatePlatform = async (

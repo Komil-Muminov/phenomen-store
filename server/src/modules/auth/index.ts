@@ -7,5 +7,5 @@ export {
   loginWithPassword,
   changePassword,
 } from '@/modules/auth/auth.service';
-export { AuthErrors, OtpSettings, UserStatus, normalizePhone } from '@/modules/auth/types';
+export { AuthErrors, OtpSettings, normalizePhone } from '@/modules/auth/types';
 export type { IUserRow } from '@/modules/auth/types';

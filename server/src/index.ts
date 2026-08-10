@@ -16,7 +16,7 @@ import { authRouter } from '@/modules/auth';
 import { wishlistRouter } from '@/modules/wishlist';
 import { reviewsRouter } from '@/modules/reviews';
 import { notificationsRouter } from '@/modules/notifications';
-import { ensurePlatformAdmin, platformRouter } from '@/modules/platform';
+import { ensureDemoOwner, ensurePlatformAdmin, platformRouter } from '@/modules/platform';
 
 const app = express();
 
@@ -57,6 +57,7 @@ const seedDemoContent = async (): Promise<void> => {
 
     await applyVerticalPreset(demoTenant.id, DEMO_VERTICAL);
     await seedDemoCatalog(demoTenant.id);
+    await ensureDemoOwner(demoTenant);
 
     console.log(`[bootstrap] тестовый магазин: ${demoTenant.key} (${demoTenant.name})`);
   } catch (error) {
