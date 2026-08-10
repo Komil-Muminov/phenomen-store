@@ -46,6 +46,8 @@ export const NotificationsPage = () => {
     },
   );
 
+  const items = data?.items ?? [];
+
   const deleteOne = useMutationQuery<string, void>(
     (id: string) => `${ApiRoutes.notificationsDelete}/${id}`,
     {

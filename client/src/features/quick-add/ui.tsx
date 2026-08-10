@@ -37,15 +37,9 @@ export const QuickAddModal = ({ product, currencySymbol = 'смн', onClose, onS
       return;
     }
 
-    addToCart(
-      { variantId: targetVariant.id, quantity: initialQuantity(product.unit) },
-      {
-        onSuccess: () => {
-          onSuccess?.();
-          onClose();
-        },
-      },
-    );
+    addToCart(product, targetVariant.id, initialQuantity(product.unit));
+    onSuccess?.();
+    onClose();
   }, [addToCart, onClose, onSuccess, product, targetVariant]);
 
   if (!product) {

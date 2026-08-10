@@ -10,7 +10,7 @@ import { CatalogGrid } from '@/features/catalog-grid';
 import { QuickAddModal } from '@/features/quick-add';
 import { SearchHistoryView, addSearchTerm, addRecentlyViewed } from '@/features/search-history';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
-import { formatItemCount, initialQuantity, roundQuantity, unitStep } from '@/shared/lib';
+import { formatItemCount } from '@/shared/lib';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { BottomBar, Button, Icon, If, SkeletonProductGrid, StateView } from '@/shared/ui';
 

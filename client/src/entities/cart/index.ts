@@ -20,35 +20,36 @@ export const useAddToCart = () => {
     { invalidate: [[QueryKeys.cart]] },
   );
 
-  const addToCart = useCallback((product: IProduct) => {
-    const defaultVariant = product?.variants?.[0];
+  const addToCart = useCallback((product: IProduct, variantId?: string, quantity: number = 1) => {
+    const targetVariant = (variantId ? product?.variants?.find((v) => v.id === variantId) : null) ?? product?.variants?.[0];
 
-    if (!defaultVariant) {
+    if (!targetVariant) {
       return false;
     }
 
     const currentItems = cart?.items ?? [];
-    const existingIndex = currentItems.findIndex((i) => i.variantId === defaultVariant.id);
+    const existingIndex = currentItems.findIndex((i) => i.variantId === targetVariant.id);
+    const addQty = Math.max(1, quantity);
     let nextItems;
 
     if (existingIndex >= 0) {
       nextItems = currentItems.map((item, idx) => (
-        idx === existingIndex ? { ...item, quantity: item.quantity + 1 } : item
+        idx === existingIndex ? { ...item, quantity: item.quantity + addQty } : item
       ));
     } else {
       nextItems = [
         ...currentItems,
         {
-          variantId: defaultVariant.id,
+          variantId: targetVariant.id,
           productId: product.id,
           name: product.name,
-          sku: defaultVariant.sku,
-          options: defaultVariant.options,
-          quantity: 1,
-          price: defaultVariant.price,
-          oldPrice: defaultVariant.oldPrice,
-          total: defaultVariant.price,
-          stock: defaultVariant.stock,
+          sku: targetVariant.sku,
+          options: targetVariant.options,
+          quantity: addQty,
+          price: targetVariant.price,
+          oldPrice: targetVariant.oldPrice,
+          total: targetVariant.price * addQty,
+          stock: targetVariant.stock,
           media: product.media[0] ?? null,
         },
       ];
