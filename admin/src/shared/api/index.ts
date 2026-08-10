@@ -182,7 +182,7 @@ export const uploadFile = async <T>(url: string, file: File): Promise<T> => {
   form.append('file', file);
 
   const response = await shopClient
-    .post<IApiResponse<T>>(url, form)
+    .post<IApiResponse<T>>(url, form, { headers: { 'Content-Type': undefined } })
     .catch((error: unknown) => {
       throw new Error(extractErrorMessage(error));
     });
