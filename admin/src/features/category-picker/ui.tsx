@@ -129,22 +129,24 @@ export const CategoryPicker = ({
         )}
         dropdownRender={(menu) => (
           <>
-            <button
-              type="button"
-              onClick={startCreate}
-              className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl border-0 bg-transparent px-2 py-2 text-left transition-colors duration-200 hover:bg-indigo-50"
-            >
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-white">
-                <PlusOutlined />
-              </span>
-              <span className="text-sm font-semibold text-indigo-600">{PickerTexts.create}</span>
-            </button>
+            <div className="mb-1 flex justify-center border-b border-slate-100 pb-1.5 pt-0.5 px-1">
+              <Tooltip title="Новая категория">
+                <button
+                  type="button"
+                  aria-label="Новая категория"
+                  onClick={startCreate}
+                  className="flex h-8 w-full cursor-pointer items-center justify-center rounded-lg bg-indigo-50/80 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all duration-200"
+                >
+                  <PlusOutlined />
+                </button>
+              </Tooltip>
+            </div>
 
             <If
               condition={categories.length > 0}
               fallback={(
-                <div className="px-2 pb-2 pt-1">
-                  <div className="flex flex-col items-center gap-1 rounded-xl bg-slate-50 py-4 text-center">
+                <div className="px-2 pb-1 pt-1">
+                  <div className="flex flex-col items-center gap-1 rounded-xl bg-slate-50 py-3 text-center">
                     <FolderOpenOutlined className="text-lg text-slate-300" aria-hidden="true" />
                     <span className="text-sm font-medium text-slate-600">{PickerTexts.empty}</span>
                     <span className="px-4 text-xs text-slate-400">{PickerTexts.emptyHint}</span>
@@ -152,7 +154,6 @@ export const CategoryPicker = ({
                 </div>
               )}
             >
-              <div className="my-1 border-t border-slate-200/70" />
               {menu}
             </If>
           </>
