@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Form, Input, InputNumber, Modal, Select } from 'antd';
 import { UiMessages } from '@/shared/config';
+import { buildParentOptions } from '@/features/category-form/lib';
 import type { IShopCategory } from '@/entities/shop';
 
 export interface ICategoryFormValues {
@@ -68,9 +69,7 @@ export const CategoryForm = ({
           <Select
             allowClear
             placeholder="Верхний уровень"
-            options={categories
-              .filter((item) => item.id !== editing?.id)
-              .map((item) => ({ value: item.id, label: item.name }))}
+            options={buildParentOptions(categories, editing?.id, editing?.parentId)}
           />
         </Form.Item>
 

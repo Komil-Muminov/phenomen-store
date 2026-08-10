@@ -179,9 +179,9 @@ export const VisibilityOptions = [
 ];
 
 export const ListLimits = {
-  default: 20,
-  stock: 50,
-  banners: 50,
+  default: 10,
+  stock: 10,
+  banners: 10,
 } as const;
 
 export const AuthHeader = 'Authorization';
