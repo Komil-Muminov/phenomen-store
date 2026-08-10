@@ -32,6 +32,14 @@ export const setAuthToken = (token: string | null): void => {
   authToken = token;
 };
 
+let tenantKey: string = Env.tenantKey;
+
+export const setTenantKey = (key: string | null): void => {
+  tenantKey = key ?? Env.tenantKey;
+};
+
+export const readTenantKey = (): string => tenantKey;
+
 let onUnauthorizedCallback: (() => void) | null = null;
 
 export const setOnUnauthorizedHandler = (handler: (() => void) | null): void => {
@@ -44,6 +52,7 @@ apiClient.interceptors.request.use(async (config) => {
   }
 
   config.headers[GuestHeader] = await getGuestKey();
+  config.headers[TenantHeader] = tenantKey;
 
   return config;
 });

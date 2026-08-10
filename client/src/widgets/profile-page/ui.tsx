@@ -3,9 +3,12 @@ import { Platform, Pressable, ScrollView, StatusBar, Text, View } from 'react-na
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IOrder } from '@/entities/order';
-import { AuthPhone, AuthSteps, RESEND_DELAY_SEC, TAuthStep } from '@/features/auth-phone';
+import { AuthSteps, RESEND_DELAY_SEC, TAuthStep } from '@/features/auth-phone';
+import { EMPTY_CREDENTIALS, IStaffCredentials, ISigninResult } from '@/features/auth-staff';
 import { ProfileOrders } from '@/features/profile-orders';
-import { ApiRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
+import { ApiRoutes, AppRoutes, QueryKeys, StaffScopes, StaleTimeMs } from '@/shared/config';
+import { useStaffAuth } from '@/shared/staff-auth';
+import { RenderAuth } from '@/widgets/profile-page/ui/renderAuth';
 import { useAuth } from '@/shared/auth';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { BottomBar, Icon, If } from '@/shared/ui';
@@ -27,6 +30,10 @@ export const ProfilePage = () => {
   const insets = useSafeAreaInsets();
   const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
   const { isAuthorized, ready, login, logout } = useAuth();
+  const { signIn: staffSignIn } = useStaffAuth();
+  const [staffMode, setStaffMode] = useState(false);
+  const [credentials, setCredentials] = useState<IStaffCredentials>(EMPTY_CREDENTIALS);
+  const [staffError, setStaffError] = useState<string | null>(null);
   const [step, setStep] = useState<TAuthStep>(AuthSteps.phone);
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
@@ -48,6 +55,7 @@ export const ProfilePage = () => {
     { enabled: isAuthorized, staleTime: StaleTimeMs.short },
   );
 
+  const staffSignin = useMutationQuery<IStaffCredentials, ISigninResult>(ApiRoutes.staffSignin);
   const requestCode = useMutationQuery<{ phone: string }, { code: string | null }>(ApiRoutes.authCode);
   const verifyCode = useMutationQuery<{ phone: string; code: string }, { token: string }>(ApiRoutes.authVerify);
   const saveProfile = useMutationQuery<{ name: string; email: string }, IProfile>(
@@ -74,6 +82,36 @@ export const ProfilePage = () => {
 
     return () => clearInterval(timer);
   }, [resendSeconds]);
+
+  const handleToggleMode = useCallback(() => {
+    setStaffError(null);
+    setAuthError(null);
+    setStaffMode((current) => !current);
+  }, []);
+
+  const handleStaffSubmit = useCallback(() => {
+    setStaffError(null);
+
+    staffSignin.mutate(
+      { login: credentials.login.trim(), password: credentials.password },
+      {
+        onSuccess: (result) => {
+          staffSignIn({
+            token: result.token,
+            scope: result.scope,
+            name: result.user?.name ?? result.name ?? result.login ?? '',
+            role: result.user?.role ?? result.role ?? '',
+            tenantKey: result.scope === StaffScopes.shop ? result.tenantKey ?? null : null,
+            tenantName: result.tenantName ?? null,
+          }).then(() => {
+            setCredentials(EMPTY_CREDENTIALS);
+            router.replace(AppRoutes.admin);
+          });
+        },
+        onError: (error) => setStaffError(error.message),
+      },
+    );
+  }, [staffSignin, credentials, staffSignIn, router]);
 
   const handleRequestCode = useCallback(() => {
     setAuthError(null);
@@ -145,7 +183,8 @@ export const ProfilePage = () => {
           <If
             condition={isAuthorized}
             fallback={(
-              <AuthPhone
+              <RenderAuth
+                staffMode={staffMode}
                 step={step}
                 phone={phone}
                 code={code}
@@ -153,11 +192,17 @@ export const ProfilePage = () => {
                 errorMessage={authError}
                 busy={requestCode.isPending || verifyCode.isPending}
                 resendSeconds={resendSeconds}
+                credentials={credentials}
+                staffError={staffError}
+                staffBusy={staffSignin.isPending}
+                onToggleMode={handleToggleMode}
                 onPhoneChange={setPhone}
                 onCodeChange={setCode}
                 onRequestCode={handleRequestCode}
                 onVerify={handleVerify}
                 onChangePhone={handleChangePhone}
+                onCredentialsChange={setCredentials}
+                onStaffSubmit={handleStaffSubmit}
               />
             )}
           >

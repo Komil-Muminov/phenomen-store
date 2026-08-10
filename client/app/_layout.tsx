@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { AuthProvider } from '@/shared/auth';
+import { StaffAuthProvider } from '@/shared/staff-auth';
 import { AppShell } from '@/widgets/app-shell';
 import '../global.css';
 
@@ -18,16 +19,18 @@ const RootLayout = () => (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <AppShell>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                animation: 'none',
-                animationDuration: 0,
-                contentStyle: { backgroundColor: '#ffffff' },
-              }}
-            />
-          </AppShell>
+          <StaffAuthProvider>
+            <AppShell>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  animation: 'none',
+                  animationDuration: 0,
+                  contentStyle: { backgroundColor: '#ffffff' },
+                }}
+              />
+            </AppShell>
+          </StaffAuthProvider>
         </AuthProvider>
         <StatusBar style="dark" />
       </QueryClientProvider>

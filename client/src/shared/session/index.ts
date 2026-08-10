@@ -42,3 +42,28 @@ export const clearAuthToken = async (): Promise<void> => {
 };
 
 export const createIdempotencyKey = (): string => `${createGuestKey()}-${Math.random().toString(RANDOM_BASE).slice(2, 8)}`;
+
+const STAFF_STORAGE = 'phenomen.staff-session';
+
+export interface IStaffSession {
+  token: string;
+  scope: 'platform' | 'shop';
+  name: string;
+  role: string;
+  tenantKey: string | null;
+  tenantName: string | null;
+}
+
+export const loadStaffSession = async (): Promise<IStaffSession | null> => {
+  const raw = await AsyncStorage.getItem(STAFF_STORAGE);
+
+  return raw ? (JSON.parse(raw) as IStaffSession) : null;
+};
+
+export const saveStaffSession = async (session: IStaffSession): Promise<void> => {
+  await AsyncStorage.setItem(STAFF_STORAGE, JSON.stringify(session));
+};
+
+export const clearStaffSession = async (): Promise<void> => {
+  await AsyncStorage.removeItem(STAFF_STORAGE);
+};

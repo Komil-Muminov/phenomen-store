@@ -34,6 +34,37 @@ export const ApiRoutes = {
   notificationsDelete: '/notifications/delete',
   notificationsClearAll: '/notifications/clear-all',
   notificationsMarkRead: '/notifications/read',
+  staffSignin: '/platform/auth/signin',
+  tenantsSearch: '/platform/tenants/search',
+  tenantsCreate: '/platform/tenants/create',
+  tenantsUpdate: '/platform/tenants/update',
+  tenantsActivate: '/platform/tenants/activate',
+  tenantsDeactivate: '/platform/tenants/deactivate',
+  tenantsDelete: '/platform/tenants/delete',
+  tenantsEnter: '/platform/tenants/enter',
+  tenantsStaffSearch: '/platform/tenants/owner/search',
+  tenantsStaffCreate: '/platform/tenants/owner/create',
+  tenantsStaffUpdate: '/platform/tenants/owner/update',
+  tenantsStaffDelete: '/platform/tenants/owner/delete',
+  manageOrders: '/orders/manage/search',
+  manageOrderStatus: '/orders/status',
+  manageProducts: '/products/manage/search',
+  manageProductCreate: '/products/create',
+  manageProductUpdate: '/products/update',
+  manageProductDeactivate: '/products/deactivate',
+  manageStock: '/products/stock/search',
+  manageStockUpdate: '/products/stock/update',
+  manageBanners: '/banners/manage/search',
+  manageBannerCreate: '/banners/create',
+  manageBannerUpdate: '/banners/update',
+  manageBannerDelete: '/banners/delete',
+  manageCategoryCreate: '/categories/create',
+  manageCategoryUpdate: '/categories/update',
+  manageCategoryDelete: '/categories/delete',
+  manageAttributeCreate: '/attributes/create',
+  manageAttributeUpdate: '/attributes/update',
+  manageAttributeDelete: '/attributes/delete',
+  manageConfig: '/tenants/config',
 } as const;
 
 export const AppRoutes = {
@@ -46,6 +77,9 @@ export const AppRoutes = {
   profile: '/profile',
   wishlist: '/wishlist',
   notifications: '/notifications',
+  admin: '/admin',
+  adminTenants: '/admin/tenants',
+  adminOrders: '/admin/orders',
 } as const;
 
 export const QueryKeys = {
@@ -58,6 +92,50 @@ export const QueryKeys = {
   orders: 'orders',
   profile: 'profile',
   notifications: 'notifications',
+  adminTenants: 'admin-tenants',
+  adminStaff: 'admin-staff',
+  adminOrders: 'admin-orders',
+  adminProducts: 'admin-products',
+  adminStock: 'admin-stock',
+  adminBanners: 'admin-banners',
+  adminConfig: 'admin-config',
+} as const;
+
+export const ManageOrderStatuses = [
+  { value: 'created', label: 'создан' },
+  { value: 'confirmed', label: 'подтверждён' },
+  { value: 'assembling', label: 'сборка' },
+  { value: 'delivering', label: 'доставка' },
+  { value: 'completed', label: 'выполнен' },
+  { value: 'cancelled', label: 'отменён' },
+] as const;
+
+export const ManageListLimit = 10;
+
+export const EntityStatuses = {
+  active: 'active',
+  disabled: 'disabled',
+} as const;
+
+export const StaffScopes = {
+  platform: 'platform',
+  shop: 'shop',
+} as const;
+
+export const StaffTexts = {
+  switchToStaff: 'Вход для сотрудников',
+  switchToCustomer: 'Вход для покупателей',
+  title: 'Вход в управление',
+  subtitle: 'Логин супер-админа платформы или email сотрудника магазина',
+  loginLabel: 'Логин',
+  loginPlaceholder: 'km или owner@shop.ru',
+  passwordLabel: 'Пароль',
+  passwordPlaceholder: 'Введите пароль',
+  submit: 'Войти',
+  emptyFields: 'Заполните логин и пароль',
+  platformTitle: 'Платформа',
+  shopTitle: 'Кабинет магазина',
+  logout: 'Выйти из управления',
 } as const;
 
 export const TenantHeader = 'X-Tenant-Key';
