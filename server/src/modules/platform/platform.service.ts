@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Env, ErrorMessages, HttpStatus, PlatformRoles, UserRoles } from '@/shared/config';
+import { Env, EntityStatus, ErrorMessages, HttpStatus, PlatformRoles, UserRoles } from '@/shared/config';
 import { IListResult, IPlatformContext } from '@/shared/types';
 import { AppError, pickString } from '@/shared/utils';
 import { invalidateTenantCache } from '@/modules/tenant';
@@ -47,7 +47,6 @@ import {
   PlatformErrors,
   SALT_ROUNDS,
   TENANT_UPDATABLE_FIELDS,
-  TenantStatuses,
 } from '@/modules/platform/types';
 
 const KEY_PATTERN = /^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/;
@@ -137,7 +136,7 @@ export const authenticatePlatform = async (
     throw new AppError(PlatformErrors.invalidCredentials, HttpStatus.unauthorized);
   }
 
-  if (user.status !== TenantStatuses.active) {
+  if (user.status !== EntityStatus.active) {
     throw new AppError(PlatformErrors.accountDisabled, HttpStatus.forbidden);
   }
 
@@ -190,7 +189,7 @@ export const signIn = async (
 
   const tenant = await requireTenantRow(entry.tenant_id);
 
-  if (tenant.status !== TenantStatuses.active) {
+  if (tenant.status !== EntityStatus.active) {
     throw new AppError(PlatformErrors.accountDisabled, HttpStatus.forbidden);
   }
 
@@ -342,7 +341,7 @@ export const deactivateTenant = async (
 ): Promise<ITenantSummary> => {
   const tenant = await requireTenantRow(id);
 
-  await setTenantStatus(id, TenantStatuses.disabled);
+  await setTenantStatus(id, EntityStatus.disabled);
   invalidateTenantCache(tenant.key);
   await insertAuditEntry({
     actorId: actor.id,
@@ -363,7 +362,7 @@ export const activateTenant = async (
 ): Promise<ITenantSummary> => {
   const tenant = await requireTenantRow(id);
 
-  await setTenantStatus(id, TenantStatuses.active);
+  await setTenantStatus(id, EntityStatus.active);
   invalidateTenantCache(tenant.key);
   await insertAuditEntry({
     actorId: actor.id,

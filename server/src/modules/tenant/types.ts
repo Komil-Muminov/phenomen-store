@@ -35,12 +35,6 @@ export interface ITenantPublicConfig {
   contacts: Record<string, unknown>;
 }
 
-export const TenantStatus = {
-  active: 'active',
-  suspended: 'suspended',
-  archived: 'archived',
-} as const;
-
 export const CONFIG_UPDATABLE_FIELDS = [
   'brand',
   'theme',

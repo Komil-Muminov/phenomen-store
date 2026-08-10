@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Alert, Form, Input, Modal, Select, Typography } from 'antd';
-import { StaffRoleLabels, StaffStatuses, UiMessages } from '@/shared/config';
+import { EntityStatuses, StaffRoleLabels, UiMessages } from '@/shared/config';
 import { If } from '@/shared/ui/If';
 import type { ITenant, ITenantStaff } from '@/entities/tenant';
 
@@ -24,8 +24,8 @@ interface IProps {
 const PASSWORD_MIN = 6;
 
 const STATUS_OPTIONS = [
-  { value: StaffStatuses.active, label: 'активен' },
-  { value: StaffStatuses.disabled, label: 'доступ отключён' },
+  { value: EntityStatuses.active, label: 'активен' },
+  { value: EntityStatuses.disabled, label: 'доступ отключён' },
 ];
 
 export const OwnerForm = ({
@@ -45,7 +45,7 @@ export const OwnerForm = ({
         email: editing?.email ?? '',
         phone: editing?.phone ?? '',
         password: '',
-        status: editing?.status ?? StaffStatuses.active,
+        status: editing?.status ?? EntityStatuses.active,
       });
     }
   }, [open, editing, form]);

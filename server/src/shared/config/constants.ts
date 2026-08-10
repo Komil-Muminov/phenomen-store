@@ -61,6 +61,11 @@ export const PlatformRoles = {
   superadmin: 'superadmin',
 } as const;
 
+export const EntityStatus = {
+  active: 'active',
+  disabled: 'disabled',
+} as const;
+
 export const ErrorMessages = {
   tenantRequired: 'Магазин не определён',
   tenantNotFound: 'Магазин не найден или отключён',

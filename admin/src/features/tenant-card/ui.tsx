@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Button, Drawer, Form, Input, Select, Tag, Typography } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
-import { TenantPlans, TenantStatuses, TenantVerticals, UiMessages } from '@/shared/config';
+import { EntityStatuses, TenantPlans, TenantVerticals, UiMessages } from '@/shared/config';
 import { If } from '@/shared/ui/If';
 import { RenderStaff } from '@/features/tenant-card/ui/renderStaff';
 import { RenderDanger } from '@/features/tenant-card/ui/renderDanger';
@@ -63,7 +63,7 @@ export const TenantCard = ({
         <div className="flex flex-wrap items-center gap-2">
           <span>{tenant?.name ?? 'Магазин'}</span>
           <span className="font-mono text-xs text-violet-500">{tenant?.key}</span>
-          <If condition={tenant?.status !== TenantStatuses.active}>
+          <If condition={tenant?.status !== EntityStatuses.active}>
             <Tag color="red">отключён</Tag>
           </If>
         </div>

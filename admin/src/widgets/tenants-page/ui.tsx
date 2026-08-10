@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { Alert, App as AntApp } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/shared/api';
-import { ApiRoutes, QueryKeys, TenantStatuses, UiMessages } from '@/shared/config';
+import { ApiRoutes, EntityStatuses, QueryKeys, UiMessages } from '@/shared/config';
 import { useGetQuery } from '@/shared/hooks';
 import { If } from '@/shared/ui/If';
 import { TenantsTable } from '@/features/tenants-table';
@@ -75,7 +75,7 @@ export const TenantsPage = () => {
   }, [mutations.update, state.target, message, showError]);
 
   const handleToggleStatus = useCallback((tenant: ITenant) => {
-    const isActive = tenant.status === TenantStatuses.active;
+    const isActive = tenant.status === EntityStatuses.active;
     const mutation = isActive ? mutations.deactivate : mutations.activate;
 
     mutation.mutate({ id: tenant.id }, {

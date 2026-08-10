@@ -1,7 +1,7 @@
 import { Button, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { SettingOutlined } from '@ant-design/icons';
-import { TenantStatuses } from '@/shared/config';
+import { EntityStatuses } from '@/shared/config';
 import type { ITenant } from '@/entities/tenant';
 
 interface IHandlers {
@@ -45,8 +45,8 @@ export const buildTenantColumns = ({ onOpen }: IHandlers): ColumnsType<ITenant> 
     dataIndex: 'status',
     key: 'status',
     render: (value: string) => (
-      <Tag color={value === TenantStatuses.active ? 'green' : 'red'}>
-        {value === TenantStatuses.active ? 'активен' : 'отключён'}
+      <Tag color={value === EntityStatuses.active ? 'green' : 'red'}>
+        {value === EntityStatuses.active ? 'активен' : 'отключён'}
       </Tag>
     ),
   },

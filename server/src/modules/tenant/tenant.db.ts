@@ -1,5 +1,6 @@
 import { query, tenantQuery } from '@/shared/db';
-import { CONFIG_UPDATABLE_FIELDS, ITenantConfigRow, ITenantRow, TenantStatus } from '@/modules/tenant/types';
+import { EntityStatus } from '@/shared/config';
+import { CONFIG_UPDATABLE_FIELDS, ITenantConfigRow, ITenantRow } from '@/modules/tenant/types';
 
 export const selectTenantByKey = async (key: string): Promise<ITenantRow | null> => {
   const rows = await query<ITenantRow>(
@@ -7,7 +8,7 @@ export const selectTenantByKey = async (key: string): Promise<ITenantRow | null>
      FROM tenants
      WHERE key = $1 AND status = $2
      LIMIT 1`,
-    [key, TenantStatus.active],
+    [key, EntityStatus.active],
   );
 
   return rows[0] ?? null;

@@ -10,6 +10,7 @@ export {
   AuthScheme,
   UserRoles,
   PlatformRoles,
+  EntityStatus,
   ErrorMessages,
   Pagination,
 } from './constants';

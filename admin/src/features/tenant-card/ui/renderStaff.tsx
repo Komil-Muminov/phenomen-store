@@ -1,6 +1,6 @@
 import { Button, Empty, Spin, Tag, Typography } from 'antd';
 import { DeleteOutlined, EditOutlined, UserAddOutlined } from '@ant-design/icons';
-import { StaffRoleLabels, StaffRoles, StaffStatuses, UiMessages } from '@/shared/config';
+import { EntityStatuses, StaffRoleLabels, StaffRoles, UiMessages } from '@/shared/config';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { If } from '@/shared/ui/If';
 import { CardTitles, ITenantCardHandlers } from '@/features/tenant-card/model';
@@ -66,7 +66,7 @@ export const RenderStaff = ({
                   <Tag color={member.role === StaffRoles.owner ? 'purple' : 'default'}>
                     {StaffRoleLabels[member.role] ?? member.role}
                   </Tag>
-                  <If condition={member.status !== StaffStatuses.active}>
+                  <If condition={member.status !== EntityStatuses.active}>
                     <Tag color="red">доступ отключён</Tag>
                   </If>
                 </div>

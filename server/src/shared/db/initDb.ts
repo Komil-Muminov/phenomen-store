@@ -1,6 +1,6 @@
 import { Client, PoolClient } from 'pg';
 import { createAdminPool, pool, closePool } from '@/shared/db';
-import { Env } from '@/shared/config';
+import { Env, EntityStatus } from '@/shared/config';
 import { CORE_SCHEMA_SQL } from '@/shared/db/schema.core';
 import { CATALOG_SCHEMA_SQL } from '@/shared/db/schema.catalog';
 import { SALES_SCHEMA_SQL } from '@/shared/db/schema.sales';
@@ -189,11 +189,19 @@ const grantAppPrivileges = async (admin: PoolClient): Promise<void> => {
 
 const seedDemoTenant = async (): Promise<void> => {
   const inserted = await pool.query<{ id: string }>(
-    `INSERT INTO tenants (key, name, vertical, plan, bundle_id)
-     VALUES ($1, $2, 'fashion', 'pro', $3)
-     ON CONFLICT (key) DO UPDATE SET updated_at = now()
+    `INSERT INTO tenants (key, name, vertical, plan, bundle_id, status)
+     VALUES ($1, $2, 'fashion', 'pro', $3, $4)
+     ON CONFLICT (key) DO UPDATE SET
+       status = CASE WHEN $5 THEN EXCLUDED.status ELSE tenants.status END,
+       updated_at = now()
      RETURNING id`,
-    [Env.defaultTenantKey, 'PHENOMEN Fashion', 'store.phenomen.fashion'],
+    [
+      Env.defaultTenantKey,
+      'PHENOMEN Fashion',
+      'store.phenomen.fashion',
+      EntityStatus.active,
+      !Env.isProduction,
+    ],
   );
 
   const tenantId = inserted.rows[0].id;

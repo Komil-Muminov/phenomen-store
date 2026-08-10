@@ -197,12 +197,7 @@ export const StaffRoleLabels: Record<string, string> = {
   manager: 'менеджер',
 };
 
-export const StaffStatuses = {
-  active: 'active',
-  disabled: 'disabled',
-} as const;
-
-export const TenantStatuses = {
+export const EntityStatuses = {
   active: 'active',
   disabled: 'disabled',
 } as const;

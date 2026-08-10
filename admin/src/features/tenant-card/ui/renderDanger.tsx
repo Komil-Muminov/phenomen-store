@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, Button, Input, Typography } from 'antd';
 import { CheckCircleOutlined, DeleteOutlined, StopOutlined } from '@ant-design/icons';
-import { TenantStatuses } from '@/shared/config';
+import { EntityStatuses } from '@/shared/config';
 import { If } from '@/shared/ui/If';
 import { CardTitles, ITenantCardHandlers } from '@/features/tenant-card/model';
 import type { ITenant } from '@/entities/tenant';
@@ -22,7 +22,7 @@ export const RenderDanger = ({
   onDelete,
 }: IProps) => {
   const [confirmKey, setConfirmKey] = useState('');
-  const isActive = tenant.status === TenantStatuses.active;
+  const isActive = tenant.status === EntityStatuses.active;
 
   return (
     <section className="rounded-xl border border-rose-200 bg-rose-50/40 p-4">

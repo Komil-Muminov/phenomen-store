@@ -57,6 +57,8 @@ const seedDemoContent = async (): Promise<void> => {
 
     await applyVerticalPreset(demoTenant.id, DEMO_VERTICAL);
     await seedDemoCatalog(demoTenant.id);
+
+    console.log(`[bootstrap] тестовый магазин: ${demoTenant.key} (${demoTenant.name})`);
   } catch (error) {
     const isMissingTenant = error instanceof AppError && error.status === HttpStatus.notFound;
 

@@ -66,11 +66,6 @@ export const PASSWORD_MIN_LENGTH = 8;
 
 export const OWNER_PASSWORD_MIN_LENGTH = 6;
 
-export const TenantStatuses = {
-  active: 'active',
-  disabled: 'disabled',
-} as const;
-
 export const TENANT_UPDATABLE_FIELDS = ['name', 'vertical', 'plan', 'bundleId'] as const;
 
 export const SALT_ROUNDS = 10;
