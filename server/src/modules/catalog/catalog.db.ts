@@ -13,7 +13,7 @@ import {
 
 const PRODUCT_SELECT = `
   SELECT p.id, p.slug, p.name, p.description, p.brand, p.category_id, p.product_type, p.unit,
-         p.base_price, p.old_price, p.currency, p.attributes, p.rating, p.reviews_count,
+         p.base_price, p.old_price, p.currency, p.attributes, p.rating, p.reviews_count, p.created_at,
          COALESCE(m.media, ARRAY[]::text[]) AS media,
          COALESCE(v.variants, '[]'::json) AS variants,
          v.min_price,

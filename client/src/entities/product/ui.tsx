@@ -54,9 +54,10 @@ export const ProductCard = ({
     }
   }, [onAddToCart, addToCart, product]);
 
-  const isNewProduct = Boolean(
-    product.createdAt && (Date.now() - new Date(product.createdAt).getTime()) < 30 * 86400 * 1000,
-  );
+  const createdDaysAgo = product.createdAt
+    ? Math.floor((Date.now() - new Date(product.createdAt).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+  const isNewProduct = Boolean(!product.createdAt || createdDaysAgo <= 180 || product.attributes?.isNew === 'true');
 
   return (
     <Pressable
