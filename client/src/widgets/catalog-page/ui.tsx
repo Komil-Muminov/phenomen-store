@@ -28,7 +28,7 @@ interface IProductList {
 
 export const CatalogPage = () => {
   const router = useRouter();
-  const { categoryId } = useLocalSearchParams<{ categoryId?: string }>();
+  const { categoryId, focusSearch } = useLocalSearchParams<{ categoryId?: string; focusSearch?: string }>();
   const insets = useSafeAreaInsets();
   const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
   const [sort, setSort] = useState(DEFAULT_SORT);
@@ -36,7 +36,7 @@ export const CatalogPage = () => {
   const [maxPrice, setMaxPrice] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFacets, setSelectedFacets] = useState<TSelectedFacets>({});
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(Boolean(focusSearch === 'true'));
   const [columnsCount, setColumnsCount] = useState<1 | 2>(2);
   const [quickAddProduct, setQuickAddProduct] = useState<IProduct | null>(null);
   const [showToast, setShowToast] = useState(false);
@@ -128,8 +128,10 @@ export const CatalogPage = () => {
           onPress={() => {
             if (isSearchFocused) {
               setIsSearchFocused(false);
-            } else {
+            } else if (router.canGoBack()) {
               router.back();
+            } else {
+              router.push(AppRoutes.home);
             }
           }}
           className="h-10 w-10 items-center justify-center rounded-xl border border-line bg-background active:border-primary active:bg-surface"
@@ -141,6 +143,7 @@ export const CatalogPage = () => {
         <View className="flex-1 flex-row items-center rounded-xl bg-surface px-3 py-1.5 border border-line">
           <Icon name="search" size={16} color="#a3a3a3" />
           <TextInput
+            autoFocus={Boolean(focusSearch === 'true')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             onFocus={() => setIsSearchFocused(true)}
@@ -169,7 +172,11 @@ export const CatalogPage = () => {
 
       {/* Оверлей встроенного поиска (появляется при фокусе на поиске) */}
       <If condition={isSearchFocused}>
-        <ScrollView className="flex-1 bg-background pt-3" showsVerticalScrollIndicator={false}>
+        <ScrollView
+          className="flex-1 bg-background"
+          contentContainerStyle={{ paddingBottom: 96, paddingTop: 12 }}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Быстрые теги подсказок */}
           <View className="px-4 pb-3 gap-2">
             <Text className="text-xs font-bold text-muted">Популярные запросы</Text>

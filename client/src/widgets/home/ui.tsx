@@ -72,7 +72,7 @@ export const Home = () => {
   }, [router]);
 
   const handleSearchPress = useCallback(() => {
-    router.push(AppRoutes.catalog);
+    router.push(`${AppRoutes.catalog}?focusSearch=true`);
   }, [router]);
 
   const handleRefresh = useCallback(() => {

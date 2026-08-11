@@ -18,6 +18,14 @@ interface IProps {
   cartCount?: number;
 }
 
+const isRouteActive = (targetRoute: string, currentPathname: string): boolean => {
+  const isHome = targetRoute === '/' || targetRoute === AppRoutes.home;
+  if (isHome) {
+    return currentPathname === '/' || currentPathname === '/index' || currentPathname === '';
+  }
+  return currentPathname === targetRoute || (targetRoute !== '/' && currentPathname.startsWith(targetRoute));
+};
+
 export const BottomBar = ({ cartCount = 0 }: IProps) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -37,37 +45,38 @@ export const BottomBar = ({ cartCount = 0 }: IProps) => {
   }, [router]);
 
   return (
-    <View className="absolute bottom-4 inset-x-3 h-16 rounded-full border border-slate-700/60 bg-slate-900/95 shadow-2xl flex-row items-center justify-between px-2 z-50 backdrop-blur-xl">
+    <View className="absolute bottom-4 inset-x-3 h-16 rounded-full border border-slate-800 bg-slate-900/95 shadow-2xl flex-row items-center justify-between px-1.5 z-50 backdrop-blur-xl">
       {navItems.map((item) => {
-        const isActive = pathname === item.route || (item.route !== '/' && pathname.startsWith(item.route));
+        const isActive = isRouteActive(item.route, pathname);
 
         return (
           <Pressable
             key={item.key}
             onPress={() => handleNavPress(item.route)}
-            className="flex-1 items-center justify-center py-1.5 px-0.5 rounded-full active:scale-90"
+            className="flex-1 items-center justify-center py-1 active:scale-95"
           >
-            <View className={`items-center justify-center px-3 py-1 rounded-full ${isActive ? 'bg-white/15' : ''}`}>
+            <View className="w-full items-center justify-center py-1 px-1">
               <View className="relative items-center justify-center">
                 <Icon
                   name={item.icon}
-                  size={18}
+                  size={19}
                   color={isActive ? '#ffffff' : '#94a3b8'}
                 />
                 {Boolean(item.badge && item.badge > 0) && (
-                  <View className="absolute -top-1.5 -right-3 min-w-[16px] h-[16px] items-center justify-center rounded-full bg-rose-500 px-1 border border-slate-900 shadow-sm">
+                  <View className="absolute -top-1.5 -right-2.5 min-w-[15px] h-[15px] items-center justify-center rounded-full bg-rose-500 px-1 border border-slate-900 shadow-sm z-20">
                     <Text className="text-[8px] font-black text-white">
                       {item.badge}
                     </Text>
                   </View>
                 )}
               </View>
+
               <Text
                 numberOfLines={1}
                 adjustsFontSizeToFit
-                minimumFontScale={0.7}
-                className={`text-[9px] font-bold mt-0.5 tracking-tight ${
-                  isActive ? 'text-white font-black' : 'text-slate-400'
+                minimumFontScale={0.75}
+                className={`text-[9.5px] mt-0.5 tracking-tight ${
+                  isActive ? 'text-white font-extrabold' : 'text-slate-400 font-semibold'
                 }`}
               >
                 {item.label}

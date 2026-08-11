@@ -27,7 +27,13 @@ const RootLayout = () => (
                   animation: 'slide_from_right',
                   contentStyle: { backgroundColor: '#fafafa' },
                 }}
-              />
+              >
+                <Stack.Screen name="index" options={{ animation: 'fade' }} />
+                <Stack.Screen name="catalog" options={{ animation: 'fade' }} />
+                <Stack.Screen name="cart" options={{ animation: 'fade' }} />
+                <Stack.Screen name="wishlist" options={{ animation: 'fade' }} />
+                <Stack.Screen name="profile" options={{ animation: 'fade' }} />
+              </Stack>
             </AppShell>
           </StaffAuthProvider>
         </AuthProvider>
