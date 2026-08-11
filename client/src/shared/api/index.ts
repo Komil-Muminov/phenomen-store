@@ -76,9 +76,11 @@ export const extractErrorMessage = (error: unknown): string => {
   }
 
   if (!error.response) {
+    const base = __DEV__ ? `\n${Env.apiUrl}` : '';
+
     return TimeoutCodes.includes(error.code ?? '')
-      ? UiMessages.timeoutError
-      : UiMessages.networkError;
+      ? `${UiMessages.timeoutError}${base}`
+      : `${UiMessages.networkError}${base}`;
   }
 
   const { status, data } = error.response;
