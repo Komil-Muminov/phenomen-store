@@ -1,5 +1,5 @@
 import { Image, Pressable, Text, View } from 'react-native';
-import { ProductPlaceholderImage } from '@/entities/product';
+import { ProductPlaceholderImage } from '@/entities/product/model';
 import { formatPrice, formatQuantity, roundQuantity, unitLabel, unitStep } from '@/shared/lib';
 import { Icon, If } from '@/shared/ui';
 import { ICartItem } from '@/entities/cart/model';
