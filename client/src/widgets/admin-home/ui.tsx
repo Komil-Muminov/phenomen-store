@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AppRoutes, StaffScopes } from '@/shared/config';
+import { toHref } from '@/shared/lib';
 import { useStaffAuth } from '@/shared/staff-auth';
 import { Button, ButtonVariants, Icon, If, Screen } from '@/shared/ui';
 import { AdminTexts } from '@/widgets/admin-home/model';
@@ -12,7 +13,7 @@ export const AdminHome = () => {
   const { session, ready, signOut } = useStaffAuth();
 
   const handleLogout = useCallback(() => {
-    signOut().then(() => router.replace(AppRoutes.profile));
+    signOut().then(() => router.replace(toHref(AppRoutes.profile)));
   }, [signOut, router]);
 
   const isPlatform = session?.scope === StaffScopes.platform;
@@ -51,7 +52,7 @@ export const AdminHome = () => {
               <Pressable
                 key={section.key}
                 accessibilityRole="button"
-                onPress={() => router.push(section.route)}
+                onPress={() => router.push(toHref(section.route))}
                 className="flex-row items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-4 active:opacity-80"
               >
                 <View className="h-10 w-10 items-center justify-center rounded-xl bg-background">

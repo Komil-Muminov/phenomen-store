@@ -3,6 +3,7 @@ import { Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from 'reac
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ApiRoutes, AppRoutes, QueryKeys } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
+import { toHref } from '@/shared/lib';
 import { Button, ButtonVariants, Icon, If, Screen } from '@/shared/ui';
 import {
   EMPTY_STAFF_VALUES,
@@ -96,7 +97,7 @@ export const AdminStaff = () => {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Назад"
-          onPress={() => router.replace(AppRoutes.adminTenants)}
+          onPress={() => router.replace(toHref(AppRoutes.adminTenants))}
           className="h-10 w-10 items-center justify-center rounded-xl bg-surface active:opacity-80"
         >
           <Icon name="chevron-left" size={20} />

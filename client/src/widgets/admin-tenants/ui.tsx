@@ -9,6 +9,7 @@ import {
   QueryKeys,
 } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
+import { toHref } from '@/shared/lib';
 import { useStaffAuth } from '@/shared/staff-auth';
 import { Button, ButtonVariants, Icon, If, Screen } from '@/shared/ui';
 import { useTenantMutations } from '@/widgets/admin-tenants/lib';
@@ -113,7 +114,7 @@ export const AdminTenants = () => {
           role: result.user?.role ?? '',
           tenantKey: result.tenantKey,
           tenantName: result.tenantName,
-        }).then(() => router.replace(AppRoutes.admin));
+        }).then(() => router.replace(toHref(AppRoutes.admin)));
       },
       onSettled: () => setBusyId(null),
     });
@@ -128,7 +129,7 @@ export const AdminTenants = () => {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Назад"
-          onPress={() => router.replace(AppRoutes.admin)}
+          onPress={() => router.replace(toHref(AppRoutes.admin))}
           className="h-10 w-10 items-center justify-center rounded-xl bg-surface active:opacity-80"
         >
           <Icon name="chevron-left" size={20} />
@@ -215,10 +216,10 @@ export const AdminTenants = () => {
 
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => router.push({
+                  onPress={() => router.push(toHref({
                     pathname: AppRoutes.adminStaff,
                     params: { tenantId: tenant.id, tenantName: tenant.name },
-                  })}
+                  }))}
                   className="flex-1 items-center rounded-xl border border-line bg-background py-2.5 active:opacity-80"
                 >
                   <Text className="text-xs font-semibold text-muted">Сотрудники</Text>

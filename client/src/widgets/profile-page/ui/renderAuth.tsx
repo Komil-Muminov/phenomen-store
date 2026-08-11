@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
-import { AuthPhone, AuthSteps, TAuthStep } from '@/features/auth-phone';
+import { AuthPhone, TAuthStep } from '@/features/auth-phone';
 import { AuthStaff, IStaffCredentials } from '@/features/auth-staff';
 import { StaffTexts } from '@/shared/config';
 import { If } from '@/shared/ui';

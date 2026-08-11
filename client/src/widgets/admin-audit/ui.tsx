@@ -9,6 +9,7 @@ import {
   SearchDebounceMs,
 } from '@/shared/config';
 import { useGetQuery } from '@/shared/hooks';
+import { toHref } from '@/shared/lib';
 import { Icon, If, Screen } from '@/shared/ui';
 import {
   AuditActionLabels,
@@ -49,7 +50,7 @@ export const AdminAudit = () => {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Назад"
-          onPress={() => router.replace(AppRoutes.admin)}
+          onPress={() => router.replace(toHref(AppRoutes.admin))}
           className="h-10 w-10 items-center justify-center rounded-xl bg-surface active:opacity-80"
         >
           <Icon name="chevron-left" size={20} />

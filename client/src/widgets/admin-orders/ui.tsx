@@ -10,6 +10,7 @@ import {
   QueryKeys,
 } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
+import { toHref } from '@/shared/lib';
 import { Icon, If, Screen } from '@/shared/ui';
 import { IOrderList, OrdersTexts } from '@/widgets/admin-orders/model';
 import { RenderOrder } from '@/widgets/admin-orders/ui/renderOrder';
@@ -54,7 +55,7 @@ export const AdminOrders = () => {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Назад"
-          onPress={() => router.replace(AppRoutes.admin)}
+          onPress={() => router.replace(toHref(AppRoutes.admin))}
           className="h-10 w-10 items-center justify-center rounded-xl bg-surface active:opacity-80"
         >
           <Icon name="chevron-left" size={20} />

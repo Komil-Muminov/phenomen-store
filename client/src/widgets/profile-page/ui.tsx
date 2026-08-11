@@ -11,6 +11,7 @@ import { useStaffAuth } from '@/shared/staff-auth';
 import { RenderAuth } from '@/widgets/profile-page/ui/renderAuth';
 import { useAuth } from '@/shared/auth';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
+import { toHref } from '@/shared/lib';
 import { BottomBar, Icon, If } from '@/shared/ui';
 
 interface IProfile {
@@ -105,7 +106,7 @@ export const ProfilePage = () => {
             tenantName: result.tenantName ?? null,
           }).then(() => {
             setCredentials(EMPTY_CREDENTIALS);
-            router.replace(AppRoutes.admin);
+            router.replace(toHref(AppRoutes.admin));
           });
         },
         onError: (error) => setStaffError(error.message),

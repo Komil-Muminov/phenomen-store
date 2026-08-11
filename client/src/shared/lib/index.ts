@@ -86,3 +86,5 @@ export const formatItemCount = (count: number): string => {
 
   return `${count} товаров`;
 };
+
+export const toHref = (path: unknown): never => path as never;
