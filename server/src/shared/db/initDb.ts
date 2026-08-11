@@ -2,7 +2,7 @@ import { Client, PoolClient } from 'pg';
 import { createAdminPool, pool, closePool } from '@/shared/db';
 import { Env, EntityStatus } from '@/shared/config';
 import { CORE_SCHEMA_SQL } from '@/shared/db/schema.core';
-import { CATALOG_SCHEMA_SQL } from '@/shared/db/schema.catalog';
+import { CATALOG_SCHEMA_SQL, TRIGRAM_SCHEMA_SQL } from '@/shared/db/schema.catalog';
 import { SALES_SCHEMA_SQL } from '@/shared/db/schema.sales';
 import { PLATFORM_SCHEMA_SQL } from '@/shared/db/schema.platform';
 
@@ -131,6 +131,16 @@ const runFormatted = async (
   );
 
   await admin.query(built.rows[0].sql);
+};
+
+const applyTrigramIndexes = async (admin: PoolClient): Promise<void> => {
+  try {
+    await admin.query(TRIGRAM_SCHEMA_SQL);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+
+    console.warn(`[db] расширение pg_trgm недоступно, поиск будет без индексов: ${reason}`);
+  }
 };
 
 const applyRowLevelSecurity = async (admin: PoolClient): Promise<void> => {
@@ -298,6 +308,7 @@ export const initDb = async (): Promise<void> => {
     await admin.query(CATALOG_SCHEMA_SQL);
     await admin.query(SALES_SCHEMA_SQL);
     await admin.query(PLATFORM_SCHEMA_SQL);
+    await applyTrigramIndexes(admin);
     await applyRowLevelSecurity(admin);
     await ensureAppRole(admin);
     await grantAppPrivileges(admin);
