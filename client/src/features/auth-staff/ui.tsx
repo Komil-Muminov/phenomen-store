@@ -27,7 +27,8 @@ export const AuthStaff = ({ values, errorMessage, busy, onChange, onSubmit }: IP
   };
 
   return (
-    <View className="gap-5 px-4 py-3">
+    <View className="gap-5 px-1 py-1">
+      {/* Header */}
       <View className="gap-1">
         <Text className="text-xl font-extrabold tracking-tight text-content">
           {StaffTexts.title}
@@ -35,67 +36,74 @@ export const AuthStaff = ({ values, errorMessage, busy, onChange, onSubmit }: IP
         <Text className="text-xs leading-5 text-muted">{StaffTexts.subtitle}</Text>
       </View>
 
+      {/* Inputs Container */}
       <View className="gap-4">
+        {/* Login Label & Input */}
         <View className="gap-1.5">
           <Text className="text-xs font-semibold uppercase tracking-wide text-muted">
             {StaffTexts.loginLabel}
           </Text>
           <View className="relative justify-center">
             <View className="absolute left-3.5 z-10">
-              <Icon name="user" size={18} color="#737373" />
+              <Icon name="user" size={18} color="#64748b" />
             </View>
             <TextInput
               autoFocus
               value={values.login}
               placeholder={StaffTexts.loginPlaceholder}
-              placeholderTextColor="#a3a3a3"
+              placeholderTextColor="#94a3b8"
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="email-address"
               editable={!busy}
               onChangeText={(login) => onChange({ ...values, login })}
-              className="h-13 rounded-2xl border border-line bg-surface pl-10 pr-4 text-base font-semibold text-content"
+              style={{ paddingVertical: 0, textAlignVertical: 'center' }}
+              className="h-14 rounded-2xl border border-line bg-surface pl-11 pr-4 text-base font-semibold text-content"
             />
           </View>
         </View>
 
+        {/* Password Label & Input */}
         <View className="gap-1.5">
           <Text className="text-xs font-semibold uppercase tracking-wide text-muted">
             {StaffTexts.passwordLabel}
           </Text>
           <View className="relative justify-center">
             <View className="absolute left-3.5 z-10">
-              <Icon name="lock" size={18} color="#737373" />
+              <Icon name="lock" size={18} color="#64748b" />
             </View>
             <TextInput
               value={values.password}
               placeholder={StaffTexts.passwordPlaceholder}
-              placeholderTextColor="#a3a3a3"
+              placeholderTextColor="#94a3b8"
               secureTextEntry={!showPassword}
               autoCapitalize="none"
               editable={!busy}
               onChangeText={(password) => onChange({ ...values, password })}
               onSubmitEditing={handleSubmitWithHaptics}
               returnKeyType="go"
-              className="h-13 rounded-2xl border border-line bg-surface pl-10 pr-12 text-base font-semibold text-content"
+              style={{ paddingVertical: 0, textAlignVertical: 'center' }}
+              className="h-14 rounded-2xl border border-line bg-surface pl-11 pr-12 text-base font-semibold text-content"
             />
             <Pressable
               onPress={handleToggleShowPassword}
               className="absolute right-3.5 z-10 p-1"
               accessibilityLabel="Показать или скрыть пароль"
             >
-              <Icon name={showPassword ? 'eye-off' : 'eye'} size={20} color="#737373" />
+              <Icon name={showPassword ? 'eye-off' : 'eye'} size={20} color="#64748b" />
             </Pressable>
           </View>
         </View>
       </View>
 
+      {/* Error Message */}
       <If condition={Boolean(errorMessage)}>
         <View className="rounded-2xl border border-danger/40 bg-danger/10 p-3.5">
           <Text className="text-xs font-semibold text-danger">{errorMessage}</Text>
         </View>
       </If>
 
+      {/* Submit Button */}
       <Button
         title={StaffTexts.submit}
         size={ButtonSizes.large}

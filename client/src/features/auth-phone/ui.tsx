@@ -66,18 +66,19 @@ export const AuthPhone = ({
   };
 
   return (
-    <View className="gap-5 px-4 py-3">
+    <View className="gap-5 px-1 py-1">
       <If condition={step === AuthSteps.code}>
         <Pressable
           onPress={handleChangePhoneWithHaptics}
           disabled={busy}
-          className="flex-row items-center gap-2 self-start rounded-full bg-surface px-3 py-1.5 border border-line/60 active:bg-surface/80"
+          className="flex-row items-center gap-2 self-start rounded-full bg-surface px-3.5 py-2 border border-line/60 active:bg-surface/80"
         >
           <Icon name="arrow-left" size={16} color="#0284c7" />
           <Text className="text-xs font-bold text-primary">Изменить номер</Text>
         </Pressable>
       </If>
 
+      {/* Header Titles */}
       <View className="gap-1">
         <Text className="text-xl font-extrabold tracking-tight text-content">
           {step === AuthSteps.phone ? 'Вход или регистрация' : 'Введите SMS-код'}
@@ -93,7 +94,8 @@ export const AuthPhone = ({
         condition={step === AuthSteps.phone}
         fallback={(
           <View className="gap-5">
-            <View className="flex-row items-center gap-2.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3.5">
+            {/* SMS Notice */}
+            <View className="flex-row items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3.5">
               <View className="h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20">
                 <Icon name="check" size={14} color="#059669" />
               </View>
@@ -102,9 +104,10 @@ export const AuthPhone = ({
               </Text>
             </View>
 
+            {/* 4 OTP Input Boxes */}
             <Pressable
               onPress={() => codeInputRef.current?.focus()}
-              className="relative min-h-[72px] justify-center py-2"
+              className="relative min-h-[72px] justify-center py-1"
             >
               <View className="flex-row justify-center gap-3">
                 {[0, 1, 2, 3].map((index) => {
@@ -116,9 +119,9 @@ export const AuthPhone = ({
                     <View
                       key={index}
                       className={[
-                        'h-16 flex-1 max-w-[64px] items-center justify-center rounded-2xl border-2 transition-all',
+                        'h-16 flex-1 max-w-[64px] items-center justify-center rounded-2xl border-2',
                         isCurrent && !busy
-                          ? 'border-primary bg-surface shadow-sm scale-105'
+                          ? 'border-primary bg-surface shadow-xs'
                           : isFilled
                             ? 'border-neutral-400 bg-surface'
                             : 'border-line bg-background/50',
@@ -155,6 +158,7 @@ export const AuthPhone = ({
               />
             </Pressable>
 
+            {/* Dev Code Helper */}
             <If condition={Boolean(devCode)}>
               <Pressable
                 onPress={handleDevCodeAutoFill}
@@ -200,7 +204,8 @@ export const AuthPhone = ({
           </View>
         )}
       >
-        <View className="gap-4">
+        <View className="gap-4 pt-1">
+          {/* Single Clean Phone Input Field */}
           <View className="relative justify-center">
             <TextInput
               value={phone}
@@ -208,25 +213,26 @@ export const AuthPhone = ({
                 isStaffIdentifier(val) ? val.trim() : formatPhoneMask(val),
               )}
               placeholder={AuthLabels.phonePlaceholder}
-              placeholderTextColor="#a3a3a3"
+              placeholderTextColor="#94a3b8"
+              keyboardType="phone-pad"
               autoCapitalize="none"
               autoCorrect={false}
               editable={!busy}
               maxLength={IDENTIFIER_MAX_LENGTH}
-              style={{ paddingVertical: 0 }}
-              textAlignVertical="center"
-              className="h-14 rounded-2xl border border-line bg-surface pl-4 pr-10 text-base font-bold text-content tracking-wide"
+              style={{ paddingVertical: 0, textAlignVertical: 'center' }}
+              className="h-14 rounded-2xl border border-line bg-surface pl-4 pr-11 text-base font-semibold text-content"
             />
             <If condition={phone.length > 0 && !busy}>
               <Pressable
                 onPress={handleClearPhone}
-                className="absolute right-3.5 h-7 w-7 items-center justify-center rounded-full bg-line active:bg-neutral-300"
+                className="absolute right-3.5 h-7 w-7 items-center justify-center rounded-full bg-line/80 active:bg-line z-10"
               >
                 <Icon name="cross" size={14} color="#737373" />
               </Pressable>
             </If>
           </View>
 
+          {/* Action Button */}
           <Button
             title={AuthLabels.sendCode}
             disabled={!isPhoneValid(phone) || busy}
@@ -237,7 +243,8 @@ export const AuthPhone = ({
             }}
           />
 
-          <Text className="px-2 text-center text-xs leading-5 text-muted">
+          {/* Terms & Privacy */}
+          <Text className="px-2 text-center text-xs leading-5 text-muted pt-1">
             {AuthLabels.termsNotice}{' '}
             <Text className="font-bold text-primary">{AuthLabels.termsLink}</Text> и{' '}
             <Text className="font-bold text-primary">{AuthLabels.privacyLink}</Text>
@@ -245,6 +252,7 @@ export const AuthPhone = ({
         </View>
       </If>
 
+      {/* Error Notice */}
       <If condition={Boolean(errorMessage)}>
         <View className="flex-row items-center gap-2 rounded-2xl border border-danger/40 bg-danger/10 p-3.5">
           <Text className="text-xs font-semibold text-danger">{errorMessage}</Text>
