@@ -1,6 +1,8 @@
+import { useCallback, useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
 import { useMutation, useQuery, useQueryClient, UseMutationResult, UseQueryResult } from '@tanstack/react-query';
-import { requestData } from '@/shared/api';
-import { StaleTimeMs } from '@/shared/config';
+import { extractErrorMessage, requestData, uploadImage } from '@/shared/api';
+import { ApiRoutes, StaleTimeMs } from '@/shared/config';
 
 type TQueryKey = readonly (string | number | boolean | null | undefined)[];
 
@@ -48,4 +50,54 @@ export const useMutationQuery = <TBody, TData = unknown>(
       });
     },
   });
+};
+
+const GALLERY_QUALITY = 0.9;
+
+const PERMISSION_ERROR = 'Нужен доступ к галерее';
+
+export interface IImageUpload {
+  uploading: boolean;
+  error: string | null;
+  pick: () => Promise<void>;
+}
+
+export const useImageUpload = (onUploaded: (url: string) => void): IImageUpload => {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const pick = useCallback(async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      setError(PERMISSION_ERROR);
+
+      return;
+    }
+
+    const picked = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: GALLERY_QUALITY,
+    });
+
+    if (picked.canceled) {
+      return;
+    }
+
+    const asset = picked.assets[0];
+
+    setUploading(true);
+    setError(null);
+
+    await uploadImage<{ url: string }>(ApiRoutes.manageMediaUpload, {
+      uri: asset.uri,
+      name: asset.fileName ?? `image-${Date.now()}.jpg`,
+      type: asset.mimeType ?? 'image/jpeg',
+    })
+      .then((result) => onUploaded(result.url))
+      .catch((uploadError: unknown) => setError(extractErrorMessage(uploadError)))
+      .finally(() => setUploading(false));
+  }, [onUploaded]);
+
+  return { uploading, error, pick };
 };

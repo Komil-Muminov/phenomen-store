@@ -1,25 +1,13 @@
-export interface IAdminAttribute {
-  id: string;
-  code: string;
-  name: string;
-  isVariantOption: boolean;
-  isFilterable: boolean;
-  position: number;
-  values: string[];
-}
+import type { IAttribute, IProductVariant } from '@contracts';
+
+export type { IProductVariant };
+
+export type IAdminAttribute = IAttribute;
 
 export interface IVariantRow {
   key: string;
   options: Record<string, string>;
   price: number | null;
-  stock: number;
-}
-
-export interface IProductVariant {
-  id: string;
-  sku: string;
-  options: Record<string, string>;
-  price: number;
   stock: number;
 }
 

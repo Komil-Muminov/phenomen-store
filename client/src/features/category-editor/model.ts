@@ -1,12 +1,6 @@
-export interface IEditorCategory {
-  id: string;
-  slug: string;
-  name: string;
-  parentId?: string | null;
-  imageUrl?: string | null;
-  position?: number;
-  isActive?: boolean;
-}
+import type { ICategory } from '@contracts';
+
+export type IEditorCategory = ICategory;
 
 export interface ICategoryDraft {
   id: string | null;

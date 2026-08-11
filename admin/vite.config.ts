@@ -10,6 +10,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      '@contracts/csv': path.resolve(ROOT_DIR, 'contracts/csv.ts'),
+      '@contracts': path.resolve(ROOT_DIR, 'contracts/index.ts'),
     },
   },
   server: {

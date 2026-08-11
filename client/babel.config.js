@@ -12,7 +12,10 @@ module.exports = (api) => {
         {
           alias: {
             '@': './src',
+            '^@contracts$': '../contracts/index.ts',
+            '^@contracts/(.+)$': '../contracts/\\1',
           },
+          extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
         },
       ],
     ],

@@ -6,7 +6,9 @@
     "noUnusedParameters": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@contracts": ["../contracts/index.ts"],
+      "@contracts/*": ["../contracts/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "nativewind-env.d.ts", ".expo/types/**/*.ts", "expo-env.d.ts"]

@@ -1,31 +1,11 @@
-import { IProductVariant, IVariantRow } from '@/features/product-options';
+import type { ICategory, IProduct, TProductList } from '@contracts';
+import { IVariantRow } from '@/features/product-options';
 
-export interface IAdminProduct {
-  id: string;
-  slug: string;
-  name: string;
-  description: string | null;
-  brand: string | null;
-  price: number;
-  oldPrice: number | null;
-  categoryId: string | null;
-  inStock: boolean;
-  attributes: Record<string, string>;
-  media: string[];
-  variants: IProductVariant[];
-  unit?: string;
-}
+export type IAdminProduct = IProduct;
 
-export interface IAdminProductList {
-  items: IAdminProduct[];
-  total: number;
-}
+export type IAdminCategory = ICategory;
 
-export interface IAdminCategory {
-  id: string;
-  slug: string;
-  name: string;
-}
+export type IAdminProductList = TProductList;
 
 export interface IProductFormValues {
   name: string;

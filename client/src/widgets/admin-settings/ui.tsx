@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
-import { extractErrorMessage, uploadImage } from '@/shared/api';
 import { ApiRoutes, AppRoutes, QueryKeys } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { resolveMediaUrl, toHref } from '@/shared/lib';
-import { Button, ButtonVariants, Icon, If, Screen } from '@/shared/ui';
+import { toHref } from '@/shared/lib';
+import { Button, Icon, If, ImageField, Screen } from '@/shared/ui';
 import {
   ISettingsValues,
   ITenantConfig,
@@ -24,7 +22,6 @@ const LABEL = 'text-xs font-semibold uppercase tracking-wide text-muted';
 export const AdminSettings = () => {
   const router = useRouter();
   const [values, setValues] = useState<ISettingsValues | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,38 +37,6 @@ export const AdminSettings = () => {
       setValues(toSettingsValues(configQuery.data));
     }
   }, [configQuery.data]);
-
-  const handlePickLogo = useCallback(async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permission.granted) {
-      setError('Нужен доступ к галерее');
-
-      return;
-    }
-
-    const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
-
-    if (picked.canceled) {
-      return;
-    }
-
-    const asset = picked.assets[0];
-
-    setUploading(true);
-    setError(null);
-
-    uploadImage<{ url: string }>(ApiRoutes.manageMediaUpload, {
-      uri: asset.uri,
-      name: asset.fileName ?? `logo-${Date.now()}.png`,
-      type: asset.mimeType ?? 'image/png',
-    })
-      .then((result) => setValues((current) => (
-        current ? { ...current, logoUrl: result.url } : current
-      )))
-      .catch((uploadError: unknown) => setError(extractErrorMessage(uploadError)))
-      .finally(() => setUploading(false));
-  }, []);
 
   const handleSave = useCallback(() => {
     if (!values) {
@@ -146,47 +111,14 @@ export const AdminSettings = () => {
               />
             </View>
 
-            <View className="gap-2">
-              <Text className={LABEL}>{SettingsTexts.logo}</Text>
-
-              <View className="flex-row items-center gap-3">
-                <View className="h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-line bg-background">
-                  <If
-                    condition={Boolean(values?.logoUrl)}
-                    fallback={<Icon name="bag" size={20} />}
-                  >
-                    <Image
-                      source={{ uri: resolveMediaUrl(values?.logoUrl) }}
-                      className="h-full w-full"
-                      resizeMode="contain"
-                    />
-                  </If>
-                </View>
-
-                <View className="flex-1 gap-2">
-                  <Button
-                    title={values?.logoUrl ? SettingsTexts.replaceLogo : SettingsTexts.addLogo}
-                    variant={ButtonVariants.secondary}
-                    loading={uploading}
-                    onPress={handlePickLogo}
-                  />
-
-                  <If condition={Boolean(values?.logoUrl)}>
-                    <Pressable
-                      accessibilityRole="button"
-                      onPress={() => setValues((current) => (
-                        current ? { ...current, logoUrl: '' } : current
-                      ))}
-                      className="items-center py-1"
-                    >
-                      <Text className="text-xs font-semibold text-danger">
-                        {SettingsTexts.removeLogo}
-                      </Text>
-                    </Pressable>
-                  </If>
-                </View>
-              </View>
-            </View>
+            <ImageField
+              value={values?.logoUrl ?? ''}
+              label={SettingsTexts.logo}
+              previewClass="h-20 w-20"
+              onChange={(logoUrl) => setValues((current) => (
+                current ? { ...current, logoUrl } : current
+              ))}
+            />
           </View>
 
           <RenderColors
@@ -209,7 +141,7 @@ export const AdminSettings = () => {
 
           <Button
             title={SettingsTexts.save}
-            loading={saveMutation.isPending || uploading}
+            loading={saveMutation.isPending}
             onPress={handleSave}
           />
         </If>

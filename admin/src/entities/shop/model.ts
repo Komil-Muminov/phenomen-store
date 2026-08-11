@@ -1,109 +1,41 @@
-export interface IOrderItem {
-  id: string;
-  productName: string;
-  sku: string;
-  quantity: number;
-  price: number;
-  total: number;
-}
+import type {
+  IAttribute,
+  IBanner,
+  ICategory,
+  IOrder,
+  IOrderItem,
+  IProduct,
+  IProductVariant,
+  IStockItem,
+  TAttributeList,
+  TBannerList,
+  TCategoryList,
+  TOrderList,
+  TProductList,
+  TStockList,
+} from '@contracts';
 
-export interface IOrder {
-  id: string;
-  number: string;
-  status: string;
-  paymentStatus: string;
-  deliveryStatus: string;
-  grandTotal: number;
-  currency: string;
-  customer: Record<string, unknown> | null;
-  comment: string | null;
-  createdAt: string;
-  items: IOrderItem[];
-}
+export type { IOrder, IOrderItem, IProductVariant, IStockItem };
 
-export interface IOrderList {
-  items: IOrder[];
-  total: number;
-}
+export type IShopProduct = IProduct;
 
-export interface IProductVariant {
-  id: string;
-  sku: string;
-  options: Record<string, string>;
-  price: number;
-  oldPrice: number | null;
-  stock: number;
-}
+export type IShopCategory = ICategory;
 
-export interface IShopProduct {
-  id: string;
-  slug: string;
-  name: string;
-  description: string | null;
-  brand: string | null;
-  price: number;
-  oldPrice: number | null;
-  categoryId: string | null;
-  inStock: boolean;
-  attributes: Record<string, string>;
-  variants: IProductVariant[];
-  media: string[];
-  unit?: string;
-}
+export type IShopAttribute = IAttribute;
 
-export interface IStockItem {
-  id: string;
-  sku: string;
-  options: Record<string, string>;
-  stock: number;
-  price: number;
-  productId: string;
-  productName: string;
-  isActive: boolean;
-}
+export type IShopBanner = IBanner;
 
-export interface IStockList {
-  items: IStockItem[];
-  total: number;
-}
+export type IOrderList = TOrderList;
 
-export interface IShopAttribute {
-  id: string;
-  code: string;
-  name: string;
-  isVariantOption: boolean;
-  isFilterable: boolean;
-  position: number;
-  values: string[];
-}
+export type IShopProductList = TProductList;
 
-export interface IShopProductList {
-  items: IShopProduct[];
-  total: number;
-}
+export type IStockList = TStockList;
 
-export interface IShopCategory {
-  id: string;
-  slug: string;
-  name: string;
-  parentId?: string | null;
-  imageUrl?: string | null;
-  position?: number;
-  isActive?: boolean;
-}
+export type IShopCategoryList = TCategoryList;
 
-export interface IShopBanner {
-  id: string;
-  imageUrl: string;
-  title: string | null;
-  subtitle: string | null;
-  actionType: string;
-  actionValue: string | null;
-  position: number;
-  startsAt: string | null;
-  endsAt: string | null;
-  isActive: boolean;
-}
+export type IShopAttributeList = TAttributeList;
+
+export type IShopBannerList = TBannerList;
 
 export interface IShopSession {
   token: string;
@@ -115,23 +47,3 @@ export interface IShopSession {
   };
 }
 
-export interface IShopCategoryList {
-  items: IShopCategory[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
-export interface IShopAttributeList {
-  items: IShopAttribute[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
-export interface IShopBannerList {
-  items: IShopBanner[];
-  total: number;
-  page: number;
-  limit: number;
-}

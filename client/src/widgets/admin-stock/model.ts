@@ -1,20 +1,8 @@
-export interface IStockItem {
-  id: string;
-  sku: string;
-  options: Record<string, string>;
-  stock: number;
-  price: number;
-  productId: string;
-  productName: string;
-  isActive: boolean;
-}
+import type { IStockItem, TStockList } from '@contracts';
 
-export interface IStockList {
-  items: IStockItem[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type { IStockItem };
+
+export type IStockList = TStockList;
 
 export const StockTexts = {
   title: 'Остатки',

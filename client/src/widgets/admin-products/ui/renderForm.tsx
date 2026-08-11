@@ -1,8 +1,7 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { ApiRoutes, ManageUnits } from '@/shared/config';
-import { extractErrorMessage, uploadImage } from '@/shared/api';
+import { ManageUnits } from '@/shared/config';
+import { useImageUpload } from '@/shared/hooks';
 import { Button, ButtonVariants, Icon, If } from '@/shared/ui';
 import { CategoryEditor, ICategoryHandlers, IEditorCategory } from '@/features/category-editor';
 import {
@@ -11,8 +10,8 @@ import {
   IVariantRow,
   ProductOptions,
 } from '@/features/product-options';
-import {
 import { resolveMediaUrl } from '@/shared/lib';
+import {
   IProductFormValues,
   ProductsTexts,
   isFormValid,
@@ -73,41 +72,11 @@ export const RenderForm = ({
   onSubmit,
   onClose,
 }: IProps) => {
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handlePick = useCallback(async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permission.granted) {
-      setError('Нужен доступ к галерее');
-
-      return;
-    }
-
-    const picked = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 0.8,
-    });
-
-    if (picked.canceled) {
-      return;
-    }
-
-    const asset = picked.assets[0];
-
-    setUploading(true);
-    setError(null);
-
-    uploadImage<{ url: string }>(ApiRoutes.manageMediaUpload, {
-      uri: asset.uri,
-      name: asset.fileName ?? `photo-${Date.now()}.jpg`,
-      type: asset.mimeType ?? 'image/jpeg',
-    })
-      .then((result) => onChange({ ...values, media: [...values.media, result.url] }))
-      .catch((uploadError: unknown) => setError(extractErrorMessage(uploadError)))
-      .finally(() => setUploading(false));
+  const handleUploaded = useCallback((url: string) => {
+    onChange({ ...values, media: [...values.media, url] });
   }, [values, onChange]);
+
+  const { uploading, error, pick } = useImageUpload(handleUploaded);
 
   return (
     <Modal visible={open} animationType="slide" onRequestClose={onClose}>
@@ -223,7 +192,7 @@ export const RenderForm = ({
               <Pressable
                 accessibilityRole="button"
                 disabled={uploading}
-                onPress={handlePick}
+                onPress={pick}
                 className="h-20 w-20 items-center justify-center rounded-xl border border-dashed border-line active:opacity-80"
               >
                 <Icon name="plus" size={18} />

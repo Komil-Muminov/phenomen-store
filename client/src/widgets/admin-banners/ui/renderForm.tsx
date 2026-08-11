@@ -1,11 +1,6 @@
-import { useCallback, useState } from 'react';
-import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { extractErrorMessage, uploadImage } from '@/shared/api';
-import { ApiRoutes } from '@/shared/config';
-import { Button, ButtonVariants, Icon, If } from '@/shared/ui';
+import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Button, ButtonVariants, Icon, If, ImageField } from '@/shared/ui';
 import {
-import { resolveMediaUrl } from '@/shared/lib';
   BannerActionOptions,
   BannerActionTypes,
   BannersTexts,
@@ -48,42 +43,6 @@ export const RenderBannerForm = ({
   onSubmit,
   onClose,
 }: IProps) => {
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handlePick = useCallback(async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permission.granted) {
-      setError('Нужен доступ к галерее');
-
-      return;
-    }
-
-    const picked = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 0.9,
-    });
-
-    if (picked.canceled) {
-      return;
-    }
-
-    const asset = picked.assets[0];
-
-    setUploading(true);
-    setError(null);
-
-    uploadImage<{ url: string }>(ApiRoutes.manageMediaUpload, {
-      uri: asset.uri,
-      name: asset.fileName ?? `banner-${Date.now()}.jpg`,
-      type: asset.mimeType ?? 'image/jpeg',
-    })
-      .then((result) => onChange({ ...values, imageUrl: result.url }))
-      .catch((uploadError: unknown) => setError(extractErrorMessage(uploadError)))
-      .finally(() => setUploading(false));
-  }, [values, onChange]);
-
   const targets = values.actionType === BannerActionTypes.category ? categories : products;
 
   return (
@@ -105,33 +64,13 @@ export const RenderBannerForm = ({
         </View>
 
         <ScrollView className="flex-1" contentContainerClassName="gap-4 px-4 pb-8 pt-4">
-          <View className="gap-2">
-            <Text className={LABEL}>{BannersTexts.imageLabel}</Text>
-
-            <View className="h-40 overflow-hidden rounded-2xl border border-line bg-surface">
-              <If
-                condition={Boolean(values.imageUrl)}
-                fallback={(
-                  <View className="h-full w-full items-center justify-center">
-                    <Icon name="bag" size={24} />
-                  </View>
-                )}
-              >
-                <Image
-                  source={{ uri: resolveMediaUrl(values.imageUrl) }}
-                  className="h-full w-full"
-                  resizeMode="cover"
-                />
-              </If>
-            </View>
-
-            <Button
-              title={values.imageUrl ? BannersTexts.replaceImage : BannersTexts.addImage}
-              variant={ButtonVariants.secondary}
-              loading={uploading}
-              onPress={handlePick}
-            />
-          </View>
+          <ImageField
+            stacked
+            value={values.imageUrl}
+            label={BannersTexts.imageLabel}
+            previewClass="h-40 w-full"
+            onChange={(imageUrl) => onChange({ ...values, imageUrl })}
+          />
 
           <View className="gap-1.5">
             <Text className={LABEL}>{BannersTexts.titleLabel}</Text>
@@ -261,14 +200,10 @@ export const RenderBannerForm = ({
             </Text>
           </Pressable>
 
-          <If condition={Boolean(error)}>
-            <Text className="text-sm font-medium text-danger">{error}</Text>
-          </If>
-
           <View className="gap-2 pt-2">
             <Button
               title={BannersTexts.save}
-              loading={saving || uploading}
+              loading={saving}
               disabled={
                 !values.imageUrl
                 || !isDateValid(values.startsAt)

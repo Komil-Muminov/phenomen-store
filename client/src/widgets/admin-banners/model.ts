@@ -1,22 +1,8 @@
-export interface IAdminBanner {
-  id: string;
-  imageUrl: string;
-  title: string | null;
-  subtitle: string | null;
-  actionType: string;
-  actionValue: string | null;
-  position: number;
-  startsAt: string | null;
-  endsAt: string | null;
-  isActive: boolean;
-}
+import type { IBanner, TBannerList } from '@contracts';
 
-export interface IAdminBannerList {
-  items: IAdminBanner[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type IAdminBanner = IBanner;
+
+export type IAdminBannerList = TBannerList;
 
 export interface IBannerFormValues {
   imageUrl: string;
