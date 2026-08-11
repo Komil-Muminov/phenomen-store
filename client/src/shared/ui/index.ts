@@ -12,3 +12,4 @@ export {
 } from './Skeleton';
 export { BottomBar } from './BottomBar';
 export { Toast } from './Toast';
+export { ImageField } from './ImageField';

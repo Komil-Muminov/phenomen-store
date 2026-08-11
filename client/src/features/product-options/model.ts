@@ -101,3 +101,69 @@ export const splitAttributes = (attributes: IAdminAttribute[]) => ({
 export const toggleValue = (values: string[], value: string): string[] => (
   values.includes(value) ? values.filter((item) => item !== value) : [...values, value]
 );
+
+export interface IAttributeDraft {
+  id: string | null;
+  name: string;
+  isVariantOption: boolean;
+  isFilterable: boolean;
+  position: string;
+}
+
+export interface IAttributePayload {
+  name: string;
+  isVariantOption: boolean;
+  isFilterable: boolean;
+  position: number;
+}
+
+export interface IAttributeHandlers {
+  onCreateAttribute: (payload: IAttributePayload) => void;
+  onUpdateAttribute: (id: string, payload: IAttributePayload) => void;
+  onDeleteAttribute: (id: string) => void;
+}
+
+export const DEFAULT_ATTRIBUTE_POSITION = 100;
+
+export const AttributeTexts = {
+  addDetail: 'Характеристика',
+  addOption: 'Вариант',
+  createTitle: 'Новая характеристика',
+  editTitle: 'Характеристика',
+  nameLabel: 'Название',
+  detailPlaceholder: 'Например, Материал',
+  optionPlaceholder: 'Например, Размер',
+  kindLabel: 'Как использовать',
+  kindOption: 'Для вариантов',
+  kindDetail: 'Просто описание',
+  filterableLabel: 'Участвует в фильтрах каталога',
+  positionLabel: 'Порядок',
+  positionHint: 'Меньше число — выше в карточке',
+  save: 'Сохранить',
+  cancel: 'Отмена',
+  deleteTitle: 'Удалить характеристику?',
+  deleteHint: 'Если она заполнена в товарах, удаление будет отклонено',
+} as const;
+
+export const emptyAttributeDraft = (isVariantOption: boolean): IAttributeDraft => ({
+  id: null,
+  name: '',
+  isVariantOption,
+  isFilterable: true,
+  position: String(DEFAULT_ATTRIBUTE_POSITION),
+});
+
+export const toAttributeDraft = (attribute: IAdminAttribute): IAttributeDraft => ({
+  id: attribute.id,
+  name: attribute.name,
+  isVariantOption: attribute.isVariantOption,
+  isFilterable: attribute.isFilterable,
+  position: String(attribute.position ?? DEFAULT_ATTRIBUTE_POSITION),
+});
+
+export const toAttributePayload = (draft: IAttributeDraft): IAttributePayload => ({
+  name: draft.name.trim(),
+  isVariantOption: draft.isVariantOption,
+  isFilterable: draft.isFilterable,
+  position: Number(draft.position) || DEFAULT_ATTRIBUTE_POSITION,
+});

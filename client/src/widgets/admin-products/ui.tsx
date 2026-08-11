@@ -10,8 +10,10 @@ import {
 } from '@/shared/config';
 import { useGetQuery } from '@/shared/hooks';
 import { toHref } from '@/shared/lib';
+import { ICategoryPayload } from '@/features/category-editor';
 import {
   IAdminAttribute,
+  IAttributePayload,
   IVariantRow,
   buildMatrix,
   mergeRows,
@@ -142,11 +144,31 @@ export const AdminProducts = () => {
     mutations.importRows.mutate({ rows }, { onSuccess: setImportResult });
   }, [mutations.importRows]);
 
-  const handleCreateCategory = useCallback((name: string) => {
-    mutations.createCategory.mutate({ name }, {
+  const handleCreateCategory = useCallback((payload: ICategoryPayload) => {
+    mutations.createCategory.mutate(payload, {
       onSuccess: (category) => setValues((current) => ({ ...current, categoryId: category.id })),
     });
   }, [mutations.createCategory]);
+
+  const handleUpdateCategory = useCallback((id: string, payload: ICategoryPayload) => {
+    mutations.updateCategory.mutate({ ...payload, id });
+  }, [mutations.updateCategory]);
+
+  const handleDeleteCategory = useCallback((id: string) => {
+    mutations.removeCategory.mutate({ id });
+  }, [mutations.removeCategory]);
+
+  const handleCreateAttribute = useCallback((payload: IAttributePayload) => {
+    mutations.createAttribute.mutate(payload);
+  }, [mutations.createAttribute]);
+
+  const handleUpdateAttribute = useCallback((id: string, payload: IAttributePayload) => {
+    mutations.updateAttribute.mutate({ ...payload, id });
+  }, [mutations.updateAttribute]);
+
+  const handleDeleteAttribute = useCallback((id: string) => {
+    mutations.removeAttribute.mutate({ id });
+  }, [mutations.removeAttribute]);
 
   const items = productsQuery.data?.items ?? [];
   const total = productsQuery.data?.total ?? 0;
@@ -294,7 +316,22 @@ export const AdminProducts = () => {
         hasVariants={hasVariants}
         saving={mutations.create.isPending || mutations.update.isPending}
         onChange={setValues}
+        isCategoryBusy={
+          mutations.createCategory.isPending
+          || mutations.updateCategory.isPending
+          || mutations.removeCategory.isPending
+        }
+        isAttributeBusy={
+          mutations.createAttribute.isPending
+          || mutations.updateAttribute.isPending
+          || mutations.removeAttribute.isPending
+        }
         onCreateCategory={handleCreateCategory}
+        onUpdateCategory={handleUpdateCategory}
+        onDeleteCategory={handleDeleteCategory}
+        onCreateAttribute={handleCreateAttribute}
+        onUpdateAttribute={handleUpdateAttribute}
+        onDeleteAttribute={handleDeleteAttribute}
         onAttributeChange={handleAttributeChange}
         onSelect={handleSelect}
         onRowChange={handleRowChange}

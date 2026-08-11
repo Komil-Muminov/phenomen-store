@@ -1,20 +1,28 @@
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Icon, If } from '@/shared/ui';
 import {
+  AttributeTexts,
   IAdminAttribute,
+  IAttributeDraft,
+  IAttributeHandlers,
   IVariantRow,
   OptionsTexts,
+  emptyAttributeDraft,
+  toAttributeDraft,
+  toAttributePayload,
   toggleValue,
 } from '@/features/product-options/model';
+import { RenderAttributeModal } from '@/features/product-options/ui/renderAttributeModal';
 
-interface IProps {
+interface IProps extends IAttributeHandlers {
   details: IAdminAttribute[];
   options: IAdminAttribute[];
   values: Record<string, string>;
   selected: Record<string, string[]>;
   rows: IVariantRow[];
   enabled: boolean;
+  isAttributeBusy: boolean;
   onValueChange: (code: string, value: string) => void;
   onSelect: (code: string, values: string[]) => void;
   onRowChange: (key: string, patch: Partial<IVariantRow>) => void;
@@ -34,13 +42,49 @@ export const ProductOptions = ({
   selected,
   rows,
   enabled,
+  isAttributeBusy,
   onValueChange,
   onSelect,
   onRowChange,
   onToggle,
+  onCreateAttribute,
+  onUpdateAttribute,
+  onDeleteAttribute,
 }: IProps) => {
   const [draftCode, setDraftCode] = useState<string | null>(null);
   const [draftValue, setDraftValue] = useState('');
+  const [attributeDraft, setAttributeDraft] = useState<IAttributeDraft | null>(null);
+
+  const patchAttribute = useCallback((patch: Partial<IAttributeDraft>) => {
+    setAttributeDraft((current) => (current ? { ...current, ...patch } : current));
+  }, []);
+
+  const handleAttributeSubmit = useCallback(() => {
+    if (!attributeDraft?.name.trim()) {
+      return;
+    }
+
+    const payload = toAttributePayload(attributeDraft);
+
+    if (attributeDraft.id) {
+      onUpdateAttribute(attributeDraft.id, payload);
+    } else {
+      onCreateAttribute(payload);
+    }
+
+    setAttributeDraft(null);
+  }, [attributeDraft, onCreateAttribute, onUpdateAttribute]);
+
+  const handleAttributeDelete = useCallback((attribute: IAdminAttribute) => {
+    Alert.alert(AttributeTexts.deleteTitle, `«${attribute.name}». ${AttributeTexts.deleteHint}`, [
+      { text: AttributeTexts.cancel, style: 'cancel' },
+      {
+        text: 'Удалить',
+        style: 'destructive',
+        onPress: () => onDeleteAttribute(attribute.id),
+      },
+    ]);
+  }, [onDeleteAttribute]);
 
   const handleAddValue = useCallback((code: string) => {
     const next = draftValue.trim();
@@ -56,7 +100,18 @@ export const ProductOptions = ({
   return (
     <View className="gap-5">
       <View className="gap-3 rounded-2xl border border-line bg-surface/60 p-4">
-        <Text className="text-sm font-bold text-content">{OptionsTexts.attributesTitle}</Text>
+        <View className="flex-row items-center justify-between gap-2">
+          <Text className="text-sm font-bold text-content">{OptionsTexts.attributesTitle}</Text>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setAttributeDraft(emptyAttributeDraft(false))}
+            className="flex-row items-center gap-1 rounded-full border border-dashed border-line px-3 py-1.5"
+          >
+            <Icon name="plus" size={11} />
+            <Text className="text-xs font-semibold text-primary">{AttributeTexts.addDetail}</Text>
+          </Pressable>
+        </View>
 
         <If
           condition={details.length > 0}
@@ -65,7 +120,25 @@ export const ProductOptions = ({
           <View className="gap-3">
             {details.map((attribute) => (
               <View key={attribute.code} className="gap-1.5">
-                <Text className={LABEL}>{attribute.name}</Text>
+                <View className="flex-row items-center gap-2">
+                  <Text className={LABEL}>{attribute.name}</Text>
+
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Изменить ${attribute.name}`}
+                    onPress={() => setAttributeDraft(toAttributeDraft(attribute))}
+                  >
+                    <Icon name="filter" size={11} color="#94a3b8" />
+                  </Pressable>
+
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Удалить ${attribute.name}`}
+                    onPress={() => handleAttributeDelete(attribute)}
+                  >
+                    <Icon name="close" size={11} color="#94a3b8" />
+                  </Pressable>
+                </View>
                 <TextInput
                   value={values[attribute.code] ?? ''}
                   onChangeText={(next) => onValueChange(attribute.code, next)}
@@ -119,6 +192,17 @@ export const ProductOptions = ({
         </Pressable>
 
         <If condition={enabled}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setAttributeDraft(emptyAttributeDraft(true))}
+            className="flex-row items-center gap-1 self-start rounded-full border border-dashed border-line px-3 py-1.5"
+          >
+            <Icon name="plus" size={11} />
+            <Text className="text-xs font-semibold text-primary">{AttributeTexts.addOption}</Text>
+          </Pressable>
+        </If>
+
+        <If condition={enabled}>
           <If
             condition={options.length > 0}
             fallback={<Text className="text-xs text-muted">{OptionsTexts.variantsEmpty}</Text>}
@@ -126,7 +210,25 @@ export const ProductOptions = ({
             <View className="gap-3">
               {options.map((option) => (
                 <View key={option.code} className="gap-1.5">
-                  <Text className={LABEL}>{option.name}</Text>
+                  <View className="flex-row items-center gap-2">
+                    <Text className={LABEL}>{option.name}</Text>
+
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`Изменить ${option.name}`}
+                      onPress={() => setAttributeDraft(toAttributeDraft(option))}
+                    >
+                      <Icon name="filter" size={11} color="#94a3b8" />
+                    </Pressable>
+
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`Удалить ${option.name}`}
+                      onPress={() => handleAttributeDelete(option)}
+                    >
+                      <Icon name="close" size={11} color="#94a3b8" />
+                    </Pressable>
+                  </View>
 
                   <View className="flex-row flex-wrap gap-2">
                     {option.values.map((item) => (
@@ -235,6 +337,14 @@ export const ProductOptions = ({
           </If>
         </If>
       </View>
+
+      <RenderAttributeModal
+        draft={attributeDraft}
+        isBusy={isAttributeBusy}
+        onChange={patchAttribute}
+        onSubmit={handleAttributeSubmit}
+        onCancel={() => setAttributeDraft(null)}
+      />
     </View>
   );
 };

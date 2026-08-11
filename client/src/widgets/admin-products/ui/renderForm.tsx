@@ -4,19 +4,26 @@ import * as ImagePicker from 'expo-image-picker';
 import { ApiRoutes, ManageUnits } from '@/shared/config';
 import { extractErrorMessage, uploadImage } from '@/shared/api';
 import { Button, ButtonVariants, Icon, If } from '@/shared/ui';
-import { IAdminAttribute, IVariantRow, ProductOptions } from '@/features/product-options';
+import { CategoryEditor, ICategoryHandlers, IEditorCategory } from '@/features/category-editor';
 import {
-  IAdminCategory,
+  IAdminAttribute,
+  IAttributeHandlers,
+  IVariantRow,
+  ProductOptions,
+} from '@/features/product-options';
+import {
   IProductFormValues,
   ProductsTexts,
   isFormValid,
 } from '@/widgets/admin-products/model';
 
-interface IProps {
+interface IProps extends ICategoryHandlers, IAttributeHandlers {
   open: boolean;
   editing: boolean;
   values: IProductFormValues;
-  categories: IAdminCategory[];
+  categories: IEditorCategory[];
+  isCategoryBusy: boolean;
+  isAttributeBusy: boolean;
   details: IAdminAttribute[];
   options: IAdminAttribute[];
   attributeValues: Record<string, string>;
@@ -25,7 +32,6 @@ interface IProps {
   hasVariants: boolean;
   saving: boolean;
   onChange: (values: IProductFormValues) => void;
-  onCreateCategory: (name: string) => void;
   onAttributeChange: (code: string, value: string) => void;
   onSelect: (code: string, next: string[]) => void;
   onRowChange: (key: string, patch: Partial<IVariantRow>) => void;
@@ -43,6 +49,8 @@ export const RenderForm = ({
   editing,
   values,
   categories,
+  isCategoryBusy,
+  isAttributeBusy,
   details,
   options,
   attributeValues,
@@ -52,6 +60,11 @@ export const RenderForm = ({
   saving,
   onChange,
   onCreateCategory,
+  onUpdateCategory,
+  onDeleteCategory,
+  onCreateAttribute,
+  onUpdateAttribute,
+  onDeleteAttribute,
   onAttributeChange,
   onSelect,
   onRowChange,
@@ -60,7 +73,6 @@ export const RenderForm = ({
   onClose,
 }: IProps) => {
   const [uploading, setUploading] = useState(false);
-  const [categoryDraft, setCategoryDraft] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handlePick = useCallback(async () => {
@@ -177,67 +189,15 @@ export const RenderForm = ({
             </View>
           </View>
 
-          <View className="gap-1.5">
-            <Text className={LABEL}>{ProductsTexts.categoryLabel}</Text>
-            <View className="flex-row flex-wrap gap-2">
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => onChange({ ...values, categoryId: null })}
-                className={`rounded-full border px-3 py-1.5 ${values.categoryId ? 'border-line bg-surface' : 'border-primary bg-primary'}`}
-              >
-                <Text className={`text-xs font-semibold ${values.categoryId ? 'text-muted' : 'text-onPrimary'}`}>
-                  {ProductsTexts.noCategory}
-                </Text>
-              </Pressable>
-
-              {categories.map((category) => (
-                <Pressable
-                  key={category.id}
-                  accessibilityRole="button"
-                  onPress={() => onChange({ ...values, categoryId: category.id })}
-                  className={`rounded-full border px-3 py-1.5 ${values.categoryId === category.id ? 'border-primary bg-primary' : 'border-line bg-surface'}`}
-                >
-                  <Text className={`text-xs font-semibold ${values.categoryId === category.id ? 'text-onPrimary' : 'text-muted'}`}>
-                    {category.name}
-                  </Text>
-                </Pressable>
-              ))}
-
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setCategoryDraft('')}
-                className="flex-row items-center gap-1 rounded-full border border-dashed border-line px-3 py-1.5"
-              >
-                <Icon name="plus" size={12} />
-                <Text className="text-xs font-semibold text-primary">
-                  {ProductsTexts.newCategory}
-                </Text>
-              </Pressable>
-            </View>
-
-            <If condition={categoryDraft !== null}>
-              <View className="flex-row gap-2">
-                <TextInput
-                  autoFocus
-                  value={categoryDraft ?? ''}
-                  onChangeText={setCategoryDraft}
-                  placeholder={ProductsTexts.categoryNamePlaceholder}
-                  className={`flex-1 ${FIELD}`}
-                />
-                <Pressable
-                  accessibilityRole="button"
-                  disabled={!categoryDraft?.trim()}
-                  onPress={() => {
-                    onCreateCategory((categoryDraft ?? '').trim());
-                    setCategoryDraft(null);
-                  }}
-                  className="items-center justify-center rounded-2xl bg-primary px-4 active:opacity-80"
-                >
-                  <Icon name="check" size={16} color="#ffffff" />
-                </Pressable>
-              </View>
-            </If>
-          </View>
+          <CategoryEditor
+            categories={categories}
+            value={values.categoryId}
+            isBusy={isCategoryBusy}
+            onChange={(categoryId) => onChange({ ...values, categoryId })}
+            onCreateCategory={onCreateCategory}
+            onUpdateCategory={onUpdateCategory}
+            onDeleteCategory={onDeleteCategory}
+          />
 
           <View className="gap-1.5">
             <Text className={LABEL}>{ProductsTexts.mediaLabel}</Text>
@@ -294,6 +254,10 @@ export const RenderForm = ({
             onSelect={onSelect}
             onRowChange={onRowChange}
             onToggle={onToggleVariants}
+            isAttributeBusy={isAttributeBusy}
+            onCreateAttribute={onCreateAttribute}
+            onUpdateAttribute={onUpdateAttribute}
+            onDeleteAttribute={onDeleteAttribute}
           />
 
           <If condition={Boolean(error)}>

@@ -8,6 +8,8 @@ export {
 } from '@/features/product-options/model';
 export type {
   IAdminAttribute,
+  IAttributeHandlers,
+  IAttributePayload,
   IProductVariant,
   IVariantRow,
 } from '@/features/product-options/model';
