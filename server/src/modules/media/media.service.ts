@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { Env, HttpStatus } from '@/shared/config';
+import { HttpStatus } from '@/shared/config';
 import { ITenantContext } from '@/shared/types';
 import { AppError } from '@/shared/utils';
 import {
@@ -60,7 +60,7 @@ export const storeUpload = (
   fs.writeFileSync(path.join(tenantDir, fileName), file.buffer);
 
   return {
-    url: `${Env.publicUrl}${UPLOADS_ROUTE}/${tenant.id}/${fileName}`,
+    url: `${UPLOADS_ROUTE}/${tenant.id}/${fileName}`,
     name: file.originalname,
     size: file.size,
   };

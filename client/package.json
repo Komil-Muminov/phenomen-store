@@ -4,6 +4,7 @@
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "dev": "expo start --host lan",
     "tunnel": "expo start --tunnel",
     "light": "expo start --host lan --no-dev --minify",

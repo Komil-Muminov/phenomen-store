@@ -5,7 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { extractErrorMessage, uploadImage } from '@/shared/api';
 import { ApiRoutes, AppRoutes, QueryKeys } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { toHref } from '@/shared/lib';
+import { resolveMediaUrl, toHref } from '@/shared/lib';
 import { Button, ButtonVariants, Icon, If, Screen } from '@/shared/ui';
 import {
   ISettingsValues,
@@ -156,7 +156,7 @@ export const AdminSettings = () => {
                     fallback={<Icon name="bag" size={20} />}
                   >
                     <Image
-                      source={{ uri: values?.logoUrl }}
+                      source={{ uri: resolveMediaUrl(values?.logoUrl) }}
                       className="h-full w-full"
                       resizeMode="contain"
                     />

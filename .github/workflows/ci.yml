@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main, km-dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  typecheck:
+    name: Проверка типов
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Установка зависимостей
+        run: |
+          npm ci
+          npm install --prefix admin
+          npm install --prefix client
+
+      - name: Сервер
+        run: npm run typecheck --workspace server
+
+      - name: Админка
+        run: npm run typecheck --prefix admin
+
+      - name: Мобильное приложение
+        run: npm run typecheck --prefix client
+
+  test:
+    name: Тесты сервера
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: phenomen_store
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: phenomen_store
+      PGAPPUSER: phenomen_app
+      PGAPPPASSWORD: phenomen_app_ci
+      JWT_SECRET: ci_secret_for_tests_only
+      PLATFORM_JWT_SECRET: ci_platform_secret_for_tests_only
+      DEFAULT_TENANT_KEY: demo-fashion
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      - name: Схема и права
+        run: npm run db:init --workspace server
+
+      - name: Запуск тестов
+        run: npm test --workspace server

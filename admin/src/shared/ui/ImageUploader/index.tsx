@@ -3,6 +3,7 @@ import { Button, Image, Typography, Upload, message } from 'antd';
 import { CloudUploadOutlined, DeleteOutlined, PictureOutlined } from '@ant-design/icons';
 import { extractErrorMessage, uploadFile } from '@/shared/api';
 import { ApiRoutes, MediaAccept, MediaMaxSizeLabel } from '@/shared/config';
+import { resolveMediaUrl } from '@/shared/lib';
 import { If } from '@/shared/ui/If';
 import { Tooltip } from '@/shared/ui/Tooltip';
 
@@ -55,7 +56,7 @@ export const ImageUploader = ({
             }
           >
             <Image
-              src={value}
+              src={resolveMediaUrl(value)}
               alt={title}
               width="100%"
               height="100%"

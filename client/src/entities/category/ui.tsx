@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import { CategoryPlaceholderImage, ICategory } from '@/entities/category/model';
+import { resolveMediaUrl } from '@/shared/lib';
 
 interface IProps {
   category: ICategory;
@@ -37,7 +38,7 @@ export const CategoryTile = ({ category, onPress }: IProps) => {
     >
       <View className="h-16 w-16 overflow-hidden rounded-full border border-line bg-surface">
         <Image
-          source={{ uri: imageUri }}
+          source={{ uri: resolveMediaUrl(imageUri) }}
           onError={() => setImageUri(customFallback)}
           className="h-full w-full"
           resizeMode="cover"

@@ -12,6 +12,7 @@ import {
   ProductOptions,
 } from '@/features/product-options';
 import {
+import { resolveMediaUrl } from '@/shared/lib';
   IProductFormValues,
   ProductsTexts,
   isFormValid,
@@ -204,7 +205,7 @@ export const RenderForm = ({
             <View className="flex-row flex-wrap gap-2">
               {values.media.map((url) => (
                 <View key={url} className="h-20 w-20 overflow-hidden rounded-xl border border-line">
-                  <Image source={{ uri: url }} className="h-full w-full" resizeMode="cover" />
+                  <Image source={{ uri: resolveMediaUrl(url) }} className="h-full w-full" resizeMode="cover" />
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel="Убрать фото"

@@ -1,3 +1,5 @@
+import { Env } from '@/shared/config';
+
 const PRICE_LOCALE = 'ru-RU';
 
 export const formatPrice = (value: number, currencySymbol: string): string => (
@@ -88,3 +90,12 @@ export const formatItemCount = (count: number): string => {
 };
 
 export const toHref = (path: unknown): never => path as never;
+
+const UPLOADS_MARK = '/uploads/';
+
+export const resolveMediaUrl = (value: string | null | undefined): string => {
+  const url = typeof value === 'string' ? value.trim() : '';
+  const markIndex = url.indexOf(UPLOADS_MARK);
+
+  return markIndex < 0 ? url : `${Env.apiUrl}${url.slice(markIndex)}`;
+};

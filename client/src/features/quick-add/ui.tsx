@@ -3,7 +3,7 @@ import { Image, Modal, Pressable, Text, View } from 'react-native';
 import { useAddToCart } from '@/entities/cart';
 import { IProduct, ProductPlaceholderImage } from '@/entities/product';
 import { findVariant } from '@/features/product-details';
-import { formatUnitPrice, initialQuantity } from '@/shared/lib';
+import { formatUnitPrice, initialQuantity, resolveMediaUrl } from '@/shared/lib';
 import { Button, Icon, If } from '@/shared/ui';
 
 interface IProps {
@@ -59,7 +59,7 @@ export const QuickAddModal = ({ product, currencySymbol = 'смн', onClose, onS
           {/* Карточка товара в шапке шторки */}
           <View className="flex-row items-center gap-3.5 pb-2 border-b border-line">
             <Image
-              source={{ uri: product.media[0] ?? ProductPlaceholderImage }}
+              source={{ uri: resolveMediaUrl(product.media[0]) || ProductPlaceholderImage }}
               className="h-16 w-16 rounded-xl bg-surface border border-line"
               resizeMode="cover"
             />

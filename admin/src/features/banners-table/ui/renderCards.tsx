@@ -1,6 +1,7 @@
 import { Button, Empty, Image, Skeleton, Space, Tag, Typography } from 'antd';
 import { DeleteOutlined, EditOutlined, PictureOutlined, StopOutlined } from '@ant-design/icons';
 import { UiMessages } from '@/shared/config';
+import { resolveMediaUrl } from '@/shared/lib';
 import { If } from '@/shared/ui/If';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { formatPeriod, formatTarget } from '@/features/banners-table/lib';
@@ -46,7 +47,7 @@ export const RenderCards = ({
                   fallback={<PictureOutlined className="text-violet-300" aria-hidden="true" />}
                 >
                   <Image
-                    src={banner.imageUrl}
+                    src={resolveMediaUrl(banner.imageUrl)}
                     alt={banner.title ?? 'Картинка баннера'}
                     width="100%"
                     height="100%"

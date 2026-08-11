@@ -3,6 +3,7 @@ import { CategoryTile, ICategory } from '@/entities/category';
 import { IProduct, ProductCard } from '@/entities/product';
 import { Icon, If } from '@/shared/ui';
 import { IBanner, ISectionHandlers } from '@/features/storefront-sections/model';
+import { resolveMediaUrl } from '@/shared/lib';
 
 interface IBannerProps {
   banners: IBanner[];
@@ -39,7 +40,7 @@ export const BannerCarousel = ({ banners, brandTitle, onPress }: IBannerProps) =
           className="h-48 overflow-hidden rounded-3xl border border-line bg-neutral-900 active:opacity-95 shadow-sm relative justify-between p-4"
         >
           <Image
-            source={{ uri: item.imageUrl }}
+            source={{ uri: resolveMediaUrl(item.imageUrl) }}
             className="absolute inset-0 h-full w-full opacity-80"
             resizeMode="cover"
           />

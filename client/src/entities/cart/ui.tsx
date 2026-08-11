@@ -1,6 +1,13 @@
 import { Image, Pressable, Text, View } from 'react-native';
 import { ProductPlaceholderImage } from '@/entities/product';
-import { formatPrice, formatQuantity, roundQuantity, unitLabel, unitStep } from '@/shared/lib';
+import {
+  formatPrice,
+  formatQuantity,
+  resolveMediaUrl,
+  roundQuantity,
+  unitLabel,
+  unitStep,
+} from '@/shared/lib';
 import { Icon, If } from '@/shared/ui';
 import { ICartItem } from '@/entities/cart/model';
 
@@ -18,7 +25,7 @@ export const CartItemRow = ({ item, currencySymbol, disabled, onChangeQuantity }
   return (
   <View className="flex-row gap-3 rounded-2xl border border-line bg-surface/50 p-3">
     <Image
-      source={{ uri: item.media ?? ProductPlaceholderImage }}
+      source={{ uri: resolveMediaUrl(item.media) || ProductPlaceholderImage }}
       className="h-24 w-20 rounded-xl bg-surface"
       resizeMode="cover"
     />

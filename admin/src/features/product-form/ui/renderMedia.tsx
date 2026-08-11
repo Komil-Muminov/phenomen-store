@@ -3,6 +3,7 @@ import { Button, Input, Typography, Upload, message } from 'antd';
 import { DeleteOutlined, PictureOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { extractErrorMessage, uploadFile } from '@/shared/api';
 import { ApiRoutes } from '@/shared/config';
+import { resolveMediaUrl } from '@/shared/lib';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { If } from '@/shared/ui/If';
 
@@ -74,7 +75,7 @@ export const RenderMedia = ({ urls, onChange }: IProps) => {
                   condition={Boolean(url)}
                   fallback={<PictureOutlined className="text-violet-300" aria-hidden="true" />}
                 >
-                  <img src={url} alt="" className="h-full w-full object-cover" />
+                  <img src={resolveMediaUrl(url)} alt="" className="h-full w-full object-cover" />
                 </If>
               </span>
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FlatList, Image, Text, View, useWindowDimensions } from 'react-native';
 import { IProduct, ProductPlaceholderImage } from '@/entities/product';
-import { formatDiscount, formatPrice, formatUnitPrice } from '@/shared/lib';
+import { formatDiscount, formatPrice, formatUnitPrice, resolveMediaUrl } from '@/shared/lib';
 import { If } from '@/shared/ui';
 import {
   AttributeLabels,
@@ -99,7 +99,7 @@ export const ProductDetails = ({ product, currencySymbol, selected, onSelect }: 
           renderItem={({ item }) => (
             <View style={{ width: cardWidth, marginRight: 12 }} className="items-center justify-center">
               <Image
-                source={{ uri: item }}
+                source={{ uri: resolveMediaUrl(item) }}
                 style={{ width: cardWidth, height: cardWidth * 1.2 }}
                 className="rounded-3xl bg-surface"
                 resizeMode="cover"

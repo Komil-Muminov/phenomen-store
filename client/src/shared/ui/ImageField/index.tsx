@@ -5,6 +5,7 @@ import { extractErrorMessage, uploadImage } from '@/shared/api';
 import { ApiRoutes } from '@/shared/config';
 import { Icon } from '@/shared/ui/Icon';
 import { If } from '@/shared/ui/If';
+import { resolveMediaUrl } from '@/shared/lib';
 
 interface IProps {
   value: string;
@@ -66,7 +67,7 @@ export const ImageField = ({
           className={`items-center justify-center overflow-hidden rounded-xl border border-line bg-background ${previewClass}`}
         >
           <If condition={Boolean(value)} fallback={<Icon name="bag" size={18} />}>
-            <Image source={{ uri: value }} className="h-full w-full" resizeMode="cover" />
+            <Image source={{ uri: resolveMediaUrl(value) }} className="h-full w-full" resizeMode="cover" />
           </If>
         </View>
 

@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { ITenantConfig } from '@/entities/tenant';
 import { AppRoutes } from '@/shared/config';
 import { Icon, If } from '@/shared/ui';
+import { resolveMediaUrl } from '@/shared/lib';
 
 interface IProps {
   config: ITenantConfig;
@@ -31,7 +32,7 @@ export const StoreIntro = ({
       <View className="flex-row items-center gap-2.5">
         <If condition={Boolean(config.brand.logoUrl)}>
           <Image
-            source={{ uri: config.brand.logoUrl ?? '' }}
+            source={{ uri: resolveMediaUrl(config.brand.logoUrl) }}
             className="h-10 w-10 rounded-xl"
             resizeMode="contain"
           />

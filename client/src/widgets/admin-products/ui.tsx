@@ -9,7 +9,7 @@ import {
   SearchDebounceMs,
 } from '@/shared/config';
 import { useGetQuery } from '@/shared/hooks';
-import { toHref } from '@/shared/lib';
+import { resolveMediaUrl, toHref } from '@/shared/lib';
 import { ICategoryPayload } from '@/features/category-editor';
 import {
   IAdminAttribute,
@@ -252,7 +252,7 @@ export const AdminProducts = () => {
                   )}
                 >
                   <Image
-                    source={{ uri: product.media[0] }}
+                    source={{ uri: resolveMediaUrl(product.media[0]) }}
                     className="h-full w-full"
                     resizeMode="cover"
                   />

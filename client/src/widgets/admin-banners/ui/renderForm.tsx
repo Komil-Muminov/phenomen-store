@@ -5,6 +5,7 @@ import { extractErrorMessage, uploadImage } from '@/shared/api';
 import { ApiRoutes } from '@/shared/config';
 import { Button, ButtonVariants, Icon, If } from '@/shared/ui';
 import {
+import { resolveMediaUrl } from '@/shared/lib';
   BannerActionOptions,
   BannerActionTypes,
   BannersTexts,
@@ -117,7 +118,7 @@ export const RenderBannerForm = ({
                 )}
               >
                 <Image
-                  source={{ uri: values.imageUrl }}
+                  source={{ uri: resolveMediaUrl(values.imageUrl) }}
                   className="h-full w-full"
                   resizeMode="cover"
                 />

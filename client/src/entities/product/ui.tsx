@@ -1,6 +1,6 @@
 import { ReactNode, useCallback } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { formatDiscount, formatPrice, formatUnitPrice } from '@/shared/lib';
+import { formatDiscount, formatPrice, formatUnitPrice, resolveMediaUrl } from '@/shared/lib';
 import { Icon, If } from '@/shared/ui';
 import { useWishlist } from '@/shared/wishlist';
 import { useAddToCart } from '@/entities/cart';
@@ -72,7 +72,7 @@ export const ProductCard = ({
         <View className="w-full">
           <View className="relative">
             <Image
-              source={{ uri: product.media[0] ?? ProductPlaceholderImage }}
+              source={{ uri: resolveMediaUrl(product.media[0]) || ProductPlaceholderImage }}
               className="h-52 w-full bg-surface"
               resizeMode="cover"
             />

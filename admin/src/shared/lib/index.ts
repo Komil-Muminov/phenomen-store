@@ -1,3 +1,5 @@
+import { Env } from '@/shared/config';
+
 export const NavLinkBases = {
   compact: 'flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm transition-all duration-200',
   menu: 'flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-base transition-all duration-200',
@@ -47,3 +49,12 @@ export const parseVisibility = (value: string): boolean | undefined => (
 export const formatVisibility = (isActive?: boolean): string => (
   isActive === undefined ? VisibilityValues.all : String(isActive)
 );
+
+const UPLOADS_MARK = '/uploads/';
+
+export const resolveMediaUrl = (value: string | null | undefined): string => {
+  const url = typeof value === 'string' ? value.trim() : '';
+  const markIndex = url.indexOf(UPLOADS_MARK);
+
+  return markIndex < 0 ? url : `${Env.apiUrl}${url.slice(markIndex)}`;
+};

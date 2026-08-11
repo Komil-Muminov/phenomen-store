@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { IProduct, ProductPlaceholderImage } from '@/entities/product';
-import { formatUnitPrice } from '@/shared/lib';
+import { formatUnitPrice, resolveMediaUrl } from '@/shared/lib';
 import { Icon, If } from '@/shared/ui';
 import { clearSearchHistory, getRecentlyViewed, getSearchHistory } from './model';
 
@@ -80,7 +80,7 @@ export const SearchHistoryView = ({
                 className="w-28 rounded-2xl border border-line/80 bg-background overflow-hidden active:border-primary shadow-2xs"
               >
                 <Image
-                  source={{ uri: item.media[0] ?? ProductPlaceholderImage }}
+                  source={{ uri: resolveMediaUrl(item.media[0]) || ProductPlaceholderImage }}
                   className="h-28 w-full bg-surface"
                   resizeMode="cover"
                 />

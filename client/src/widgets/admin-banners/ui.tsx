@@ -3,7 +3,7 @@ import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ApiRoutes, AppRoutes, ManageListLimit, QueryKeys } from '@/shared/config';
 import { useGetQuery } from '@/shared/hooks';
-import { toHref } from '@/shared/lib';
+import { resolveMediaUrl, toHref } from '@/shared/lib';
 import { Icon, If, Screen } from '@/shared/ui';
 import { useBannerMutations } from '@/widgets/admin-banners/lib';
 import {
@@ -147,7 +147,7 @@ export const AdminBanners = () => {
               <View className="flex-row gap-3">
                 <View className="h-16 w-24 overflow-hidden rounded-xl bg-background">
                   <Image
-                    source={{ uri: banner.imageUrl }}
+                    source={{ uri: resolveMediaUrl(banner.imageUrl) }}
                     className="h-full w-full"
                     resizeMode="cover"
                   />

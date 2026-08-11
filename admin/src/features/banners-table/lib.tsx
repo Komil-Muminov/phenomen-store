@@ -8,6 +8,7 @@ import {
   StopOutlined,
 } from '@ant-design/icons';
 import { BannerActionLabels, BannerActionTypes } from '@/shared/config';
+import { resolveMediaUrl } from '@/shared/lib';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { If } from '@/shared/ui/If';
 import type { IShopBanner } from '@/entities/shop';
@@ -82,7 +83,7 @@ export const buildBannerColumns = ({
           fallback={<PictureOutlined className="text-violet-300" aria-hidden="true" />}
         >
           <Image
-            src={value}
+            src={resolveMediaUrl(value)}
             alt={banner.title ?? 'Картинка баннера'}
             width="100%"
             height="100%"
