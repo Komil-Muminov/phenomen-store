@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { Icon, If } from '@/shared/ui';
 import {
   AttributeTexts,
@@ -14,6 +14,7 @@ import {
   toggleValue,
 } from '@/features/product-options/model';
 import { RenderAttributeModal } from '@/features/product-options/ui/renderAttributeModal';
+import { RenderDetails } from '@/features/product-options/ui/renderDetails';
 
 interface IProps extends IAttributeHandlers {
   details: IAdminAttribute[];
@@ -99,78 +100,14 @@ export const ProductOptions = ({
 
   return (
     <View className="gap-5">
-      <View className="gap-3 rounded-2xl border border-line bg-surface/60 p-4">
-        <View className="flex-row items-center justify-between gap-2">
-          <Text className="text-sm font-bold text-content">{OptionsTexts.attributesTitle}</Text>
-
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setAttributeDraft(emptyAttributeDraft(false))}
-            className="flex-row items-center gap-1 rounded-full border border-dashed border-line px-3 py-1.5"
-          >
-            <Icon name="plus" size={11} />
-            <Text className="text-xs font-semibold text-primary">{AttributeTexts.addDetail}</Text>
-          </Pressable>
-        </View>
-
-        <If
-          condition={details.length > 0}
-          fallback={<Text className="text-xs text-muted">{OptionsTexts.attributesEmpty}</Text>}
-        >
-          <View className="gap-3">
-            {details.map((attribute) => (
-              <View key={attribute.code} className="gap-1.5">
-                <View className="flex-row items-center gap-2">
-                  <Text className={LABEL}>{attribute.name}</Text>
-
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Изменить ${attribute.name}`}
-                    onPress={() => setAttributeDraft(toAttributeDraft(attribute))}
-                  >
-                    <Icon name="filter" size={11} color="#94a3b8" />
-                  </Pressable>
-
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Удалить ${attribute.name}`}
-                    onPress={() => handleAttributeDelete(attribute)}
-                  >
-                    <Icon name="close" size={11} color="#94a3b8" />
-                  </Pressable>
-                </View>
-                <TextInput
-                  value={values[attribute.code] ?? ''}
-                  onChangeText={(next) => onValueChange(attribute.code, next)}
-                  placeholder={OptionsTexts.valuePlaceholder}
-                  className={FIELD}
-                />
-
-                <If condition={attribute.values.length > 0}>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View className="flex-row gap-2 pr-2">
-                      {attribute.values.map((item) => (
-                        <Pressable
-                          key={item}
-                          accessibilityRole="button"
-                          onPress={() => onValueChange(attribute.code, item)}
-                          className={`${CHIP} ${values[attribute.code] === item ? 'border-primary bg-primary' : 'border-line bg-background'}`}
-                        >
-                          <Text
-                            className={`text-xs font-semibold ${values[attribute.code] === item ? 'text-onPrimary' : 'text-muted'}`}
-                          >
-                            {item}
-                          </Text>
-                        </Pressable>
-                      ))}
-                    </View>
-                  </ScrollView>
-                </If>
-              </View>
-            ))}
-          </View>
-        </If>
-      </View>
+      <RenderDetails
+        details={details}
+        values={values}
+        onValueChange={onValueChange}
+        onCreate={() => setAttributeDraft(emptyAttributeDraft(false))}
+        onEdit={(attribute) => setAttributeDraft(toAttributeDraft(attribute))}
+        onDelete={handleAttributeDelete}
+      />
 
       <View className="gap-3 rounded-2xl border border-line bg-surface/60 p-4">
         <Pressable
