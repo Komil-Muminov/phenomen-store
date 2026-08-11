@@ -1,6 +1,7 @@
 import { NextFunction, Response, Router } from 'express';
 import { ApiActions, Env, ErrorMessages, HttpStatus, TenantHeader, UserRoles } from '@/shared/config';
 import { authMiddleware, rbacMiddleware } from '@/shared/middlewares';
+import { ShopActions, auditMiddleware } from '@/shared/audit';
 import { IAppRequest } from '@/shared/types';
 import { AppError, pickString, sendOk } from '@/shared/utils';
 import { getPublicConfig, resolveTenantByKey, updateTenantConfig } from '@/modules/tenant/tenant.service';
@@ -49,6 +50,7 @@ tenantRouter.patch(
   ApiActions.config,
   authMiddleware,
   rbacMiddleware([UserRoles.admin, UserRoles.owner, UserRoles.platform]),
+  auditMiddleware(ShopActions.configUpdate),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       sendOk(res, await updateTenantConfig(requireTenant(req), req.body ?? {}));

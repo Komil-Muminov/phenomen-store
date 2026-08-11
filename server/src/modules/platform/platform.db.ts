@@ -1,8 +1,8 @@
+import { IAuditEntry, writeAuditEntry } from '@/shared/audit';
 import { query, tenantQuery, withTenant } from '@/shared/db';
 import { EntityStatus, UserRoles } from '@/shared/config';
 import type { IUserRow } from '@/modules/auth';
 import {
-  IAuditEntry,
   IPlatformUserRow,
   ITenantStaffRow,
   ITenantSummary,
@@ -365,16 +365,5 @@ export const selectAuditActions = async (): Promise<string[]> => {
 };
 
 export const insertAuditEntry = async (entry: IAuditEntry): Promise<void> => {
-  await query(
-    `INSERT INTO platform_audit_log (actor_id, actor_login, action, tenant_id, payload, ip)
-     VALUES ($1, $2, $3, $4, $5::jsonb, $6)`,
-    [
-      entry.actorId,
-      entry.actorLogin,
-      entry.action,
-      entry.tenantId ?? null,
-      JSON.stringify(entry.payload ?? {}),
-      entry.ip ?? null,
-    ],
-  );
+  await writeAuditEntry(entry);
 };

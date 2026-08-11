@@ -49,6 +49,7 @@ export const issueToken = (user: IUserRow): string => {
     id: user.id,
     tenantId: user.tenant_id,
     role: (user.role as TUserRole) ?? UserRoles.customer,
+    login: user.email ?? user.phone ?? user.id,
   };
 
   return jwt.sign(payload, Env.jwtSecret, { expiresIn: Env.jwtExpiresIn as any });

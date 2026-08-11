@@ -1,5 +1,6 @@
 import { NextFunction, Response, Router } from 'express';
 import { ApiActions, ErrorMessages, HttpStatus, UserRoles } from '@/shared/config';
+import { ShopActions, auditMiddleware } from '@/shared/audit';
 import { authMiddleware, rbacMiddleware } from '@/shared/middlewares';
 import { IAppRequest } from '@/shared/types';
 import {
@@ -139,6 +140,7 @@ productRouter.patch(
   STOCK_UPDATE_ACTION,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.stockUpdate),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       const id = requireUuid(req.params.id, 'id');
@@ -154,6 +156,7 @@ productRouter.post(
   IMPORT_ACTION,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.productImport),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       sendOk(res, await importProducts(requireTenant(req), req.body ?? {}));
@@ -167,6 +170,7 @@ productRouter.post(
   DUPLICATE_ACTION,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.productDuplicate),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       const id = requireUuid(req.params.id, 'id');
@@ -182,6 +186,7 @@ productRouter.post(
   ApiActions.create,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.productCreate),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       sendCreated(res, await createProduct(requireTenant(req), req.body ?? {}));
@@ -195,6 +200,7 @@ productRouter.patch(
   ApiActions.update,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.productUpdate),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       const id = requireUuid(req.params.id, 'id');
@@ -210,6 +216,7 @@ productRouter.patch(
   ApiActions.deactivate,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.productDeactivate),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       const id = requireUuid(req.params.id, 'id');
@@ -243,6 +250,7 @@ categoryRouter.post(
   ApiActions.create,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.categoryCreate),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       sendCreated(res, await createCategory(requireTenant(req), req.body ?? {}));
@@ -256,6 +264,7 @@ categoryRouter.patch(
   ApiActions.update,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.categoryUpdate),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       const id = requireUuid(req.params.id, 'id');
@@ -271,6 +280,7 @@ categoryRouter.delete(
   ApiActions.delete,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.categoryDelete),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       const id = requireUuid(req.params.id, 'id');

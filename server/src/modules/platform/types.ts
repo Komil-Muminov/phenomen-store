@@ -111,11 +111,3 @@ export interface ICreateOwnerPayload {
   name: string;
 }
 
-export interface IAuditEntry {
-  actorId: string;
-  actorLogin: string;
-  action: string;
-  tenantId?: string | null;
-  payload?: Record<string, unknown>;
-  ip?: string | null;
-}

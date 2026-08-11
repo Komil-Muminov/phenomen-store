@@ -23,6 +23,7 @@ export interface IUserContext {
   id: string;
   tenantId: string;
   role: TUserRole;
+  login?: string;
 }
 
 export interface IAppRequest extends Request {

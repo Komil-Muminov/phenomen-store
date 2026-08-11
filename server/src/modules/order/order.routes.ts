@@ -1,6 +1,7 @@
 import { NextFunction, Response, Router } from 'express';
 import { ApiActions, ErrorMessages, GuestHeader, HttpStatus, IdempotencyHeader, UserRoles } from '@/shared/config';
 import { authMiddleware, optionalAuthMiddleware, rbacMiddleware } from '@/shared/middlewares';
+import { ShopActions, auditMiddleware } from '@/shared/audit';
 import { IAppRequest } from '@/shared/types';
 import {
   AppError,
@@ -120,6 +121,7 @@ orderRouter.post(
   OrderActions.status,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.orderStatus),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       const tenant = requireTenant(req);

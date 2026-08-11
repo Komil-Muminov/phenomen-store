@@ -1,6 +1,7 @@
 import { NextFunction, Response, Router } from 'express';
 import { ApiActions, ErrorMessages, HttpStatus, UserRoles } from '@/shared/config';
 import { authMiddleware, rbacMiddleware } from '@/shared/middlewares';
+import { ShopActions, auditMiddleware } from '@/shared/audit';
 import { IAppRequest } from '@/shared/types';
 import {
   AppError,
@@ -55,6 +56,7 @@ bannerRouter.post(
   ApiActions.create,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.bannerCreate),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       sendCreated(res, await createBanner(requireTenant(req), req.body ?? {}));
@@ -68,6 +70,7 @@ bannerRouter.patch(
   ApiActions.update,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.bannerUpdate),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       const id = requireUuid(req.params.id, 'id');
@@ -83,6 +86,7 @@ bannerRouter.patch(
   ApiActions.deactivate,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.bannerDeactivate),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       const id = requireUuid(req.params.id, 'id');
@@ -98,6 +102,7 @@ bannerRouter.post(
   BannerPaths.reorder,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.bannerReorder),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       sendOk(res, await reorderBanners(requireTenant(req), req.body ?? {}));
@@ -111,6 +116,7 @@ bannerRouter.delete(
   ApiActions.delete,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.bannerDelete),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       const id = requireUuid(req.params.id, 'id');

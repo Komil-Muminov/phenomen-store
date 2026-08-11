@@ -1,6 +1,7 @@
 import { NextFunction, Response, Router } from 'express';
 import { ErrorMessages, HttpStatus, UserRoles } from '@/shared/config';
 import { authMiddleware, rbacMiddleware } from '@/shared/middlewares';
+import { ShopActions, auditMiddleware } from '@/shared/audit';
 import { IAppRequest } from '@/shared/types';
 import { AppError, requireUuid, sendCreated, sendOk } from '@/shared/utils';
 import {
@@ -38,6 +39,7 @@ attributeRouter.post(
   AttributePaths.create,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.attributeCreate),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       sendCreated(res, await createAttribute(requireTenant(req), req.body ?? {}));
@@ -51,6 +53,7 @@ attributeRouter.delete(
   AttributePaths.remove,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.attributeDelete),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       const id = requireUuid(req.params.id, 'id');
@@ -66,6 +69,7 @@ attributeRouter.patch(
   AttributePaths.update,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.attributeUpdate),
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
       const id = requireUuid(req.params.id, 'id');
