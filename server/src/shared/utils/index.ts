@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { HttpStatus, Pagination } from '@/shared/config';
-import { IListResult, IPaginationParams } from '@/shared/types';
+import { IListResult, IPaginationParams, TCounted } from '@/shared/types';
 
 export class AppError extends Error {
   public readonly status: number;
@@ -36,6 +36,11 @@ export const parsePagination = (query: Record<string, unknown>): IPaginationPara
 
   return { page, limit, offset: (page - 1) * limit };
 };
+
+export const splitTotal = <T>(rows: TCounted<T>[]): { items: T[]; total: number } => ({
+  items: rows.map(({ total_count, ...rest }) => rest as T),
+  total: Number(rows[0]?.total_count ?? 0),
+});
 
 export const pickSearch = (value: unknown): string | null => {
   const text = typeof value === 'string' ? value.trim() : '';

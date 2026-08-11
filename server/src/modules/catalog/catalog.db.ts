@@ -1,4 +1,6 @@
 import { tenantQuery, withTenant } from '@/shared/db';
+import { TCounted } from '@/shared/types';
+import { splitTotal } from '@/shared/utils';
 import {
   DemoProducts,
   DemoSizes,
@@ -11,13 +13,16 @@ import {
   SearchLanguage,
 } from '@/modules/catalog/types';
 
-const PRODUCT_SELECT = `
-  SELECT p.id, p.slug, p.name, p.description, p.brand, p.category_id, p.product_type, p.unit,
+const PRODUCT_COLUMNS = `
+  p.id, p.slug, p.name, p.description, p.brand, p.category_id, p.product_type, p.unit,
          p.base_price, p.old_price, p.currency, p.attributes, p.rating, p.reviews_count, p.created_at,
          COALESCE(m.media, ARRAY[]::text[]) AS media,
          COALESCE(v.variants, '[]'::json) AS variants,
          v.min_price,
          COALESCE(v.in_stock, false) AS in_stock
+`;
+
+const PRODUCT_FROM = `
   FROM products p
   LEFT JOIN LATERAL (
     SELECT json_agg(json_build_object(
@@ -192,16 +197,13 @@ export const selectProducts = async (
   const order = ProductSortSql[params.sort] ?? ProductSortSql.popular;
 
   return withTenant(tenantId, async (client) => {
-    const items = await client.query<IProductRow>(
-      `${PRODUCT_SELECT} WHERE ${where} ORDER BY ${order} NULLS LAST LIMIT $${values.length + 1} OFFSET $${values.length + 2}`,
+    const rows = await client.query<TCounted<IProductRow>>(
+      `SELECT ${PRODUCT_COLUMNS}, COUNT(*) OVER()::text AS total_count ${PRODUCT_FROM} WHERE ${where}
+       ORDER BY ${order} NULLS LAST LIMIT $${values.length + 1} OFFSET $${values.length + 2}`,
       [...values, params.limit, params.offset],
     );
-    const counted = await client.query<{ total: string }>(
-      `SELECT COUNT(*)::text AS total FROM products p WHERE ${where}`,
-      values,
-    );
 
-    return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
+    return splitTotal(rows.rows);
   });
 };
 
@@ -219,16 +221,13 @@ export const selectManagedProducts = async (
   offset: number,
 ): Promise<{ items: IProductRow[]; total: number }> => withTenant(tenantId, async (client) => {
   const scope = [tenantId, filters.search, filters.categoryId, filters.isActive];
-  const items = await client.query<IProductRow>(
-    `${PRODUCT_SELECT} ${MANAGED_PRODUCTS_FILTER} ORDER BY p.created_at DESC LIMIT $5 OFFSET $6`,
+  const rows = await client.query<TCounted<IProductRow>>(
+    `SELECT ${PRODUCT_COLUMNS}, COUNT(*) OVER()::text AS total_count ${PRODUCT_FROM} ${MANAGED_PRODUCTS_FILTER}
+     ORDER BY p.created_at DESC LIMIT $5 OFFSET $6`,
     [...scope, limit, offset],
   );
-  const counted = await client.query<{ total: string }>(
-    `SELECT COUNT(*)::text AS total FROM products p ${MANAGED_PRODUCTS_FILTER}`,
-    scope,
-  );
 
-  return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
+  return splitTotal(rows.rows);
 });
 
 const PRODUCT_WRITE_COLUMNS: Record<string, string> = {
@@ -367,20 +366,17 @@ export const selectStockRows = async (
   offset: number,
 ): Promise<{ items: IStockRow[]; total: number }> => withTenant(tenantId, async (client) => {
   const scope = [tenantId, filters.search, filters.onlyEmpty];
-  const items = await client.query<IStockRow>(
+  const rows = await client.query<TCounted<IStockRow>>(
     `SELECT v.id, v.sku, v.options, v.stock, v.price::text, v.is_active,
-            p.id AS product_id, p.name AS product_name
+            p.id AS product_id, p.name AS product_name,
+            COUNT(*) OVER()::text AS total_count
      ${STOCK_FILTER}
      ORDER BY p.name, v.sku
      LIMIT $4 OFFSET $5`,
     [...scope, limit, offset],
   );
-  const counted = await client.query<{ total: string }>(
-    `SELECT COUNT(*)::text AS total ${STOCK_FILTER}`,
-    scope,
-  );
 
-  return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
+  return splitTotal(rows.rows);
 });
 
 export const selectProductVariants = async (
@@ -457,7 +453,7 @@ export const existsProductSlug = async (tenantId: string, slug: string): Promise
 export const selectProductById = async (tenantId: string, id: string): Promise<IProductRow | null> => {
   const rows = await tenantQuery<IProductRow>(
     tenantId,
-    `${PRODUCT_SELECT} WHERE p.tenant_id = $1 AND p.id = $2 AND p.is_active LIMIT 1`,
+    `SELECT ${PRODUCT_COLUMNS} ${PRODUCT_FROM} WHERE p.tenant_id = $1 AND p.id = $2 AND p.is_active LIMIT 1`,
     [tenantId, id],
   );
 
@@ -470,7 +466,7 @@ export const selectManagedProductBySlug = async (
 ): Promise<IProductRow | null> => {
   const rows = await tenantQuery<IProductRow>(
     tenantId,
-    `${PRODUCT_SELECT} WHERE p.tenant_id = $1 AND p.slug = $2 LIMIT 1`,
+    `SELECT ${PRODUCT_COLUMNS} ${PRODUCT_FROM} WHERE p.tenant_id = $1 AND p.slug = $2 LIMIT 1`,
     [tenantId, slug],
   );
 
@@ -483,7 +479,7 @@ export const selectManagedProductById = async (
 ): Promise<IProductRow | null> => {
   const rows = await tenantQuery<IProductRow>(
     tenantId,
-    `${PRODUCT_SELECT} WHERE p.tenant_id = $1 AND p.id = $2 LIMIT 1`,
+    `SELECT ${PRODUCT_COLUMNS} ${PRODUCT_FROM} WHERE p.tenant_id = $1 AND p.id = $2 LIMIT 1`,
     [tenantId, id],
   );
 

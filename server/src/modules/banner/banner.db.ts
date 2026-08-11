@@ -1,4 +1,6 @@
 import { tenantQuery, withTenant } from '@/shared/db';
+import { TCounted } from '@/shared/types';
+import { splitTotal } from '@/shared/utils';
 import { IBannerFilters, IBannerInput, IBannerRow } from '@/modules/banner/types';
 
 const BANNER_COLUMNS = `
@@ -27,16 +29,13 @@ export const selectBannerPage = async (
   offset: number,
 ): Promise<{ items: IBannerRow[]; total: number }> => withTenant(tenantId, async (client) => {
   const scope = [tenantId, filters.search, filters.isActive];
-  const items = await client.query<IBannerRow>(
-    `SELECT ${BANNER_COLUMNS} FROM banners ${MANAGED_FILTER} ORDER BY position, id LIMIT $4 OFFSET $5`,
+  const rows = await client.query<TCounted<IBannerRow>>(
+    `SELECT ${BANNER_COLUMNS}, COUNT(*) OVER()::text AS total_count
+     FROM banners ${MANAGED_FILTER} ORDER BY position, id LIMIT $4 OFFSET $5`,
     [...scope, limit, offset],
   );
-  const counted = await client.query<{ total: string }>(
-    `SELECT COUNT(*)::text AS total FROM banners ${MANAGED_FILTER}`,
-    scope,
-  );
 
-  return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
+  return splitTotal(rows.rows);
 });
 
 export const selectBannerById = async (

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  keepPreviousData,
   useMutation,
   useQuery,
   useQueryClient,
@@ -8,6 +9,7 @@ import {
 } from '@tanstack/react-query';
 import { requestData, TApiScope } from '@/shared/api';
 import { Pagination, SearchDebounceMs, StaleTimeMs } from '@/shared/config';
+import { IPrefetchList } from '@/shared/lib';
 
 type TQueryKey = readonly (string | number | boolean | null | undefined)[];
 
@@ -35,7 +37,22 @@ export const useGetQuery = <T>(
   queryFn: () => requestData<T>({ url, method: 'get', params: options.params }, options.scope),
   enabled: options.enabled ?? true,
   staleTime: options.staleTime ?? StaleTimeMs.short,
+  placeholderData: keepPreviousData,
 });
+
+export const usePrefetchLists = (lists: IPrefetchList[], scope: TApiScope): void => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    lists.forEach((list) => {
+      void queryClient.prefetchQuery({
+        queryKey: [...list.key, list.params],
+        queryFn: () => requestData({ url: list.url, method: 'get', params: list.params }, scope),
+        staleTime: StaleTimeMs.short,
+      });
+    });
+  }, [lists, queryClient, scope]);
+};
 
 export const useMutationQuery = <TBody, TData = unknown>(
   url: string | ((body: TBody) => string),

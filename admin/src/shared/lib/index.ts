@@ -1,4 +1,4 @@
-import { Env } from '@/shared/config';
+import { ApiRoutes, Env, ListLimits, Pagination, QueryKeys } from '@/shared/config';
 
 export const NavLinkBases = {
   compact: 'flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm transition-all duration-200',
@@ -58,3 +58,51 @@ export const resolveMediaUrl = (value: string | null | undefined): string => {
 
   return markIndex < 0 ? url : `${Env.apiUrl}${url.slice(markIndex)}`;
 };
+
+export interface IPrefetchList {
+  key: (string | number | boolean | null)[];
+  url: string;
+  params: Record<string, unknown>;
+}
+
+const buildPrefetchList = <T extends object>(
+  prefix: (string | number | boolean | null)[],
+  url: string,
+  filters: T,
+  limit: number,
+): IPrefetchList => {
+  const state = { ...filters, page: Pagination.defaultPage, search: '' };
+
+  return {
+    key: [...prefix, ...buildListKey(state)],
+    url,
+    params: buildListParams(state, limit),
+  };
+};
+
+export const ShopPrefetchLists: IPrefetchList[] = [
+  buildPrefetchList(
+    [QueryKeys.shopOrders],
+    ApiRoutes.shopOrdersSearch,
+    { status: undefined },
+    ListLimits.default,
+  ),
+  buildPrefetchList(
+    [QueryKeys.shopProducts, 'manage'],
+    ApiRoutes.shopProductsSearch,
+    { categoryId: undefined, isActive: undefined },
+    ListLimits.default,
+  ),
+  buildPrefetchList(
+    [QueryKeys.shopStock],
+    ApiRoutes.shopStockSearch,
+    { onlyEmpty: undefined },
+    ListLimits.stock,
+  ),
+  buildPrefetchList(
+    [QueryKeys.shopBanners],
+    ApiRoutes.shopBannersManage,
+    { isActive: undefined },
+    ListLimits.banners,
+  ),
+];

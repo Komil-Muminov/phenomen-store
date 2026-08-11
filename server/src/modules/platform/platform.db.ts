@@ -1,5 +1,7 @@
 import { IAuditEntry, writeAuditEntry } from '@/shared/audit';
 import { query, tenantQuery, withTenant } from '@/shared/db';
+import { TCounted } from '@/shared/types';
+import { splitTotal } from '@/shared/utils';
 import { EntityStatus, UserRoles } from '@/shared/config';
 import type { IUserRow } from '@/modules/auth';
 import {
@@ -340,20 +342,17 @@ export const selectAuditEntries = async (
   offset: number,
 ): Promise<{ items: IAuditRow[]; total: number }> => {
   const values = [filters.action, filters.tenantKey, filters.search];
-  const items = await query<IAuditRow>(
+  const rows = await query<TCounted<IAuditRow>>(
     `SELECT a.id, a.actor_login, a.action, a.tenant_id, t.key AS tenant_key,
-            a.payload, a.ip, a.created_at::text AS created_at
+            a.payload, a.ip, a.created_at::text AS created_at,
+            COUNT(*) OVER()::text AS total_count
      ${AUDIT_FROM}
      ORDER BY a.created_at DESC
      LIMIT $4 OFFSET $5`,
     [...values, limit, offset],
   );
-  const counted = await query<{ total: string }>(
-    `SELECT COUNT(*)::text AS total ${AUDIT_FROM}`,
-    values,
-  );
 
-  return { items, total: Number(counted[0]?.total ?? 0) };
+  return splitTotal(rows);
 };
 
 export const selectAuditActions = async (): Promise<string[]> => {

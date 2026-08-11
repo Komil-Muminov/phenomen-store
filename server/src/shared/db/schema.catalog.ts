@@ -41,6 +41,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS products_tenant_slug_uniq ON products(tenant_i
 CREATE INDEX IF NOT EXISTS products_category_idx ON products(tenant_id, category_id) WHERE is_active;
 CREATE INDEX IF NOT EXISTS products_attributes_idx ON products USING GIN (attributes);
 CREATE INDEX IF NOT EXISTS products_search_idx ON products USING GIN (to_tsvector('russian', name || ' ' || COALESCE(description, '')));
+CREATE INDEX IF NOT EXISTS products_name_trgm_idx ON products USING GIN (name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS products_brand_trgm_idx ON products USING GIN (brand gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS products_slug_trgm_idx ON products USING GIN (slug gin_trgm_ops);
 
 CREATE TABLE IF NOT EXISTS product_variants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -58,6 +61,7 @@ CREATE TABLE IF NOT EXISTS product_variants (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS product_variants_tenant_sku_uniq ON product_variants(tenant_id, sku);
+CREATE INDEX IF NOT EXISTS product_variants_sku_trgm_idx ON product_variants USING GIN (sku gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS product_variants_product_idx ON product_variants(tenant_id, product_id);
 CREATE INDEX IF NOT EXISTS product_variants_options_idx ON product_variants USING GIN (options);
 

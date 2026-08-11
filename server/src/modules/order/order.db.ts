@@ -1,5 +1,7 @@
 import { PoolClient } from 'pg';
 import { tenantQuery, withTenant } from '@/shared/db';
+import { TCounted } from '@/shared/types';
+import { splitTotal } from '@/shared/utils';
 import { IPricingItem, IPricingTotals } from '@/modules/pricing';
 import { markCartConverted } from '@/modules/cart';
 import {
@@ -177,17 +179,13 @@ export const selectTenantOrders = async (
       OR customer->>'name' ILIKE $3
       OR customer->>'phone' ILIKE $3)`;
   const scope = [tenantId, status, search];
-  const items = await client.query<IOrderRow>(
-    `SELECT ${ORDER_COLUMNS} FROM orders ${filter}
+  const rows = await client.query<TCounted<IOrderRow>>(
+    `SELECT ${ORDER_COLUMNS}, COUNT(*) OVER()::text AS total_count FROM orders ${filter}
      ORDER BY created_at DESC LIMIT $4 OFFSET $5`,
     [...scope, limit, offset],
   );
-  const counted = await client.query<{ total: string }>(
-    `SELECT COUNT(*)::text AS total FROM orders ${filter}`,
-    scope,
-  );
 
-  return { items: items.rows, total: Number(counted.rows[0]?.total ?? 0) };
+  return splitTotal(rows.rows);
 });
 
 export const selectOrderItems = async (tenantId: string, orderId: string): Promise<IOrderItemRow[]> => (

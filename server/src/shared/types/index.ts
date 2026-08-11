@@ -32,6 +32,8 @@ export interface IAppRequest extends Request {
   platform?: IPlatformContext;
 }
 
+export type TCounted<T> = T & { total_count: string };
+
 export interface IListResult<T> {
   items: T[];
   total: number;

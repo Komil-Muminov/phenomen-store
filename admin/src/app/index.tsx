@@ -5,6 +5,8 @@ import { App as AntApp, ConfigProvider, Spin } from 'antd';
 import ruRU from 'antd/locale/ru_RU';
 import { AppRoutes } from '@/shared/config';
 import { AuthProvider, useAuth } from '@/shared/auth';
+import { usePrefetchLists } from '@/shared/hooks';
+import { IPrefetchList, ShopPrefetchLists } from '@/shared/lib';
 import { ShopAuthProvider, useShopAuth } from '@/shared/shop-auth';
 import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 import { PlatformShell } from '@/widgets/platform-shell';
@@ -37,6 +39,8 @@ const ContentFallback = () => (
     <Spin />
   </div>
 );
+
+const EMPTY_PREFETCH: IPrefetchList[] = [];
 
 const preloadShopPages = (): void => {
   void import('@/pages/shop-orders');
@@ -71,6 +75,7 @@ const ShopLayout = () => {
   const { isAuthorized } = useShopAuth();
 
   useEffect(preloadShopPages, []);
+  usePrefetchLists(isAuthorized ? ShopPrefetchLists : EMPTY_PREFETCH, 'shop');
 
   return isAuthorized ? (
     <ShopShell>
