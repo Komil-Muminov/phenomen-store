@@ -36,6 +36,7 @@ export const ApiRoutes = {
   notificationsMarkRead: '/notifications/read',
   staffSignin: '/platform/auth/signin',
   tenantsSearch: '/platform/tenants/search',
+  platformAudit: '/platform/audit/search',
   tenantsCreate: '/platform/tenants/create',
   tenantsUpdate: '/platform/tenants/update',
   tenantsActivate: '/platform/tenants/activate',
@@ -88,6 +89,8 @@ export const AppRoutes = {
   adminStock: '/admin/stock',
   adminBanners: '/admin/banners',
   adminSettings: '/admin/settings',
+  adminAudit: '/admin/audit',
+  adminStaff: '/admin/staff',
 } as const;
 
 export const QueryKeys = {
@@ -102,6 +105,7 @@ export const QueryKeys = {
   notifications: 'notifications',
   adminTenants: 'admin-tenants',
   adminStaff: 'admin-staff',
+  adminAudit: 'admin-audit',
   adminOrders: 'admin-orders',
   adminProducts: 'admin-products',
   adminAttributes: 'admin-attributes',

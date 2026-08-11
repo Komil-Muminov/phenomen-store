@@ -9,6 +9,13 @@ const PLATFORM_SECTIONS: IAdminSection[] = [
     icon: 'bag',
     route: AppRoutes.adminTenants,
   },
+  {
+    key: 'audit',
+    title: 'Журнал действий',
+    subtitle: 'Кто и что менял на платформе',
+    icon: 'shield',
+    route: AppRoutes.adminAudit,
+  },
 ];
 
 const SHOP_SECTIONS: IAdminSection[] = [

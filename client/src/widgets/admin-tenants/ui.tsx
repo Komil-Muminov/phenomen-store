@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   ApiRoutes,
@@ -10,29 +10,39 @@ import {
 } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { useStaffAuth } from '@/shared/staff-auth';
-import { Icon, If, Screen } from '@/shared/ui';
+import { Button, ButtonVariants, Icon, If, Screen } from '@/shared/ui';
+import { useTenantMutations } from '@/widgets/admin-tenants/lib';
 import {
+  EMPTY_TENANT,
+  FormTexts,
   IEnterResult,
   ITenant,
+  ITenantFormValues,
   ITenantList,
   TenantsTexts,
+  toCreatePayload,
+  toTenantForm,
+  toUpdatePayload,
 } from '@/widgets/admin-tenants/model';
+import { RenderTenantForm } from '@/widgets/admin-tenants/ui/renderForm';
 
 export const AdminTenants = () => {
   const router = useRouter();
   const { signIn } = useStaffAuth();
   const [page, setPage] = useState(1);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<ITenant | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [values, setValues] = useState<ITenantFormValues>(EMPTY_TENANT);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<ITenant | null>(null);
+  const [deleteKey, setDeleteKey] = useState('');
+  const mutations = useTenantMutations();
 
   const tenantsQuery = useGetQuery<ITenantList>(
     [QueryKeys.adminTenants, page],
     ApiRoutes.tenantsSearch,
     { params: { page, limit: ManageListLimit } },
-  );
-
-  const statusMutation = useMutationQuery<{ id: string; activate: boolean }, ITenant>(
-    (body) => `${body.activate ? ApiRoutes.tenantsActivate : ApiRoutes.tenantsDeactivate}/${body.id}`,
-    { method: 'patch', invalidate: [[QueryKeys.adminTenants]] },
   );
 
   const enterMutation = useMutationQuery<{ id: string }, IEnterResult>(
@@ -42,11 +52,54 @@ export const AdminTenants = () => {
   const handleToggle = useCallback((tenant: ITenant) => {
     setBusyId(tenant.id);
 
-    statusMutation.mutate(
+    mutations.status.mutate(
       { id: tenant.id, activate: tenant.status !== EntityStatuses.active },
       { onSettled: () => setBusyId(null) },
     );
-  }, [statusMutation]);
+  }, [mutations.status]);
+
+  const handleCreate = useCallback(() => {
+    setEditing(null);
+    setValues(EMPTY_TENANT);
+    setFormError(null);
+    setFormOpen(true);
+  }, []);
+
+  const handleEdit = useCallback((tenant: ITenant) => {
+    setEditing(tenant);
+    setValues(toTenantForm(tenant));
+    setFormError(null);
+    setFormOpen(true);
+  }, []);
+
+  const handleSubmit = useCallback(() => {
+    const onSuccess = () => setFormOpen(false);
+    const onError = (error: Error) => setFormError(error.message);
+
+    if (editing) {
+      mutations.update.mutate(
+        { ...toUpdatePayload(values), id: editing.id },
+        { onSuccess, onError },
+      );
+
+      return;
+    }
+
+    mutations.create.mutate(toCreatePayload(values), { onSuccess, onError });
+  }, [editing, values, mutations.update, mutations.create]);
+
+  const handleDelete = useCallback(() => {
+    if (!deleting) {
+      return;
+    }
+
+    mutations.remove.mutate({ id: deleting.id, key: deleting.key }, {
+      onSuccess: () => {
+        setDeleting(null);
+        setDeleteKey('');
+      },
+    });
+  }, [deleting, mutations.remove]);
 
   const handleEnter = useCallback((tenant: ITenant) => {
     setBusyId(tenant.id);
@@ -87,6 +140,15 @@ export const AdminTenants = () => {
           </Text>
           <Text className="text-xs text-muted">{`Найдено: ${total}`}</Text>
         </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={FormTexts.createTitle}
+          onPress={handleCreate}
+          className="h-10 w-10 items-center justify-center rounded-xl bg-primary active:opacity-80"
+        >
+          <Icon name="plus" size={18} color="#ffffff" />
+        </Pressable>
       </View>
 
       <ScrollView
@@ -141,6 +203,39 @@ export const AdminTenants = () => {
                   </Text>
                 </Pressable>
               </View>
+
+              <View className="flex-row gap-2">
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => handleEdit(tenant)}
+                  className="flex-1 items-center rounded-xl border border-line bg-background py-2.5 active:opacity-80"
+                >
+                  <Text className="text-xs font-semibold text-muted">Настройки</Text>
+                </Pressable>
+
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => router.push({
+                    pathname: AppRoutes.adminStaff,
+                    params: { tenantId: tenant.id, tenantName: tenant.name },
+                  })}
+                  className="flex-1 items-center rounded-xl border border-line bg-background py-2.5 active:opacity-80"
+                >
+                  <Text className="text-xs font-semibold text-muted">Сотрудники</Text>
+                </Pressable>
+
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Удалить магазин"
+                  onPress={() => {
+                    setDeleteKey('');
+                    setDeleting(tenant);
+                  }}
+                  className="h-10 w-10 items-center justify-center rounded-xl bg-background active:opacity-80"
+                >
+                  <Icon name="close" size={14} />
+                </Pressable>
+              </View>
             </View>
           ))}
         </If>
@@ -155,6 +250,52 @@ export const AdminTenants = () => {
           </Pressable>
         </If>
       </ScrollView>
+
+      <RenderTenantForm
+        open={formOpen}
+        editing={Boolean(editing)}
+        values={values}
+        saving={mutations.create.isPending || mutations.update.isPending}
+        errorMessage={formError}
+        onChange={setValues}
+        onSubmit={handleSubmit}
+        onClose={() => setFormOpen(false)}
+      />
+
+      <Modal
+        visible={Boolean(deleting)}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setDeleting(null)}
+      >
+        <View className="flex-1 items-center justify-center bg-content/40 px-6">
+          <View className="w-full gap-3 rounded-2xl bg-background p-5">
+            <Text className="text-lg font-extrabold text-content">{FormTexts.deleteTitle}</Text>
+            <Text className="text-sm text-muted">{FormTexts.deleteHint}</Text>
+
+            <TextInput
+              autoFocus
+              value={deleteKey}
+              onChangeText={setDeleteKey}
+              autoCapitalize="none"
+              placeholder={deleting?.key}
+              className="rounded-2xl border border-line bg-surface px-4 py-3 text-base text-content"
+            />
+
+            <Button
+              title={FormTexts.deleteConfirm}
+              loading={mutations.remove.isPending}
+              disabled={deleteKey.trim().toLowerCase() !== deleting?.key}
+              onPress={handleDelete}
+            />
+            <Button
+              title={FormTexts.cancel}
+              variant={ButtonVariants.secondary}
+              onPress={() => setDeleting(null)}
+            />
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 };
