@@ -86,7 +86,12 @@ export const fromIsoDate = (value: string | null): string => {
     return '';
   }
 
-  const date = new Date(value);
+  const isoStr = typeof value === 'string' ? value.replace(' ', 'T') : String(value);
+  const date = new Date(isoStr);
+
+  if (isNaN(date.getTime())) {
+    return '';
+  }
 
   return [
     String(date.getDate()).padStart(2, '0'),
