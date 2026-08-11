@@ -36,7 +36,10 @@ export const OptionPicker = ({
         </Text>
         <If condition={code === 'size' && Boolean(handleSizeGuide)}>
           <Pressable
-            onPress={handleSizeGuide}
+            onPress={() => {
+              triggerHapticLight();
+              handleSizeGuide?.();
+            }}
             className="flex-row items-center gap-1 rounded-full bg-primary/10 px-3 py-1 border border-primary/20 active:bg-primary/20"
           >
             <Text className="text-xs font-extrabold text-primary">📏 Таблица размеров</Text>
@@ -58,12 +61,17 @@ export const OptionPicker = ({
                 onSelect(value);
               }}
               className={[
-                'min-w-[48px] items-center justify-center rounded-xl border px-4 py-2.5 active:scale-95',
-                active ? 'border-primary bg-primary' : 'border-line bg-surface/50',
-                available ? 'opacity-100' : 'opacity-40',
+                'min-w-[48px] items-center justify-center rounded-2xl border px-4 py-2.5 active:scale-95 relative overflow-hidden',
+                active ? 'border-primary bg-primary shadow-xs' : 'border-line bg-surface',
+                available ? 'opacity-100' : 'opacity-35 bg-slate-100 border-dashed border-slate-300',
               ].join(' ')}
             >
-              <Text className={active ? 'text-sm font-bold text-onPrimary' : 'text-sm font-medium text-content'}>
+              <Text
+                className={[
+                  active ? 'text-sm font-black text-white' : 'text-sm font-semibold text-content',
+                  !available ? 'line-through text-slate-400' : '',
+                ].join(' ')}
+              >
                 {value}
               </Text>
             </Pressable>

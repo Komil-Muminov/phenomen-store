@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { FlatList, Image, Text, View, useWindowDimensions } from 'react-native';
+import { FlatList, Image, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { IProduct, ProductPlaceholderImage } from '@/entities/product';
-import { formatDiscount, formatPrice, formatUnitPrice } from '@/shared/lib';
-import { If } from '@/shared/ui';
+import { formatDiscount, formatPrice, formatUnitPrice, triggerHapticLight } from '@/shared/lib';
+import { Icon, If } from '@/shared/ui';
 import {
   AttributeLabels,
   ISelectedOptions,
@@ -40,7 +40,8 @@ const MOCK_REVIEWS = [
 export const ProductDetails = ({ product, currencySymbol, selected, onSelect }: IProps) => {
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
-  const { width: screenWidth } = useWindowDimensions();
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   const variant = findVariant(product, selected);
   const price = variant?.price ?? product.price;
@@ -96,15 +97,25 @@ export const ProductDetails = ({ product, currencySymbol, selected, onSelect }: 
             const index = Math.round(e.nativeEvent.contentOffset.x / (cardWidth + 12));
             setActiveMediaIndex(index);
           }}
-          renderItem={({ item }) => (
-            <View style={{ width: cardWidth, marginRight: 12 }} className="items-center justify-center">
+          renderItem={({ item, index }) => (
+            <Pressable
+              onPress={() => {
+                triggerHapticLight();
+                setLightboxIndex(index);
+              }}
+              style={{ width: cardWidth, marginRight: 12 }}
+              className="items-center justify-center active:opacity-95"
+            >
               <Image
                 source={{ uri: item }}
                 style={{ width: cardWidth, height: cardWidth * 1.2 }}
                 className="rounded-3xl bg-surface"
                 resizeMode="cover"
               />
-            </View>
+              <View className="absolute bottom-3 right-3 rounded-full bg-black/50 px-2.5 py-1 backdrop-blur-md">
+                <Text className="text-[10px] font-bold text-white">🔍 Нажмите для увеличения</Text>
+              </View>
+            </Pressable>
           )}
         />
 
@@ -151,8 +162,8 @@ export const ProductDetails = ({ product, currencySymbol, selected, onSelect }: 
             </Text>
           </If>
           <If condition={Boolean(formatDiscount(price, oldPrice))}>
-            <View className="rounded-lg bg-accent px-2 py-0.5 ml-1">
-              <Text className="text-xs font-bold text-onPrimary">
+            <View className="rounded-lg bg-rose-600 px-2 py-0.5 ml-1">
+              <Text className="text-xs font-bold text-white">
                 {formatDiscount(price, oldPrice)}
               </Text>
             </View>
@@ -165,6 +176,7 @@ export const ProductDetails = ({ product, currencySymbol, selected, onSelect }: 
         {optionTypes.map((attr) => (
           <OptionPicker
             key={attr.code}
+            product={product}
             code={attr.code}
             values={attr.values}
             selected={selected[attr.code as keyof ISelectedOptions]}
@@ -217,6 +229,58 @@ export const ProductDetails = ({ product, currencySymbol, selected, onSelect }: 
           </View>
         ))}
       </View>
+
+      {/* Полноэкранный Lightbox Просмотр Фотографии */}
+      <Modal
+        visible={lightboxIndex !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setLightboxIndex(null)}
+      >
+        <View className="flex-1 bg-black justify-between py-12">
+          <View className="flex-row items-center justify-between px-5 pt-4">
+            <Text className="text-xs font-bold text-white/80">
+              {((lightboxIndex ?? 0) + 1)} / {mediaList.length}
+            </Text>
+            <Pressable
+              onPress={() => {
+                triggerHapticLight();
+                setLightboxIndex(null);
+              }}
+              className="h-10 w-10 items-center justify-center rounded-full bg-white/20 active:bg-white/30"
+            >
+              <Icon name="close" size={20} color="#ffffff" />
+            </Pressable>
+          </View>
+
+          <FlatList
+            horizontal
+            pagingEnabled
+            data={mediaList}
+            initialScrollIndex={lightboxIndex ?? 0}
+            getItemLayout={(_, index) => ({
+              length: screenWidth,
+              offset: screenWidth * index,
+              index,
+            })}
+            keyExtractor={(item, idx) => `lightbox-${item}-${idx}`}
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <View style={{ width: screenWidth, height: screenHeight * 0.75 }} className="items-center justify-center">
+                <Image
+                  source={{ uri: item }}
+                  style={{ width: screenWidth, height: screenHeight * 0.7 }}
+                  resizeMode="contain"
+                />
+              </View>
+            )}
+          />
+
+          <View className="items-center pb-4">
+            <Text className="text-xs font-semibold text-white/60">Проведите пальцем влево или вправо</Text>
+          </View>
+        </View>
+      </Modal>
 
       {/* Модалка Таблицы Размеров */}
       <SizeGuideModal
