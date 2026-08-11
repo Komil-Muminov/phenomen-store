@@ -51,6 +51,8 @@ app.use(errorMiddleware);
 
 const DEMO_VERTICAL = 'fashion';
 
+const LISTEN_HOST = '0.0.0.0';
+
 const seedDemoContent = async (): Promise<void> => {
   try {
     const demoTenant = await resolveTenantByKey(Env.defaultTenantKey);
@@ -78,8 +80,8 @@ const bootstrap = async (): Promise<void> => {
   await ensurePlatformAdmin();
   await seedDemoContent();
 
-  app.listen(Env.port, () => {
-    console.log(`[server] http://localhost:${Env.port} (${Env.nodeEnv})`);
+  app.listen(Env.port, LISTEN_HOST, () => {
+    console.log(`[server] http://localhost:${Env.port} (${Env.nodeEnv}), слушает ${LISTEN_HOST}`);
   });
 };
 
