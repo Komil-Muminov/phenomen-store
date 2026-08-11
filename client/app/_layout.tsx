@@ -24,11 +24,16 @@ const RootLayout = () => (
               <Stack
                 screenOptions={{
                   headerShown: false,
-                  animation: 'none',
-                  animationDuration: 0,
-                  contentStyle: { backgroundColor: '#ffffff' },
+                  animation: 'slide_from_right',
+                  contentStyle: { backgroundColor: '#fafafa' },
                 }}
-              />
+              >
+                <Stack.Screen name="index" options={{ animation: 'none' }} />
+                <Stack.Screen name="catalog" options={{ animation: 'none' }} />
+                <Stack.Screen name="cart" options={{ animation: 'none' }} />
+                <Stack.Screen name="wishlist" options={{ animation: 'none' }} />
+                <Stack.Screen name="profile" options={{ animation: 'none' }} />
+              </Stack>
             </AppShell>
           </StaffAuthProvider>
         </AuthProvider>

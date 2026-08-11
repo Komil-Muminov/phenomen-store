@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Platform, Pressable, ScrollView, StatusBar, Text, View } from 'react-native';
+import { Platform, ScrollView, StatusBar, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IOrder } from '@/entities/order';
@@ -12,7 +12,7 @@ import { RenderAuth } from '@/widgets/profile-page/ui/renderAuth';
 import { useAuth } from '@/shared/auth';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { toHref } from '@/shared/lib';
-import { BottomBar, Icon, If } from '@/shared/ui';
+import { BottomBar, If } from '@/shared/ui';
 
 interface IProfile {
   id: string;
@@ -154,21 +154,8 @@ export const ProfilePage = () => {
 
   return (
     <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
-      <View className="flex-row items-center gap-3 px-4 py-2">
-        <Pressable
-          onPress={() => router.back()}
-          className="h-10 w-10 items-center justify-center rounded-xl border border-line bg-background active:border-primary active:bg-surface"
-        >
-          <Icon name="arrow-left" size={20} />
-        </Pressable>
-        <Text className="flex-1 text-lg font-semibold text-content">Профиль</Text>
-      </View>
-
-      <View className="mx-4 mb-3 rounded-2xl bg-red-600 px-4 py-4">
-        <Text className="text-center text-xl font-bold text-white">ТЕСТ 2</Text>
-        <Text className="mt-1 text-center text-sm text-white">
-          Цифра сменилась сама — Fast Refresh работает
-        </Text>
+      <View className="flex-row items-center justify-between px-4 py-3 border-b border-line">
+        <Text className="text-xl font-extrabold tracking-tight text-content">Профиль</Text>
       </View>
 
       <If
@@ -180,7 +167,7 @@ export const ProfilePage = () => {
           </View>
         )}
       >
-        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 76 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 96 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <If
             condition={isAuthorized}
             fallback={(

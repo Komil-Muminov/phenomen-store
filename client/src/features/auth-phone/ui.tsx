@@ -9,6 +9,7 @@ import {
   isCodeValid,
   isPhoneValid,
 } from '@/features/auth-phone/model';
+import { triggerHapticLight, triggerHapticSuccess } from '@/shared/lib/haptics';
 import { Button, ButtonVariants, Icon, If } from '@/shared/ui';
 
 interface IProps {
@@ -42,13 +43,43 @@ export const AuthPhone = ({
 }: IProps) => {
   const codeInputRef = useRef<TextInput>(null);
 
+  const handleDevCodeAutoFill = () => {
+    if (!devCode) return;
+    triggerHapticSuccess();
+    onCodeChange(devCode);
+    if (devCode.length === CODE_LENGTH && !busy) {
+      onVerify();
+    }
+  };
+
+  const handleClearPhone = () => {
+    triggerHapticLight();
+    onPhoneChange('');
+  };
+
+  const handleChangePhoneWithHaptics = () => {
+    triggerHapticLight();
+    onChangePhone();
+  };
+
   return (
-    <View className="gap-6 px-4 py-4">
-      <View className="gap-2">
-        <Text className="text-2xl font-extrabold tracking-tight text-content">
-          {AuthLabels.title}
+    <View className="gap-5 px-4 py-3">
+      <If condition={step === AuthSteps.code}>
+        <Pressable
+          onPress={handleChangePhoneWithHaptics}
+          disabled={busy}
+          className="flex-row items-center gap-2 self-start rounded-full bg-surface px-3 py-1.5 border border-line/60 active:bg-surface/80"
+        >
+          <Icon name="arrow-left" size={16} color="#0284c7" />
+          <Text className="text-xs font-bold text-primary">Изменить номер</Text>
+        </Pressable>
+      </If>
+
+      <View className="gap-1">
+        <Text className="text-xl font-extrabold tracking-tight text-content">
+          {step === AuthSteps.phone ? 'Вход или регистрация' : 'Введите SMS-код'}
         </Text>
-        <Text className="text-sm leading-5 text-muted">
+        <Text className="text-xs leading-5 text-muted">
           {step === AuthSteps.phone
             ? AuthLabels.subtitle
             : `${AuthLabels.enterCodeSubtitle} ${formatPhoneDisplay(phone)}`}
@@ -59,9 +90,11 @@ export const AuthPhone = ({
         condition={step === AuthSteps.phone}
         fallback={(
           <View className="gap-5">
-            <View className="flex-row items-center gap-2 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-3.5">
-              <Icon name="check" size={16} color="#059669" />
-              <Text className="flex-1 text-xs font-bold text-emerald-800">
+            <View className="flex-row items-center gap-2.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3.5">
+              <View className="h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20">
+                <Icon name="check" size={14} color="#059669" />
+              </View>
+              <Text className="flex-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
                 {AuthLabels.smsSentNotice}
               </Text>
             </View>
@@ -80,15 +113,15 @@ export const AuthPhone = ({
                     <View
                       key={index}
                       className={[
-                        'h-16 flex-1 max-w-[64px] items-center justify-center rounded-2xl border-2',
+                        'h-16 flex-1 max-w-[64px] items-center justify-center rounded-2xl border-2 transition-all',
                         isCurrent && !busy
-                          ? 'border-primary bg-surface/80 shadow-sm'
+                          ? 'border-primary bg-surface shadow-sm scale-105'
                           : isFilled
                             ? 'border-neutral-400 bg-surface'
-                            : 'border-line bg-background',
+                            : 'border-line bg-background/50',
                       ].join(' ')}
                     >
-                      <Text className="text-2xl font-extrabold text-content">
+                      <Text className="text-2xl font-black text-content">
                         {char}
                       </Text>
                     </View>
@@ -102,8 +135,10 @@ export const AuthPhone = ({
                 onChangeText={(val) => {
                   const digitsOnly = val.replace(/\D/g, '').slice(0, CODE_LENGTH);
 
+                  triggerHapticLight();
                   onCodeChange(digitsOnly);
                   if (digitsOnly.length === CODE_LENGTH && !busy) {
+                    triggerHapticSuccess();
                     onVerify();
                   }
                 }}
@@ -118,18 +153,31 @@ export const AuthPhone = ({
             </Pressable>
 
             <If condition={Boolean(devCode)}>
-              <View className="items-center rounded-2xl border border-line bg-surface/60 p-3">
-                <Text className="text-xs font-semibold text-muted">
-                  {`${AuthLabels.devCodeHint}: ${devCode}`}
-                </Text>
-              </View>
+              <Pressable
+                onPress={handleDevCodeAutoFill}
+                className="flex-row items-center justify-between rounded-2xl border border-sky-500/40 bg-sky-500/10 px-4 py-3 active:bg-sky-500/20"
+              >
+                <View className="flex-row items-center gap-2">
+                  <Icon name="sparkles" size={16} color="#0284c7" />
+                  <Text className="text-xs font-semibold text-sky-800 dark:text-sky-300">
+                    {`Тестовый код: `}
+                    <Text className="font-extrabold text-primary">{devCode}</Text>
+                  </Text>
+                </View>
+                <View className="rounded-lg bg-sky-500/20 px-2.5 py-1">
+                  <Text className="text-[11px] font-bold text-sky-900 dark:text-sky-200">Вставить</Text>
+                </View>
+              </Pressable>
             </If>
 
             <Button
               title={AuthLabels.confirm}
               disabled={!isCodeValid(code) || busy}
               loading={busy}
-              onPress={onVerify}
+              onPress={() => {
+                triggerHapticSuccess();
+                onVerify();
+              }}
             />
 
             <Button
@@ -141,12 +189,11 @@ export const AuthPhone = ({
               variant={ButtonVariants.ghost}
               disabled={resendSeconds > 0 || busy}
               loading={busy && resendSeconds === 0}
-              onPress={onRequestCode}
+              onPress={() => {
+                triggerHapticLight();
+                onRequestCode();
+              }}
             />
-
-            <Pressable onPress={onChangePhone} disabled={busy} className="items-center py-2">
-              <Text className="text-sm font-bold text-primary">{AuthLabels.changePhone}</Text>
-            </Pressable>
           </View>
         )}
       >
@@ -166,8 +213,8 @@ export const AuthPhone = ({
             />
             <If condition={phone.length > 0 && !busy}>
               <Pressable
-                onPress={() => onPhoneChange('')}
-                className="absolute right-3.5 h-7 w-7 items-center justify-center rounded-full bg-line"
+                onPress={handleClearPhone}
+                className="absolute right-3.5 h-7 w-7 items-center justify-center rounded-full bg-line active:bg-neutral-300"
               >
                 <Icon name="cross" size={14} color="#737373" />
               </Pressable>
@@ -178,7 +225,10 @@ export const AuthPhone = ({
             title={AuthLabels.sendCode}
             disabled={!isPhoneValid(phone) || busy}
             loading={busy}
-            onPress={onRequestCode}
+            onPress={() => {
+              triggerHapticLight();
+              onRequestCode();
+            }}
           />
 
           <Text className="px-2 text-center text-xs leading-5 text-muted">
@@ -190,7 +240,7 @@ export const AuthPhone = ({
       </If>
 
       <If condition={Boolean(errorMessage)}>
-        <View className="rounded-2xl border border-danger/40 bg-danger/10 p-3.5">
+        <View className="flex-row items-center gap-2 rounded-2xl border border-danger/40 bg-danger/10 p-3.5">
           <Text className="text-xs font-semibold text-danger">{errorMessage}</Text>
         </View>
       </If>

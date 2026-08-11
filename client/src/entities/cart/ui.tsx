@@ -1,5 +1,5 @@
 import { Image, Pressable, Text, View } from 'react-native';
-import { ProductPlaceholderImage } from '@/entities/product';
+import { ProductPlaceholderImage } from '@/entities/product/model';
 import {
   formatPrice,
   formatQuantity,

@@ -18,28 +18,28 @@ export const StateView = ({ loading = false, errorMessage = null, skeleton, onRe
   }
 
   return (
-    <View className="flex-1 items-center pt-16 gap-4 px-8 pb-12">
+    <View className="flex-1 items-center justify-center gap-4 px-8 py-12">
       <If
         condition={loading}
         fallback={(
-          <View className="items-center gap-3">
-            <View className="h-14 w-14 items-center justify-center rounded-full bg-danger/10">
-              <Icon name="cross" size={24} color="#ef4444" />
+          <View className="w-full max-w-sm items-center gap-4 rounded-3xl border border-line bg-surface p-6 shadow-md backdrop-blur-md">
+            <View className="h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 border border-rose-100 shadow-xs">
+              <Icon name="cross" size={26} color="#ef4444" />
             </View>
-            <Text className="text-center text-sm font-semibold text-content max-w-xs">
+            <Text className="text-center text-sm font-semibold leading-5 text-content">
               {errorMessage ?? UiMessages.loadError}
             </Text>
             <If condition={Boolean(onRetry)}>
-              <View className="pt-2">
-                <Button title={UiMessages.retry} onPress={() => onRetry?.()} fullWidth={false} />
+              <View className="pt-2 w-full">
+                <Button title={UiMessages.retry} onPress={() => onRetry?.()} fullWidth={true} />
               </View>
             </If>
           </View>
         )}
       >
-        <View className="items-center gap-3">
-          <ActivityIndicator size="large" color="#171717" />
-          <Text className="text-xs font-medium text-muted">{UiMessages.loading}</Text>
+        <View className="items-center gap-3.5 rounded-3xl border border-line bg-surface px-8 py-6 shadow-md">
+          <ActivityIndicator size="large" color="#0f172a" />
+          <Text className="text-xs font-semibold tracking-wide text-muted">{UiMessages.loading}</Text>
         </View>
       </If>
     </View>

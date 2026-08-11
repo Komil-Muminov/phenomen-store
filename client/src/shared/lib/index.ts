@@ -91,6 +91,8 @@ export const formatItemCount = (count: number): string => {
 
 export const toHref = (path: unknown): never => path as never;
 
+export * from './haptics';
+
 const UPLOADS_MARK = '/uploads/';
 
 export const resolveMediaUrl = (value: string | null | undefined): string => {

@@ -1,94 +1,87 @@
 import { useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { IProduct, ProductPlaceholderImage } from '@/entities/product';
-import { formatUnitPrice, resolveMediaUrl } from '@/shared/lib';
-import { Icon, If } from '@/shared/ui';
-import { clearSearchHistory, getRecentlyViewed, getSearchHistory } from './model';
+import { formatUnitPrice, resolveMediaUrl, triggerHapticLight } from '@/shared/lib';
+import { If } from '@/shared/ui';
+import { getRecentlyViewed } from './model';
 
 interface IProps {
+  popularTags?: string[];
   onSelectTerm: (term: string) => void;
   onSelectProduct: (product: IProduct) => void;
   currencySymbol?: string;
 }
 
 export const SearchHistoryView = ({
+  popularTags = [],
   onSelectTerm,
   onSelectProduct,
   currencySymbol = 'смн',
 }: IProps) => {
-  const [history, setHistory] = useState<string[]>([]);
   const [recentProducts, setRecentProducts] = useState<IProduct[]>([]);
 
   useEffect(() => {
-    getSearchHistory().then(setHistory);
     getRecentlyViewed().then(setRecentProducts);
   }, []);
 
-  const handleClear = async () => {
-    await clearSearchHistory();
-    setHistory([]);
-  };
+  const hasPopular = popularTags.length > 0;
+  const hasRecentProducts = recentProducts.length > 0;
 
-  if (history.length === 0 && recentProducts.length === 0) {
+  if (!hasPopular && !hasRecentProducts) {
     return null;
   }
 
   return (
-    <View className="mb-3 gap-3">
-      {/* Аккуратная плашка с историей недавних поисков */}
-      <If condition={history.length > 0}>
-        <View className="mx-4 rounded-2xl border border-line/60 bg-surface/40 p-3 gap-2">
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-1.5">
-              <Icon name="clock" size={12} color="#737373" />
-              <Text className="text-xs font-bold text-muted">Вы искали</Text>
-            </View>
-            <Pressable onPress={handleClear} className="active:opacity-60 px-1 py-0.5">
-              <Text className="text-[11px] font-bold text-rose-500">Очистить</Text>
-            </Pressable>
-          </View>
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pt-0.5">
-            {history.map((term) => (
+    <View className="px-4 gap-5 pb-4">
+      {/* 1. Популярные запросы (Популярное) */}
+      <If condition={hasPopular}>
+        <View className="gap-2.5">
+          <Text className="text-xs font-black uppercase tracking-wider text-muted">🔥 Популярные запросы</Text>
+          <View className="flex-row flex-wrap gap-2">
+            {popularTags.map((tag) => (
               <Pressable
-                key={term}
-                onPress={() => onSelectTerm(term)}
-                className="flex-row items-center gap-1.5 rounded-full border border-line bg-background px-3 py-1.5 active:border-primary active:bg-surface"
+                key={tag}
+                onPress={() => {
+                  triggerHapticLight();
+                  onSelectTerm(tag);
+                }}
+                className="rounded-full border border-line bg-surface px-4 py-2 shadow-2xs items-center justify-center active:border-primary active:bg-primary/5"
               >
-                <Text className="text-xs font-semibold text-content">{term}</Text>
+                <Text className="text-xs font-bold text-content">{tag}</Text>
               </Pressable>
             ))}
-          </ScrollView>
+          </View>
         </View>
       </If>
 
-      {/* Компактная секция недавно просмотренных товаров */}
-      <If condition={recentProducts.length > 0}>
-        <View className="gap-2 pt-1">
-          <View className="flex-row items-center justify-between px-4">
-            <Text className="text-xs font-bold text-muted">Вы недавно смотрели</Text>
-          </View>
+      {/* 2. Недавно просмотренные товары */}
+      <If condition={hasRecentProducts}>
+        <View className="gap-2.5 pt-1">
+          <Text className="text-xs font-black uppercase tracking-wider text-muted">👁 Вы недавно смотрели</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
+            contentContainerStyle={{ gap: 12 }}
           >
             {recentProducts.map((item) => (
               <Pressable
                 key={item.id}
-                onPress={() => onSelectProduct(item)}
-                className="w-28 rounded-2xl border border-line/80 bg-background overflow-hidden active:border-primary shadow-2xs"
+                onPress={() => {
+                  triggerHapticLight();
+                  onSelectProduct(item);
+                }}
+                className="w-32 rounded-3xl border border-line bg-surface overflow-hidden active:opacity-90 shadow-sm"
               >
                 <Image
                   source={{ uri: resolveMediaUrl(item.media[0]) || ProductPlaceholderImage }}
-                  className="h-28 w-full bg-surface"
+                  className="h-32 w-full bg-slate-100 dark:bg-slate-800"
                   resizeMode="cover"
                 />
-                <View className="p-2 gap-0.5">
-                  <Text numberOfLines={1} className="text-[11px] font-bold text-content leading-4">
+                <View className="p-2.5 gap-1">
+                  <Text numberOfLines={1} className="text-xs font-semibold text-content">
                     {item.name}
                   </Text>
-                  <Text className="text-xs font-extrabold text-primary">
+                  <Text className="text-xs font-black text-content">
                     {formatUnitPrice(item.price, currencySymbol, item.unit)}
                   </Text>
                 </View>
