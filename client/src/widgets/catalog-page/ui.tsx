@@ -124,20 +124,6 @@ export const CatalogPage = () => {
   return (
     <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
       <View className="flex-row items-center gap-2.5 px-4 py-2 border-b border-line">
-        <Pressable
-          onPress={() => {
-            if (isSearchFocused) {
-              setIsSearchFocused(false);
-            } else if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.push(AppRoutes.home);
-            }
-          }}
-          className="h-10 w-10 items-center justify-center rounded-xl border border-line bg-background active:border-primary active:bg-surface"
-        >
-          <Icon name="chevronLeft" size={18} color="#171717" />
-        </Pressable>
 
         {/* Быстрый инпут поиска */}
         <View className="flex-1 flex-row items-center rounded-xl bg-surface px-3 py-1.5 border border-line">

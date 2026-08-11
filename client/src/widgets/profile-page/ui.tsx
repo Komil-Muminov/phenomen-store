@@ -154,14 +154,8 @@ export const ProfilePage = () => {
 
   return (
     <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
-      <View className="flex-row items-center gap-3 px-4 py-2">
-        <Pressable
-          onPress={() => router.back()}
-          className="h-10 w-10 items-center justify-center rounded-xl border border-line bg-background active:border-primary active:bg-surface"
-        >
-          <Icon name="arrow-left" size={20} />
-        </Pressable>
-        <Text className="flex-1 text-lg font-semibold text-content">Профиль</Text>
+      <View className="flex-row items-center justify-between px-4 py-3 border-b border-line">
+        <Text className="text-xl font-extrabold tracking-tight text-content">Профиль</Text>
       </View>
 
       <If
