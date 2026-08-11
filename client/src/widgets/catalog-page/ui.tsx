@@ -135,7 +135,7 @@ export const CatalogPage = () => {
     <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
       <View className="flex-row items-center gap-2.5 px-4 py-2 border-b border-line">
         {/* Быстрый инпут поиска */}
-        <View className="flex-1 flex-row items-center rounded-xl bg-surface px-3 py-1.5 border border-line">
+        <View className="flex-1 h-11 flex-row items-center rounded-2xl bg-surface px-3 border border-line">
           <Icon name="search" size={16} color="#64748b" />
           <TextInput
             autoFocus={Boolean(focusSearch === 'true')}
@@ -144,7 +144,7 @@ export const CatalogPage = () => {
             onFocus={() => setIsSearchFocused(true)}
             onSubmitEditing={handleSearchSubmit}
             returnKeyType="search"
-            placeholder="Поиск одежды, обуви..."
+            placeholder="Поиск товаров..."
             placeholderTextColor="#94a3b8"
             style={{ paddingVertical: 0 }}
             textAlignVertical="center"
@@ -176,29 +176,9 @@ export const CatalogPage = () => {
           keyboardShouldPersistTaps="handled"
         >
           <If condition={!isSearchActive}>
-            <>
-              {/* Быстрые теги подсказок */}
-              <View className="px-4 pb-3 gap-2">
-                <Text className="text-xs font-bold text-muted uppercase tracking-wider">Популярные запросы</Text>
-                <View className="flex-row flex-wrap gap-2">
-                  {popularTags.map((tag) => (
-                    <Pressable
-                      key={tag}
-                      onPress={() => {
-                        setSearchQuery(tag);
-                        addSearchTerm(tag);
-                        setIsSearchFocused(false);
-                      }}
-                      className="rounded-full px-3.5 py-1.5 border border-line bg-surface/80 items-center justify-center active:bg-primary active:border-primary"
-                    >
-                      <Text className="text-xs font-bold text-content">{tag}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-
-              {/* История недавних поисков и недавно просмотренные товары */}
+              {/* Единственное структурированное меню рекомендаций поиска */}
               <SearchHistoryView
+                popularTags={popularTags}
                 onSelectTerm={(term) => {
                   setSearchQuery(term);
                   addSearchTerm(term);
@@ -210,7 +190,6 @@ export const CatalogPage = () => {
                 }}
                 currencySymbol={config?.locale.currencySymbol ?? ''}
               />
-            </>
           </If>
 
           {/* Живые результаты поиска во время ввода */}
