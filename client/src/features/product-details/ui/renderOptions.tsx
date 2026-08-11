@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
 import { IProduct } from '@/entities/product';
-import { uniqueOptionValues } from '@/shared/lib';
+import { triggerHapticLight, uniqueOptionValues } from '@/shared/lib';
 import { If } from '@/shared/ui';
 import { ISelectedOptions, OptionLabels, isOptionAvailable } from '@/features/product-details/model';
 
@@ -53,7 +53,10 @@ export const OptionPicker = ({
             <Pressable
               key={value}
               disabled={!available}
-              onPress={() => onSelect(value)}
+              onPress={() => {
+                triggerHapticLight();
+                onSelect(value);
+              }}
               className={[
                 'min-w-[48px] items-center justify-center rounded-xl border px-4 py-2.5 active:scale-95',
                 active ? 'border-primary bg-primary' : 'border-line bg-surface/50',

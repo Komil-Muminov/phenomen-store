@@ -10,7 +10,7 @@ import { addRecentlyViewed } from '@/features/search-history';
 import { ProductRail } from '@/features/storefront-sections/ui/sections';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
-import { formatUnitPrice, initialQuantity } from '@/shared/lib';
+import { formatUnitPrice, initialQuantity, triggerHapticSuccess } from '@/shared/lib';
 import { Button, Icon, If, SkeletonBox, StateView } from '@/shared/ui';
 
 const EMPTY_SELECTION: ISelectedOptions = { size: null, color: null };
@@ -77,7 +77,12 @@ export const ProductPage = () => {
 
     addToCart.mutate(
       { variantId: selectedVariant.id, quantity: initialQuantity(product?.unit) },
-      { onSuccess: () => setShowAddedToast(true) },
+      {
+        onSuccess: () => {
+          triggerHapticSuccess();
+          setShowAddedToast(true);
+        },
+      },
     );
   }, [addToCart, selectedVariant, product?.unit]);
 
@@ -95,6 +100,7 @@ export const ProductPage = () => {
 
   const insets = useSafeAreaInsets();
   const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
+  const safeBottom = Math.max(insets.bottom, 12);
 
   return (
     <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
@@ -169,7 +175,10 @@ export const ProductPage = () => {
       </If>
 
       <If condition={Boolean(product)}>
-        <View className="flex-row items-center gap-3 border-t border-line bg-background/95 px-4 py-3 pb-4">
+        <View
+          style={{ paddingBottom: safeBottom }}
+          className="flex-row items-center gap-3 border-t border-line bg-background/95 px-4 pt-3 shadow-lg"
+        >
           <View className="shrink justify-center pr-1">
             <Text className="text-[10px] font-bold uppercase tracking-wider text-muted">Цена</Text>
             <Text className="text-lg font-extrabold text-content">
