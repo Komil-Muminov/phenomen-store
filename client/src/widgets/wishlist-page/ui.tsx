@@ -121,7 +121,7 @@ export const WishlistPage = () => {
         >
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 76 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 96 }}
             showsVerticalScrollIndicator={false}
           >
             <View className="gap-5">
