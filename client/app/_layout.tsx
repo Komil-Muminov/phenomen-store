@@ -24,9 +24,8 @@ const RootLayout = () => (
               <Stack
                 screenOptions={{
                   headerShown: false,
-                  animation: 'none',
-                  animationDuration: 0,
-                  contentStyle: { backgroundColor: '#ffffff' },
+                  animation: 'slide_from_right',
+                  contentStyle: { backgroundColor: '#fafafa' },
                 }}
               />
             </AppShell>

@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { Button, ButtonVariants, Icon, If, ImageField } from '@/shared/ui';
+import { Button, ButtonVariants, Icon, ImageField } from '@/shared/ui';
 import {
   CategoryTexts,
   EMPTY_DRAFT,

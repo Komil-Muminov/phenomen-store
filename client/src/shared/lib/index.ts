@@ -88,3 +88,6 @@ export const formatItemCount = (count: number): string => {
 };
 
 export const toHref = (path: unknown): never => path as never;
+
+export * from './haptics';
+

@@ -1,6 +1,7 @@
 import { ReactNode, useCallback } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { formatDiscount, formatPrice, formatUnitPrice } from '@/shared/lib';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { formatDiscount, formatPrice, formatUnitPrice, triggerHapticLight, triggerHapticMedium } from '@/shared/lib';
 import { Icon, If } from '@/shared/ui';
 import { useWishlist } from '@/shared/wishlist';
 import { useAddToCart } from '@/entities/cart';
@@ -26,6 +27,8 @@ const COLOR_MAP: Record<string, string> = {
   green: '#10b981',
 };
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export const ProductCard = ({
   product,
   currencySymbol,
@@ -40,131 +43,173 @@ export const ProductCard = ({
   const busyAddToCart = Boolean(loadingAddToCart) || isPending;
   const activeWish = isWishlisted(product.id);
 
-  const availableColors = Array.from(
+  const bagScale = useSharedValue(1);
+  const heartScale = useSharedValue(1);
+
+  const allColors = Array.from(
     new Set((product?.variants ?? []).map((v) => v?.options?.color).filter(Boolean)),
-  ).slice(0, 4);
+  );
+  const availableColors = allColors.slice(0, 3);
+  const extraColorsCount = Math.max(0, allColors.length - 3);
+
+  const bagAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: bagScale.value }],
+  }));
+
+  const heartAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: heartScale.value }],
+  }));
 
   const handleAddToCart = useCallback((e?: any) => {
     e?.stopPropagation?.();
+    triggerHapticMedium();
+    bagScale.value = withSpring(1.25, { damping: 10, stiffness: 300 }, () => {
+      bagScale.value = withSpring(1);
+    });
 
     if (onAddToCart) {
       onAddToCart(product);
     } else {
       addToCart(product);
     }
-  }, [onAddToCart, addToCart, product]);
+  }, [onAddToCart, addToCart, product, bagScale]);
+
+  const handleToggleWishlist = useCallback((e?: any) => {
+    e?.stopPropagation?.();
+    triggerHapticLight();
+    heartScale.value = withSpring(1.3, { damping: 10, stiffness: 300 }, () => {
+      heartScale.value = withSpring(1);
+    });
+    toggleWishlist(product.id);
+  }, [toggleWishlist, product.id, heartScale]);
 
   const createdDaysAgo = product.createdAt
     ? Math.floor((Date.now() - new Date(product.createdAt).getTime()) / (1000 * 60 * 60 * 24))
     : 0;
   const isNewProduct = Boolean(!product.createdAt || createdDaysAgo <= 180 || product.attributes?.isNew === 'true');
 
+  const discountText = formatDiscount(product.price, product.oldPrice);
+
   return (
     <Pressable
-      onPress={() => onPress(product)}
+      onPress={() => {
+        triggerHapticLight();
+        onPress(product);
+      }}
       className={[
-        'overflow-hidden rounded-2xl border border-line bg-background active:border-primary active:bg-surface/50 justify-between',
+        'overflow-hidden rounded-3xl border border-line bg-surface shadow-sm active:opacity-95 justify-between',
         width === 'card' ? 'w-44' : 'w-full flex-1',
       ].join(' ')}
     >
       <View className="flex-1 justify-between">
-        {/* Верхняя часть: Изображение, бэйджи скидок и плавающие кнопки действий */}
+        {/* Верхняя часть: Изображение, премиум-бейдж и быстрые кнопки */}
         <View className="w-full">
-          <View className="relative">
+          <View className="relative overflow-hidden rounded-t-3xl">
             <Image
               source={{ uri: product.media[0] ?? ProductPlaceholderImage }}
-              className="h-52 w-full bg-surface"
+              className="h-52 w-full bg-surface-elevated"
               resizeMode="cover"
             />
-            <If condition={Boolean(formatDiscount(product.price, product.oldPrice))}>
-              <View className="absolute left-2.5 top-2.5 rounded-lg bg-rose-600 px-2 py-0.5 shadow-sm z-10">
-                <Text className="text-[11px] font-extrabold text-white">
-                  {formatDiscount(product.price, product.oldPrice)}
+
+            {/* Градиентные / капсульные плашки скидки & NEW */}
+            <If condition={Boolean(discountText)}>
+              <View className="absolute left-2.5 top-2.5 rounded-full bg-rose-600 px-2.5 py-1 shadow-md z-10">
+                <Text className="text-[10px] font-black uppercase tracking-wider text-white">
+                  {discountText}
                 </Text>
               </View>
             </If>
-            <If condition={!formatDiscount(product.price, product.oldPrice) && isNewProduct}>
-              <View className="absolute left-2.5 top-2.5 rounded-lg bg-emerald-600 px-2 py-0.5 shadow-sm z-10">
-                <Text className="text-[10px] font-extrabold text-white">
+            <If condition={!discountText && isNewProduct}>
+              <View className="absolute left-2.5 top-2.5 rounded-full bg-emerald-600 px-2.5 py-1 shadow-md z-10">
+                <Text className="text-[9px] font-black uppercase tracking-wider text-white">
                   NEW
                 </Text>
               </View>
             </If>
 
-            {/* Пакет быстрых иконок в правом верхнем углу фото: Сумочка + Сердечко */}
+            {/* Кнопки быстрых действий: Добавить в корзину + В избранное */}
             <View className="absolute right-2.5 top-2.5 flex-row items-center gap-1.5 z-10">
-              <Pressable
+              <AnimatedPressable
                 onPress={handleAddToCart}
                 disabled={busyAddToCart}
+                style={bagAnimStyle}
                 className={[
-                  'h-8 w-8 items-center justify-center rounded-full bg-background/90 shadow-sm border border-line active:scale-90',
+                  'h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md border border-white/40 backdrop-blur-md',
                   busyAddToCart ? 'opacity-50' : '',
                 ].join(' ')}
               >
-                <Icon name="bag" size={15} color="#171717" />
-              </Pressable>
+                <Icon name="bag" size={14} color="#0f172a" />
+              </AnimatedPressable>
 
-              <Pressable
-                onPress={(e) => {
-                  e.stopPropagation();
-                  toggleWishlist(product.id);
-                }}
-                className={`h-8 w-8 items-center justify-center rounded-full shadow-sm border active:scale-90 ${
-                  activeWish ? 'bg-rose-500 border-rose-600' : 'bg-background/90 border-line'
+              <AnimatedPressable
+                onPress={handleToggleWishlist}
+                style={heartAnimStyle}
+                className={`h-8 w-8 items-center justify-center rounded-full shadow-md border backdrop-blur-md ${
+                  activeWish ? 'bg-rose-500 border-rose-600' : 'bg-white/90 border-white/40'
                 }`}
               >
-                <Icon name="heart" size={15} color={activeWish ? '#ffffff' : '#171717'} />
-              </Pressable>
+                <Icon name="heart" size={14} color={activeWish ? '#ffffff' : '#0f172a'} />
+              </AnimatedPressable>
             </View>
 
+            {/* Точечный индикатор медиа (dots preview) */}
             <If condition={product.media.length > 1}>
-              <View className="absolute bottom-2.5 right-2.5 rounded-full bg-black/50 px-2 py-0.5 backdrop-blur-md">
-                <Text className="text-[9px] font-bold text-white">1/{product.media.length}</Text>
+              <View className="absolute bottom-2.5 right-2.5 flex-row items-center gap-1 rounded-full bg-black/60 px-2 py-1 backdrop-blur-md">
+                {product.media.slice(0, 4).map((_, idx) => (
+                  <View
+                    key={idx}
+                    className={`h-1.5 w-1.5 rounded-full ${idx === 0 ? 'bg-white w-2.5' : 'bg-white/50'}`}
+                  />
+                ))}
               </View>
             </If>
 
             <If condition={!product.inStock}>
-              <View className="absolute bottom-2.5 left-2.5 rounded-lg bg-surface/90 px-2 py-1">
-                <Text className="text-[11px] font-medium text-muted">Нет в наличии</Text>
+              <View className="absolute bottom-2.5 left-2.5 rounded-full bg-black/75 px-2.5 py-1 backdrop-blur-md">
+                <Text className="text-[10px] font-semibold text-white/90">Нет в наличии</Text>
               </View>
             </If>
           </View>
 
+          {/* Информационный блок */}
           <View className="gap-1.5 p-3 pb-1">
             <Text
               numberOfLines={2}
-              className="text-sm font-medium leading-5 text-content"
+              className="text-xs font-semibold leading-4 text-content"
             >
               {product.name}
             </Text>
 
             <If condition={availableColors.length > 0}>
-              <View className="flex-row items-center gap-1 py-0.5">
+              <View className="flex-row items-center gap-1.5 py-0.5">
                 {availableColors.map((col) => (
                   <View
                     key={col}
-                    className="h-3 w-3 rounded-full border border-neutral-300"
+                    className="h-3 w-3 rounded-full border border-black/10 shadow-xs"
                     style={{ backgroundColor: COLOR_MAP[col.toLowerCase()] ?? '#a3a3a3' }}
                   />
                 ))}
+                {extraColorsCount > 0 && (
+                  <Text className="text-[9px] font-bold text-muted">+{extraColorsCount}</Text>
+                )}
               </View>
             </If>
           </View>
         </View>
 
-        {/* Нижняя чистая часть: Только цена и пользовательский футер при наличии */}
+        {/* Нижний блок цены */}
         <View className="p-3 pt-1 mt-auto gap-2">
           <View className="flex-row flex-wrap items-baseline gap-x-1.5 gap-y-0.5 flex-1">
             <Text
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.85}
-              className="text-base font-bold text-content"
+              className="text-sm font-extrabold tracking-tight text-content"
             >
               {formatUnitPrice(product.price, currencySymbol, product.unit)}
             </Text>
             <If condition={Boolean(product.oldPrice && product.oldPrice > product.price)}>
-              <Text className="text-xs text-muted line-through">
+              <Text className="text-[11px] font-medium text-muted line-through">
                 {formatPrice(product.oldPrice ?? 0, currencySymbol)}
               </Text>
             </If>
