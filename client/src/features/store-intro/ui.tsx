@@ -1,4 +1,5 @@
-import { Image, Pressable, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Image, Pressable, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ITenantConfig } from '@/entities/tenant';
 import { AppRoutes } from '@/shared/config';
@@ -10,7 +11,7 @@ interface IProps {
   cartCount: number;
   onCartPress: () => void;
   onProfilePress: () => void;
-  onSearchPress: () => void;
+  onSearchPress: (query?: string) => void;
 }
 
 export const StoreIntro = ({
@@ -21,11 +22,21 @@ export const StoreIntro = ({
   onSearchPress,
 }: IProps) => {
   const router = useRouter();
+  const [searchValue, setSearchValue] = useState('');
 
   const displayTitle = (config?.brand?.title || 'PHENOMEN').replace(/\s*fashion/i, '').trim();
   const displaySlogan = config?.brand?.slogan && !config.brand.slogan.includes('работает')
     ? config.brand.slogan
     : 'Твой стиль';
+
+  const handleSearchSubmit = () => {
+    triggerHapticLight();
+    if (searchValue.trim()) {
+      onSearchPress(searchValue.trim());
+    } else {
+      onSearchPress();
+    }
+  };
 
   return (
     <View className="gap-3.5 px-4 pb-3 pt-2">
@@ -82,16 +93,31 @@ export const StoreIntro = ({
         </Pressable>
       </View>
 
-      <Pressable
-        onPress={() => {
-          triggerHapticLight();
-          onSearchPress();
-        }}
-        className="h-12 flex-row items-center gap-3 rounded-2xl border border-line bg-surface px-4 shadow-sm active:border-primary"
-      >
-        <Icon name="search" size={18} color="#64748b" />
-        <Text className="flex-1 text-sm font-medium text-muted">Поиск по каталогу...</Text>
-      </Pressable>
+      {/* Живой инпут поиска на Главном экране */}
+      <View className="h-12 flex-row items-center gap-3 rounded-2xl border border-line bg-surface px-4 shadow-sm">
+        <Pressable onPress={handleSearchSubmit}>
+          <Icon name="search" size={18} color="#64748b" />
+        </Pressable>
+        <TextInput
+          value={searchValue}
+          onChangeText={setSearchValue}
+          onFocus={() => {
+            if (!searchValue.trim()) {
+              onSearchPress();
+            }
+          }}
+          onSubmitEditing={handleSearchSubmit}
+          returnKeyType="search"
+          placeholder="Поиск по каталогу..."
+          placeholderTextColor="#94a3b8"
+          className="flex-1 text-sm font-semibold text-content"
+        />
+        <If condition={Boolean(searchValue)}>
+          <Pressable onPress={() => setSearchValue('')} className="p-1">
+            <Icon name="close" size={16} color="#94a3b8" />
+          </Pressable>
+        </If>
+      </View>
     </View>
   );
 };

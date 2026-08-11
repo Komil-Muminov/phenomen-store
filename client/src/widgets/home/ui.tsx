@@ -71,8 +71,12 @@ export const Home = () => {
     router.push(`${AppRoutes.catalog}?sort=discount`);
   }, [router]);
 
-  const handleSearchPress = useCallback(() => {
-    router.push(`${AppRoutes.catalog}?focusSearch=true`);
+  const handleSearchPress = useCallback((query?: string) => {
+    if (query?.trim()) {
+      router.push(`${AppRoutes.catalog}?query=${encodeURIComponent(query.trim())}`);
+    } else {
+      router.push(`${AppRoutes.catalog}?focusSearch=true`);
+    }
   }, [router]);
 
   const handleRefresh = useCallback(() => {

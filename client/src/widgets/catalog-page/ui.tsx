@@ -8,18 +8,16 @@ import { ITenantConfig } from '@/entities/tenant';
 import { CatalogFilters, TFacets, TSelectedFacets, serializeFacets, toggleFacetValue } from '@/features/catalog-filters';
 import { CatalogGrid } from '@/features/catalog-grid';
 import { QuickAddModal } from '@/features/quick-add';
-import { SearchHistoryView, addSearchTerm, addRecentlyViewed } from '@/features/search-history';
+import { SearchHistoryView, addRecentlyViewed, addSearchTerm } from '@/features/search-history';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { formatItemCount } from '@/shared/lib';
-import { useGetQuery, useMutationQuery } from '@/shared/hooks';
+import { useDebounce, useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { BottomBar, Button, Icon, If, SkeletonProductGrid, StateView, Toast } from '@/shared/ui';
 
 const DEFAULT_SORT = 'popular';
 const PAGE_SIZE = 20;
 
 const DEFAULT_QUICK_SEARCH_TAGS = ['Худи', 'Джинсы', 'Бомбер', 'Куртки', 'Футболки', 'Кроссовки'];
-
-
 
 interface IProductList {
   items: IProduct[];
@@ -28,13 +26,14 @@ interface IProductList {
 
 export const CatalogPage = () => {
   const router = useRouter();
-  const { categoryId, focusSearch } = useLocalSearchParams<{ categoryId?: string; focusSearch?: string }>();
+  const { categoryId, focusSearch, query } = useLocalSearchParams<{ categoryId?: string; focusSearch?: string; query?: string }>();
   const insets = useSafeAreaInsets();
   const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
   const [sort, setSort] = useState(DEFAULT_SORT);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(query ?? '');
+  const debouncedQuery = useDebounce(searchQuery);
   const [selectedFacets, setSelectedFacets] = useState<TSelectedFacets>({});
   const [isSearchFocused, setIsSearchFocused] = useState(Boolean(focusSearch === 'true'));
   const [columnsCount, setColumnsCount] = useState<1 | 2>(2);
@@ -43,13 +42,13 @@ export const CatalogPage = () => {
 
   const params = useMemo(() => ({
     categoryId: categoryId ?? undefined,
-    query: searchQuery.trim() || undefined,
+    query: debouncedQuery.trim() || undefined,
     sort,
     minPrice: minPrice.trim() ? Number(minPrice) : undefined,
     maxPrice: maxPrice.trim() ? Number(maxPrice) : undefined,
     options: serializeFacets(selectedFacets) || undefined,
     limit: PAGE_SIZE,
-  }), [categoryId, searchQuery, sort, minPrice, maxPrice, selectedFacets]);
+  }), [categoryId, debouncedQuery, sort, minPrice, maxPrice, selectedFacets]);
 
   const handlePriceChange = useCallback((min: string, max: string) => {
     setMinPrice(min);
@@ -60,6 +59,7 @@ export const CatalogPage = () => {
     setSelectedFacets({});
     setMinPrice('');
     setMaxPrice('');
+    setSearchQuery('');
     setSort(DEFAULT_SORT);
   }, []);
 
@@ -79,7 +79,7 @@ export const CatalogPage = () => {
     { params: { categoryId: categoryId ?? undefined }, staleTime: StaleTimeMs.medium },
   );
   const { data, isLoading, error, refetch } = useGetQuery<IProductList>(
-    [QueryKeys.products, categoryId ?? null, sort, searchQuery, serializeFacets(selectedFacets)],
+    [QueryKeys.products, categoryId ?? null, sort, debouncedQuery, serializeFacets(selectedFacets)],
     ApiRoutes.productsSearch,
     { params, staleTime: StaleTimeMs.short },
   );
@@ -104,8 +104,11 @@ export const CatalogPage = () => {
 
   const handleProductPress = useCallback((item: IProduct) => {
     addRecentlyViewed(item);
+    if (searchQuery.trim()) {
+      addSearchTerm(searchQuery.trim());
+    }
     router.push(`${AppRoutes.product}/${item.id}`);
-  }, [router]);
+  }, [router, searchQuery]);
 
   const handleAddToCart = useCallback((item: IProduct) => {
     setQuickAddProduct(item);
@@ -115,33 +118,41 @@ export const CatalogPage = () => {
     setSelectedFacets((current) => toggleFacetValue(current, code, value));
   }, []);
 
-
+  const handleSearchSubmit = useCallback(() => {
+    if (searchQuery.trim()) {
+      addSearchTerm(searchQuery.trim());
+    }
+    setIsSearchFocused(false);
+  }, [searchQuery]);
 
   const handleRetry = useCallback(() => {
     refetch();
   }, [refetch]);
 
+  const isSearchActive = Boolean(searchQuery.trim());
+
   return (
     <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
       <View className="flex-row items-center gap-2.5 px-4 py-2 border-b border-line">
-
         {/* Быстрый инпут поиска */}
         <View className="flex-1 flex-row items-center rounded-xl bg-surface px-3 py-1.5 border border-line">
-          <Icon name="search" size={16} color="#a3a3a3" />
+          <Icon name="search" size={16} color="#64748b" />
           <TextInput
             autoFocus={Boolean(focusSearch === 'true')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             onFocus={() => setIsSearchFocused(true)}
+            onSubmitEditing={handleSearchSubmit}
+            returnKeyType="search"
             placeholder="Поиск одежды, обуви..."
-            placeholderTextColor="#a3a3a3"
+            placeholderTextColor="#94a3b8"
             style={{ paddingVertical: 0 }}
             textAlignVertical="center"
             className="flex-1 text-sm font-semibold text-content ml-2"
           />
           <If condition={Boolean(searchQuery)}>
             <Pressable onPress={() => setSearchQuery('')} className="p-1">
-              <Icon name="close" size={16} color="#a3a3a3" />
+              <Icon name="close" size={16} color="#64748b" />
             </Pressable>
           </If>
         </View>
@@ -151,7 +162,7 @@ export const CatalogPage = () => {
             onPress={() => setIsSearchFocused(false)}
             className="px-2 py-2 active:opacity-70"
           >
-            <Text className="text-xs font-bold text-primary">Отмена</Text>
+            <Text className="text-xs font-extrabold text-primary">Отмена</Text>
           </Pressable>
         </If>
       </View>
@@ -162,56 +173,114 @@ export const CatalogPage = () => {
           className="flex-1 bg-background"
           contentContainerStyle={{ paddingBottom: 96, paddingTop: 12 }}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          {/* Быстрые теги подсказок */}
-          <View className="px-4 pb-3 gap-2">
-            <Text className="text-xs font-bold text-muted">Популярные запросы</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {popularTags.map((tag) => (
-                <Pressable
-                  key={tag}
-                  onPress={() => {
-                    setSearchQuery(tag);
-                    addSearchTerm(tag);
-                    setIsSearchFocused(false);
-                  }}
-                  className={`rounded-full px-3.5 py-1.5 border items-center justify-center ${
-                    searchQuery === tag ? 'border-primary bg-primary' : 'border-line bg-surface/60'
-                  }`}
-                >
-                  <Text className={`text-xs font-semibold ${searchQuery === tag ? 'text-white' : 'text-content'}`}>
-                    {tag}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
+          <If condition={!isSearchActive}>
+            <>
+              {/* Быстрые теги подсказок */}
+              <View className="px-4 pb-3 gap-2">
+                <Text className="text-xs font-bold text-muted uppercase tracking-wider">Популярные запросы</Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {popularTags.map((tag) => (
+                    <Pressable
+                      key={tag}
+                      onPress={() => {
+                        setSearchQuery(tag);
+                        addSearchTerm(tag);
+                        setIsSearchFocused(false);
+                      }}
+                      className="rounded-full px-3.5 py-1.5 border border-line bg-surface/80 items-center justify-center active:bg-primary active:border-primary"
+                    >
+                      <Text className="text-xs font-bold text-content">{tag}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
 
-          {/* История недавних поисков и недавно просмотренные товары */}
-          <SearchHistoryView
-            onSelectTerm={(term) => {
-              setSearchQuery(term);
-              addSearchTerm(term);
-              setIsSearchFocused(false);
-            }}
-            onSelectProduct={(prod) => {
-              setIsSearchFocused(false);
-              handleProductPress(prod);
-            }}
-            currencySymbol={config?.locale.currencySymbol ?? ''}
-          />
+              {/* История недавних поисков и недавно просмотренные товары */}
+              <SearchHistoryView
+                onSelectTerm={(term) => {
+                  setSearchQuery(term);
+                  addSearchTerm(term);
+                  setIsSearchFocused(false);
+                }}
+                onSelectProduct={(prod) => {
+                  setIsSearchFocused(false);
+                  handleProductPress(prod);
+                }}
+                currencySymbol={config?.locale.currencySymbol ?? ''}
+              />
+            </>
+          </If>
+
+          {/* Живые результаты поиска во время ввода */}
+          <If condition={isSearchActive}>
+            <View className="px-4 gap-3">
+              <View className="flex-row items-center justify-between py-1">
+                <Text className="text-xs font-bold text-muted">
+                  Результаты по запросу «<Text className="text-content font-black">{searchQuery}</Text>»
+                </Text>
+                <Text className="text-xs font-bold text-primary">
+                  {isLoading ? 'Загрузка...' : formatItemCount(data?.total ?? 0)}
+                </Text>
+              </View>
+
+              <If condition={!isLoading && (data?.items?.length ?? 0) === 0}>
+                <View className="items-center gap-2 py-12 px-4 rounded-3xl border border-line bg-surface">
+                  <Text className="text-sm font-bold text-content">Ничего не найдено</Text>
+                  <Text className="text-center text-xs text-muted">
+                    Проверьте написание или попробуйте найти другое название товара
+                  </Text>
+                  <Pressable
+                    onPress={() => setSearchQuery('')}
+                    className="mt-2 rounded-xl bg-primary px-4 py-2 active:opacity-80"
+                  >
+                    <Text className="text-xs font-bold text-onPrimary">Очистить запрос</Text>
+                  </Pressable>
+                </View>
+              </If>
+
+              <CatalogGrid
+                products={data?.items ?? []}
+                currencySymbol={config?.locale.currencySymbol ?? ''}
+                columnsCount={columnsCount}
+                onProductPress={(item) => {
+                  setIsSearchFocused(false);
+                  handleProductPress(item);
+                }}
+                onAddToCart={handleAddToCart}
+                loadingAddToCartId={updateCart.isPending ? updateCart.variables?.productId : null}
+              />
+            </View>
+          </If>
         </ScrollView>
       </If>
 
+      {/* Основной вид каталога */}
       <If condition={!isSearchFocused}>
         <View className="flex-row items-center justify-between px-4 pt-3 pb-1">
-          <Text className="text-xl font-extrabold tracking-tight text-content">Каталог</Text>
+          <If
+            condition={isSearchActive}
+            fallback={
+              <Text className="text-xl font-extrabold tracking-tight text-content">Каталог</Text>
+            }
+          >
+            <View className="flex-row items-center gap-2 flex-1 shrink mr-2">
+              <View className="flex-row items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 border border-rose-500/20">
+                <Text className="text-xs font-bold text-rose-600">Поиск: {searchQuery}</Text>
+                <Pressable onPress={() => setSearchQuery('')}>
+                  <Icon name="close" size={12} color="#e11d48" />
+                </Pressable>
+              </View>
+            </View>
+          </If>
+
           <Text className="text-xs font-semibold text-muted">
             {formatItemCount(data?.total ?? 0)}
           </Text>
         </View>
 
-        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 76 }} showsVerticalScrollIndicator={false}>
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
           <CatalogFilters
             facets={facets ?? {}}
             selectedFacets={selectedFacets}
@@ -243,12 +312,12 @@ export const CatalogPage = () => {
                 <Text className="text-base font-bold text-content">Ничего не найдено</Text>
                 <Text className="text-center text-xs text-muted">
                   {Boolean(minPrice || maxPrice || searchQuery || Object.keys(selectedFacets).length > 0)
-                    ? 'Попробуйте сбросить часть фильтров'
+                    ? 'Попробуйте сбросить часть фильтров или очистить поиск'
                     : 'Попробуйте изменить поисковый запрос'}
                 </Text>
                 <If condition={Boolean(minPrice || maxPrice || searchQuery || Object.keys(selectedFacets).length > 0)}>
                   <View className="w-48 pt-2">
-                    <Button title="Сбросить фильтры" onPress={handleResetAll} />
+                    <Button title="Сбросить фильтры и поиск" onPress={handleResetAll} />
                   </View>
                 </If>
               </View>
@@ -259,12 +328,12 @@ export const CatalogPage = () => {
               currencySymbol={config?.locale.currencySymbol ?? ''}
               columnsCount={columnsCount}
               onProductPress={handleProductPress}
-            onAddToCart={handleAddToCart}
-            loadingAddToCartId={updateCart.isPending ? updateCart.variables?.productId : null}
-          />
-        </If>
-      </ScrollView>
-    </If>
+              onAddToCart={handleAddToCart}
+              loadingAddToCartId={updateCart.isPending ? updateCart.variables?.productId : null}
+            />
+          </If>
+        </ScrollView>
+      </If>
 
       {/* Быстрая шторка выбора размера и цвета */}
       <QuickAddModal

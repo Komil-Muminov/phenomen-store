@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient, UseMutationResult, UseQueryResult } from '@tanstack/react-query';
 import { requestData } from '@/shared/api';
-import { StaleTimeMs } from '@/shared/config';
+import { SearchDebounceMs, StaleTimeMs } from '@/shared/config';
 
 type TQueryKey = readonly (string | number | boolean | null | undefined)[];
 
@@ -17,6 +18,22 @@ interface IMutationOptions {
   invalidate?: TQueryKey[];
   buildHeaders?: () => Record<string, string>;
 }
+
+export const useDebounce = <T>(value: T, delayMs: number = SearchDebounceMs): T => {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delayMs);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delayMs]);
+
+  return debouncedValue;
+};
 
 export const useGetQuery = <T>(
   key: TQueryKey,
