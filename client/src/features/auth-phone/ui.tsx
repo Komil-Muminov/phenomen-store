@@ -214,7 +214,7 @@ export const AuthPhone = ({
               )}
               placeholder={AuthLabels.phonePlaceholder}
               placeholderTextColor="#94a3b8"
-              keyboardType="phone-pad"
+              keyboardType="default"
               autoCapitalize="none"
               autoCorrect={false}
               editable={!busy}
