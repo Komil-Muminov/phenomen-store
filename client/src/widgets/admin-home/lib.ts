@@ -40,6 +40,13 @@ const SHOP_SECTIONS: IAdminSection[] = [
     icon: 'bag',
     route: AppRoutes.adminOrders,
   },
+  {
+    key: 'settings',
+    title: 'Настройки',
+    subtitle: 'Бренд, доставка, оплата, контакты',
+    icon: 'shield',
+    route: AppRoutes.adminSettings,
+  },
 ];
 
 export const pickSections = (scope: string): IAdminSection[] => (
