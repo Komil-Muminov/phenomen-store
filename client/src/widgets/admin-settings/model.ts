@@ -3,6 +3,7 @@ export interface ITenantConfig {
   key: string;
   name: string;
   brand: { title: string; logoUrl: string | null; slogan: string };
+  theme: { colors: Record<string, string> };
   orderRules: { minOrderTotal: number; maxItemsPerOrder: number; guestCheckout: boolean };
   delivery: { methods: string[]; freeFrom: number | null; basePrice: number };
   payment: { methods: string[]; provider: string };
@@ -13,6 +14,7 @@ export interface ISettingsValues {
   title: string;
   slogan: string;
   logoUrl: string;
+  colors: Record<string, string>;
   minOrderTotal: string;
   maxItemsPerOrder: string;
   guestCheckout: boolean;
@@ -23,6 +25,36 @@ export interface ISettingsValues {
   phone: string;
   email: string;
 }
+
+export const ColorFields = [
+  { key: 'primary', label: 'Основной', fallback: '#111827' },
+  { key: 'accent', label: 'Акцент', fallback: '#e11d48' },
+  { key: 'background', label: 'Фон', fallback: '#ffffff' },
+  { key: 'text', label: 'Текст', fallback: '#0f172a' },
+] as const;
+
+export const ColorPresets = [
+  '#111827',
+  '#4f46e5',
+  '#0ea5e9',
+  '#10b981',
+  '#f59e0b',
+  '#e11d48',
+  '#7c3aed',
+  '#0f172a',
+  '#64748b',
+  '#ffffff',
+] as const;
+
+const HEX_PATTERN = /^#[0-9a-f]{6}$/i;
+
+export const maskHex = (raw: string): string => {
+  const clean = raw.replace(/[^0-9a-fA-F]/g, '').slice(0, 6);
+
+  return `#${clean}`;
+};
+
+export const isHexValid = (value: string): boolean => HEX_PATTERN.test(value);
 
 export const DeliveryMethodOptions = [
   { value: 'courier', label: 'Курьером' },
@@ -42,6 +74,8 @@ export const SettingsTexts = {
   shopTitle: 'Название магазина',
   slogan: 'Слоган',
   logo: 'Логотип',
+  colorsBlock: 'Цвета приложения',
+  colorsHint: 'Выберите из палитры или впишите свой HEX',
   addLogo: 'Выбрать файл',
   replaceLogo: 'Заменить',
   removeLogo: 'Убрать',
@@ -68,6 +102,10 @@ export const toSettingsValues = (config: ITenantConfig): ISettingsValues => ({
   title: config.brand?.title ?? '',
   slogan: config.brand?.slogan ?? '',
   logoUrl: config.brand?.logoUrl ?? '',
+  colors: ColorFields.reduce<Record<string, string>>(
+    (acc, field) => ({ ...acc, [field.key]: config.theme?.colors?.[field.key] ?? field.fallback }),
+    {},
+  ),
   minOrderTotal: toText(config.orderRules?.minOrderTotal),
   maxItemsPerOrder: toText(config.orderRules?.maxItemsPerOrder),
   guestCheckout: config.orderRules?.guestCheckout !== false,
@@ -84,6 +122,12 @@ export const toSettingsPatch = (values: ISettingsValues) => ({
     title: values.title.trim(),
     slogan: values.slogan.trim(),
     logoUrl: values.logoUrl.trim() ? values.logoUrl.trim() : null,
+  },
+  theme: {
+    colors: Object.entries(values.colors).reduce<Record<string, string>>(
+      (acc, [key, value]) => (isHexValid(value) ? { ...acc, [key]: value.toLowerCase() } : acc),
+      {},
+    ),
   },
   orderRules: {
     minOrderTotal: Number(values.minOrderTotal) || 0,

@@ -13,6 +13,7 @@ import {
   toSettingsPatch,
   toSettingsValues,
 } from '@/widgets/admin-settings/model';
+import { RenderColors } from '@/widgets/admin-settings/ui/renderColors';
 import { RenderFields } from '@/widgets/admin-settings/ui/renderFields';
 
 const FIELD = 'rounded-2xl border border-line bg-surface px-4 py-3 text-base text-content';
@@ -186,6 +187,11 @@ export const AdminSettings = () => {
               </View>
             </View>
           </View>
+
+          <RenderColors
+            values={values as ISettingsValues}
+            onChange={(next) => setValues(next)}
+          />
 
           <RenderFields
             values={values as ISettingsValues}

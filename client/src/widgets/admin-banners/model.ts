@@ -24,6 +24,8 @@ export interface IBannerFormValues {
   subtitle: string;
   actionType: string;
   actionValue: string | null;
+  startsAt: string;
+  endsAt: string;
   isActive: boolean;
 }
 
@@ -47,7 +49,64 @@ export const EMPTY_BANNER: IBannerFormValues = {
   subtitle: '',
   actionType: BannerActionTypes.none,
   actionValue: null,
+  startsAt: '',
+  endsAt: '',
   isActive: true,
+};
+
+const DATE_LENGTH = 10;
+
+export const maskDate = (raw: string): string => {
+  const digits = raw.replace(/\D/g, '').slice(0, 8);
+  const parts = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)];
+
+  return parts.filter((part) => part.length > 0).join('.');
+};
+
+export const isDateFilled = (value: string): boolean => value.length === DATE_LENGTH;
+
+export const isDateValid = (value: string): boolean => {
+  if (!value) {
+    return true;
+  }
+
+  if (!isDateFilled(value)) {
+    return false;
+  }
+
+  const [day, month, year] = value.split('.').map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return date.getFullYear() === year
+    && date.getMonth() === month - 1
+    && date.getDate() === day;
+};
+
+export const toIsoDate = (value: string, endOfDay: boolean): string | null => {
+  if (!isDateValid(value) || !value) {
+    return null;
+  }
+
+  const [day, month, year] = value.split('.').map(Number);
+  const date = endOfDay
+    ? new Date(year, month - 1, day, 23, 59, 59, 999)
+    : new Date(year, month - 1, day, 0, 0, 0, 0);
+
+  return date.toISOString();
+};
+
+export const fromIsoDate = (value: string | null): string => {
+  if (!value) {
+    return '';
+  }
+
+  const date = new Date(value);
+
+  return [
+    String(date.getDate()).padStart(2, '0'),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getFullYear()),
+  ].join('.');
 };
 
 export const BannersTexts = {
@@ -68,6 +127,10 @@ export const BannersTexts = {
   actionLabel: 'Переход',
   linkPlaceholder: 'https://',
   visibleLabel: 'Показывать в карусели',
+  periodLabel: 'Период показа',
+  periodFrom: 'С даты',
+  periodTo: 'По дату',
+  periodHint: 'Пусто — баннер показывается всегда. Формат ДД.ММ.ГГГГ',
   hidden: 'скрыт',
   visible: 'виден',
   deleteTitle: 'Удалить баннер?',
@@ -80,6 +143,8 @@ export const toBannerForm = (banner: IAdminBanner): IBannerFormValues => ({
   subtitle: banner.subtitle ?? '',
   actionType: banner.actionType,
   actionValue: banner.actionValue,
+  startsAt: fromIsoDate(banner.startsAt),
+  endsAt: fromIsoDate(banner.endsAt),
   isActive: banner.isActive,
 });
 
@@ -92,8 +157,8 @@ export const toBannerPayload = (values: IBannerFormValues, position: number) => 
     ? null
     : (values.actionValue ?? null),
   position,
-  startsAt: null,
-  endsAt: null,
+  startsAt: toIsoDate(values.startsAt, false),
+  endsAt: toIsoDate(values.endsAt, true),
   isActive: values.isActive,
 });
 

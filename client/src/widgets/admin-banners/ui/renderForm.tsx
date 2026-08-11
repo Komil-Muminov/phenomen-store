@@ -9,6 +9,8 @@ import {
   BannerActionTypes,
   BannersTexts,
   IBannerFormValues,
+  isDateValid,
+  maskDate,
 } from '@/widgets/admin-banners/model';
 
 interface IPickerItem {
@@ -208,6 +210,38 @@ export const RenderBannerForm = ({
             </If>
           </View>
 
+          <View className="gap-2">
+            <Text className={LABEL}>{BannersTexts.periodLabel}</Text>
+
+            <View className="flex-row gap-3">
+              <View className="flex-1 gap-1">
+                <Text className="text-xs text-muted">{BannersTexts.periodFrom}</Text>
+                <TextInput
+                  value={values.startsAt}
+                  onChangeText={(next) => onChange({ ...values, startsAt: maskDate(next) })}
+                  keyboardType="number-pad"
+                  placeholder="01.09.2026"
+                  maxLength={10}
+                  className={`${FIELD} ${isDateValid(values.startsAt) ? '' : 'border-danger'}`}
+                />
+              </View>
+
+              <View className="flex-1 gap-1">
+                <Text className="text-xs text-muted">{BannersTexts.periodTo}</Text>
+                <TextInput
+                  value={values.endsAt}
+                  onChangeText={(next) => onChange({ ...values, endsAt: maskDate(next) })}
+                  keyboardType="number-pad"
+                  placeholder="30.09.2026"
+                  maxLength={10}
+                  className={`${FIELD} ${isDateValid(values.endsAt) ? '' : 'border-danger'}`}
+                />
+              </View>
+            </View>
+
+            <Text className="text-xs text-muted">{BannersTexts.periodHint}</Text>
+          </View>
+
           <Pressable
             accessibilityRole="switch"
             accessibilityState={{ checked: values.isActive }}
@@ -234,7 +268,11 @@ export const RenderBannerForm = ({
             <Button
               title={BannersTexts.save}
               loading={saving || uploading}
-              disabled={!values.imageUrl}
+              disabled={
+                !values.imageUrl
+                || !isDateValid(values.startsAt)
+                || !isDateValid(values.endsAt)
+              }
               onPress={onSubmit}
             />
             <Button
