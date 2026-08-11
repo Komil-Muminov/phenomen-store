@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import { AppRoutes } from '@/shared/config';
@@ -30,6 +30,13 @@ export const BottomBar = ({ cartCount = 0 }: IProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const { count: wishlistCount } = useWishlist();
+  const [optimisticRoute, setOptimisticRoute] = useState<string | null>(null);
+
+  useEffect(() => {
+    setOptimisticRoute(null);
+  }, [pathname]);
+
+  const activePath = optimisticRoute ?? pathname;
 
   const navItems: INavItem[] = [
     { key: 'home', route: AppRoutes.home, icon: 'sparkles', label: 'Главная' },
@@ -41,13 +48,14 @@ export const BottomBar = ({ cartCount = 0 }: IProps) => {
 
   const handleNavPress = useCallback((route: string) => {
     triggerHapticLight();
+    setOptimisticRoute(route);
     router.push(route as any);
   }, [router]);
 
   return (
     <View className="absolute bottom-4 inset-x-3 h-16 rounded-full border border-slate-800 bg-slate-900/95 shadow-2xl flex-row items-center justify-between px-1.5 z-50 backdrop-blur-xl">
       {navItems.map((item) => {
-        const isActive = isRouteActive(item.route, pathname);
+        const isActive = isRouteActive(item.route, activePath);
 
         return (
           <Pressable

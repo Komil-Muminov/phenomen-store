@@ -28,11 +28,11 @@ const RootLayout = () => (
                   contentStyle: { backgroundColor: '#fafafa' },
                 }}
               >
-                <Stack.Screen name="index" options={{ animation: 'fade' }} />
-                <Stack.Screen name="catalog" options={{ animation: 'fade' }} />
-                <Stack.Screen name="cart" options={{ animation: 'fade' }} />
-                <Stack.Screen name="wishlist" options={{ animation: 'fade' }} />
-                <Stack.Screen name="profile" options={{ animation: 'fade' }} />
+                <Stack.Screen name="index" options={{ animation: 'none' }} />
+                <Stack.Screen name="catalog" options={{ animation: 'none' }} />
+                <Stack.Screen name="cart" options={{ animation: 'none' }} />
+                <Stack.Screen name="wishlist" options={{ animation: 'none' }} />
+                <Stack.Screen name="profile" options={{ animation: 'none' }} />
               </Stack>
             </AppShell>
           </StaffAuthProvider>
