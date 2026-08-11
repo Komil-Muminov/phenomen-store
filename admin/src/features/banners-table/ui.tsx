@@ -3,6 +3,7 @@ import { Empty, Table } from 'antd';
 import { UiMessages } from '@/shared/config';
 import { buildBannerColumns } from '@/features/banners-table/lib';
 import { RenderCards } from '@/features/banners-table/ui/renderCards';
+import type { IBannerMove } from '@/features/banners-table/model';
 import type { IShopBanner, IShopCategory, IShopProduct } from '@/entities/shop';
 
 interface IProps {
@@ -10,11 +11,10 @@ interface IProps {
   categories: IShopCategory[];
   products: IShopProduct[];
   isLoading: boolean;
-  canReorder: boolean;
   onEdit: (banner: IShopBanner) => void;
   onDeactivate: (banner: IShopBanner) => void;
   onDelete: (banner: IShopBanner) => void;
-  onReorder: (ids: string[]) => void;
+  onReorder: (move: IBannerMove) => void;
 }
 
 const ROW_BASE = 'transition-colors duration-200';
@@ -25,21 +25,17 @@ const buildNames = (items: { id: string; name: string }[]): Record<string, strin
   items.reduce<Record<string, string>>((acc, item) => ({ ...acc, [item.id]: item.name }), {})
 );
 
-const moveItem = (items: IShopBanner[], from: number, to: number): string[] => {
-  const next = [...items];
-  const [moved] = next.splice(from, 1);
-
-  next.splice(to, 0, moved);
-
-  return next.map((item) => item.id);
-};
+const buildMove = (items: IShopBanner[], from: number, to: number): IBannerMove => (
+  to > from
+    ? { id: items[from].id, afterId: items[to].id }
+    : { id: items[from].id, beforeId: items[to].id }
+);
 
 export const BannersTable = ({
   items,
   categories,
   products,
   isLoading,
-  canReorder,
   onEdit,
   onDeactivate,
   onDelete,
@@ -60,12 +56,12 @@ export const BannersTable = ({
   }, []);
 
   const handleDrop = useCallback((target: number) => {
-    if (canReorder && dragIndex !== null && dragIndex !== target) {
-      onReorder(moveItem(items, dragIndex, target));
+    if (dragIndex !== null && dragIndex !== target) {
+      onReorder(buildMove(items, dragIndex, target));
     }
 
     resetDrag();
-  }, [canReorder, dragIndex, items, onReorder, resetDrag]);
+  }, [dragIndex, items, onReorder, resetDrag]);
 
   return (
     <>
@@ -92,7 +88,7 @@ export const BannersTable = ({
         locale={{ emptyText: <Empty description={UiMessages.emptyBanners} /> }}
         className="hidden overflow-x-auto lg:block"
         onRow={(_record, index) => ({
-          draggable: canReorder,
+          draggable: true,
           className: overIndex === index && dragIndex !== index ? `${ROW_BASE} ${ROW_OVER}` : ROW_BASE,
           onDragStart: () => setDragIndex(index ?? null),
           onDragEnter: () => setOverIndex(index ?? null),

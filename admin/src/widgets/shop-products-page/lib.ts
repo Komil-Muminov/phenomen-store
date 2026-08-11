@@ -1,5 +1,7 @@
 import { ApiRoutes, QueryKeys } from '@/shared/config';
 import { useMutationQuery } from '@/shared/hooks';
+import type { IAttributePayload } from '@/features/attribute-value-picker';
+import type { ICategoryPayload } from '@/features/category-picker';
 import type { IProductPayload } from '@/features/product-form';
 import type { IImportResult, IImportRow } from '@/features/product-import';
 import type { IShopAttribute, IShopCategory, IShopProduct } from '@/entities/shop';
@@ -31,11 +33,11 @@ export const useProductMutations = () => ({
     ApiRoutes.shopProductImport,
     { scope: 'shop', invalidate: INVALIDATE },
   ),
-  createCategory: useMutationQuery<{ name: string }, IShopCategory>(
+  createCategory: useMutationQuery<ICategoryPayload, IShopCategory>(
     ApiRoutes.shopCategoryCreate,
     { scope: 'shop', invalidate: CATEGORY_INVALIDATE },
   ),
-  renameCategory: useMutationQuery<{ id: string; name: string }, IShopCategory>(
+  renameCategory: useMutationQuery<ICategoryPayload & { id: string }, IShopCategory>(
     (body) => `${ApiRoutes.shopCategoryUpdate}/${body.id}`,
     { scope: 'shop', method: 'patch', invalidate: CATEGORY_INVALIDATE },
   ),
@@ -43,12 +45,12 @@ export const useProductMutations = () => ({
     (body) => `${ApiRoutes.shopCategoryDelete}/${body.id}`,
     { scope: 'shop', method: 'delete', invalidate: CATEGORY_INVALIDATE },
   ),
-  createAttribute: useMutationQuery<{ name: string; isVariantOption: boolean }, IShopAttribute>(
+  createAttribute: useMutationQuery<IAttributePayload, IShopAttribute>(
     ApiRoutes.shopAttributeCreate,
     { scope: 'shop', invalidate: ATTRIBUTE_INVALIDATE },
   ),
   updateAttribute: useMutationQuery<
-    { id: string; name?: string; values?: string[] },
+    Partial<IAttributePayload> & { id: string; values?: string[] },
     IShopAttribute
   >(
     (body) => `${ApiRoutes.shopAttributeUpdate}/${body.id}`,

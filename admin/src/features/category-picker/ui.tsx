@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { App as AntApp, Input, Modal, Select, Typography } from 'antd';
+import { App as AntApp, Select } from 'antd';
 import { DeleteOutlined, EditOutlined, FolderOpenOutlined, PlusOutlined } from '@ant-design/icons';
 import { If } from '@/shared/ui/If';
 import { Tooltip } from '@/shared/ui/Tooltip';
@@ -8,7 +8,9 @@ import {
   ICategoryDraft,
   ICategoryPickerHandlers,
   PickerTexts,
+  toDraftPayload,
 } from '@/features/category-picker/model';
+import { RenderCategoryForm } from '@/features/category-picker/ui/renderForm';
 import type { IShopCategory } from '@/entities/shop';
 
 interface IProps extends ICategoryPickerHandlers {
@@ -30,7 +32,7 @@ export const CategoryPicker = ({
   categories,
   isBusy,
   onCreateCategory,
-  onRenameCategory,
+  onUpdateCategory,
   onDeleteCategory,
 }: IProps) => {
   const { modal } = AntApp.useApp();
@@ -46,19 +48,30 @@ export const CategoryPicker = ({
 
   const startRename = useCallback((category: IShopCategory) => {
     setOpen(false);
-    setDraft({ id: category.id, name: category.name });
+    setDraft({
+      id: category.id,
+      name: category.name,
+      parentId: category.parentId ?? null,
+      imageUrl: category.imageUrl ?? '',
+      position: category.position ?? EMPTY_DRAFT.position,
+      isActive: category.isActive !== false,
+    });
+  }, []);
+
+  const patchDraft = useCallback((patch: Partial<ICategoryDraft>) => {
+    setDraft((current) => (current ? { ...current, ...patch } : current));
   }, []);
 
   const handleSave = useCallback(async () => {
-    const name = draft?.name.trim() ?? '';
-
-    if (!name) {
+    if (!draft?.name.trim()) {
       return;
     }
 
-    await (draft?.id ? onRenameCategory(draft.id, name) : onCreateCategory(name));
+    const payload = toDraftPayload(draft);
+
+    await (draft.id ? onUpdateCategory(draft.id, payload) : onCreateCategory(payload));
     setDraft(null);
-  }, [draft, onCreateCategory, onRenameCategory]);
+  }, [draft, onCreateCategory, onUpdateCategory]);
 
   const handleDelete = useCallback((category: IShopCategory) => {
     setOpen(false);
@@ -160,33 +173,14 @@ export const CategoryPicker = ({
         )}
       />
 
-      <Modal
-        open={Boolean(draft)}
-        width={440}
-        title={draft?.id ? PickerTexts.renameTitle : PickerTexts.createTitle}
-        okText="Сохранить"
-        cancelText="Отмена"
-        confirmLoading={isBusy}
-        okButtonProps={{ disabled: !draft?.name.trim() }}
-        onOk={handleSave}
+      <RenderCategoryForm
+        draft={draft}
+        categories={categories}
+        isBusy={isBusy}
+        onChange={patchDraft}
+        onSubmit={handleSave}
         onCancel={closeDraft}
-        destroyOnClose
-      >
-        <Typography.Text className="mb-1.5! block text-sm! font-medium! text-slate-700!">
-          {PickerTexts.nameLabel}
-        </Typography.Text>
-
-        <Input
-          autoFocus
-          size="large"
-          value={draft?.name ?? ''}
-          placeholder={PickerTexts.namePlaceholder}
-          onChange={(event) => setDraft((current) => (
-            current ? { ...current, name: event.target.value } : current
-          ))}
-          onPressEnter={handleSave}
-        />
-      </Modal>
+      />
     </>
   );
 };

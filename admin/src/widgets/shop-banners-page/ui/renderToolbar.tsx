@@ -1,8 +1,7 @@
-import { Alert, Button, Select } from 'antd';
+import { Button, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { VisibilityOptions } from '@/shared/config';
 import { formatVisibility } from '@/shared/lib';
-import { If } from '@/shared/ui/If';
 import { ListToolbar } from '@/shared/ui/ListToolbar';
 
 interface IProps {
@@ -10,7 +9,6 @@ interface IProps {
   search: string;
   isActive?: boolean;
   isFetching: boolean;
-  canReorder: boolean;
   onSearch: (value: string) => void;
   onVisibility: (value: string) => void;
   onRefresh: () => void;
@@ -22,7 +20,6 @@ export const RenderToolbar = ({
   search,
   isActive,
   isFetching,
-  canReorder,
   onSearch,
   onVisibility,
   onRefresh,
@@ -57,14 +54,5 @@ export const RenderToolbar = ({
       )}
     />
 
-    <If condition={!canReorder && total > 0}>
-      <Alert
-        type="info"
-        showIcon
-        className="mb-4!"
-        message="Порядок меняется перетаскиванием только на первой странице без фильтров"
-        description="Сбросьте поиск и фильтр видимости, чтобы снова перетаскивать строки."
-      />
-    </If>
   </>
 );

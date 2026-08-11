@@ -232,31 +232,42 @@ export const reorderBanners = async (
   tenant: ITenantContext,
   payload: Record<string, unknown>,
 ) => {
-  const ids = Array.isArray(payload.ids) ? payload.ids : [];
+  const id = pickString(payload.id);
+  const beforeId = pickString(payload.beforeId) || null;
+  const afterId = pickString(payload.afterId) || null;
 
-  if (ids.length === 0 || ids.length > MaxReorderItems) {
+  if (!UUID_PATTERN.test(id)) {
     throw new AppError(BannerErrors.orderInvalid, HttpStatus.badRequest);
   }
 
-  const ordered = ids.map((id) => {
-    if (typeof id !== 'string' || !UUID_PATTERN.test(id)) {
-      throw new AppError(BannerErrors.orderInvalid, HttpStatus.badRequest);
-    }
-
-    return id;
-  });
+  if ((beforeId && !UUID_PATTERN.test(beforeId)) || (afterId && !UUID_PATTERN.test(afterId))) {
+    throw new AppError(BannerErrors.orderInvalid, HttpStatus.badRequest);
+  }
 
   const current = await selectManagedBanners(tenant.id);
-  const known = new Set(current.map((row) => row.id));
 
-  if (ordered.some((id) => !known.has(id))) {
+  if (current.length > MaxReorderItems) {
+    throw new AppError(BannerErrors.orderInvalid, HttpStatus.badRequest);
+  }
+
+  const moved = current.find((row) => row.id === id);
+  const anchorId = beforeId ?? afterId;
+
+  if (!moved || (anchorId && !current.some((row) => row.id === anchorId))) {
     throw new AppError(BannerErrors.orderUnknownItem, HttpStatus.badRequest);
   }
 
+  const rest = current.filter((row) => row.id !== id);
+  const anchorIndex = anchorId ? rest.findIndex((row) => row.id === anchorId) : -1;
+  const target = anchorIndex < 0
+    ? rest.length
+    : anchorIndex + (beforeId ? 0 : 1);
+  const ordered = [...rest.slice(0, target), moved, ...rest.slice(target)];
+
   await updateBannerPositions(
     tenant.id,
-    ordered,
-    ordered.map((_id, index) => (index + 1) * BannerDefaults.positionStep),
+    ordered.map((row) => row.id),
+    ordered.map((_row, index) => (index + 1) * BannerDefaults.positionStep),
   );
 
   return (await selectManagedBanners(tenant.id)).map(mapBanner);

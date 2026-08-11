@@ -1,6 +1,7 @@
 import { ApiRoutes, QueryKeys } from '@/shared/config';
 import { useMutationQuery } from '@/shared/hooks';
 import type { IBannerFormValues } from '@/features/banner-form';
+import type { IBannerMove } from '@/features/banners-table';
 import type { IShopBanner } from '@/entities/shop';
 
 const INVALIDATE = [[QueryKeys.shopBanners]];
@@ -22,7 +23,7 @@ export const useBannerMutations = () => ({
     (body) => `${ApiRoutes.shopBannerDelete}/${body.id}`,
     { scope: 'shop', method: 'delete', invalidate: INVALIDATE },
   ),
-  reorder: useMutationQuery<{ ids: string[] }, IShopBanner[]>(
+  reorder: useMutationQuery<IBannerMove, IShopBanner[]>(
     ApiRoutes.shopBannerReorder,
     { scope: 'shop', invalidate: INVALIDATE },
   ),

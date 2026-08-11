@@ -108,6 +108,8 @@ export const updateAttribute = async (
     pickString(payload.name) || null,
     Number.isFinite(Number(payload.position)) ? Number(payload.position) : null,
     values,
+    typeof payload.isVariantOption === 'boolean' ? payload.isVariantOption : null,
+    typeof payload.isFilterable === 'boolean' ? payload.isFilterable : null,
   );
 
   return mapAttribute((await selectAttributeById(tenant.id, id)) as IAttributeRow);

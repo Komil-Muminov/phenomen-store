@@ -12,7 +12,7 @@ import {
   IAdminBanner,
   IAdminBannerList,
   IBannerFormValues,
-  swapItems,
+  buildMove,
   toBannerForm,
   toBannerPayload,
 } from '@/widgets/admin-banners/model';
@@ -54,7 +54,6 @@ export const AdminBanners = () => {
 
   const items = bannersQuery.data?.items ?? [];
   const total = bannersQuery.data?.total ?? 0;
-  const canReorder = page === 1;
 
   const handleCreate = useCallback(() => {
     setEditing(null);
@@ -94,10 +93,10 @@ export const AdminBanners = () => {
   }, [mutations.remove]);
 
   const handleMove = useCallback((index: number, offset: number) => {
-    const ordered = swapItems(items, index, index + offset);
+    const move = buildMove(items, index, offset);
 
-    if (ordered !== items) {
-      mutations.reorder.mutate({ ids: ordered.map((item) => item.id) });
+    if (move) {
+      mutations.reorder.mutate(move);
     }
   }, [items, mutations.reorder]);
 
@@ -135,10 +134,6 @@ export const AdminBanners = () => {
         contentContainerClassName="gap-3 px-4 pb-10"
         showsVerticalScrollIndicator={false}
       >
-        <If condition={!canReorder && total > 0}>
-          <Text className="text-xs text-muted">{BannersTexts.reorderHint}</Text>
-        </If>
-
         <If
           condition={items.length > 0 || bannersQuery.isLoading}
           fallback={(
@@ -176,27 +171,25 @@ export const AdminBanners = () => {
               </View>
 
               <View className="flex-row items-center gap-2">
-                <If condition={canReorder}>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Выше"
-                    disabled={index === 0 || mutations.reorder.isPending}
-                    onPress={() => handleMove(index, -1)}
-                    className={`h-9 w-9 items-center justify-center rounded-xl bg-background ${index === 0 ? 'opacity-40' : 'active:opacity-80'}`}
-                  >
-                    <Icon name="chevron-left" size={14} />
-                  </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Выше"
+                  disabled={index === 0 || mutations.reorder.isPending}
+                  onPress={() => handleMove(index, -1)}
+                  className={`h-9 w-9 items-center justify-center rounded-xl bg-background ${index === 0 ? 'opacity-40' : 'active:opacity-80'}`}
+                >
+                  <Icon name="chevron-left" size={14} />
+                </Pressable>
 
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Ниже"
-                    disabled={index === items.length - 1 || mutations.reorder.isPending}
-                    onPress={() => handleMove(index, 1)}
-                    className={`h-9 w-9 items-center justify-center rounded-xl bg-background ${index === items.length - 1 ? 'opacity-40' : 'active:opacity-80'}`}
-                  >
-                    <Icon name="chevron-right" size={14} />
-                  </Pressable>
-                </If>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Ниже"
+                  disabled={index === items.length - 1 || mutations.reorder.isPending}
+                  onPress={() => handleMove(index, 1)}
+                  className={`h-9 w-9 items-center justify-center rounded-xl bg-background ${index === items.length - 1 ? 'opacity-40' : 'active:opacity-80'}`}
+                >
+                  <Icon name="chevron-right" size={14} />
+                </Pressable>
 
                 <Pressable
                   accessibilityRole="button"

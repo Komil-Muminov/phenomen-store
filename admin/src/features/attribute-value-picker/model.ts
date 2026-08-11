@@ -34,14 +34,32 @@ export interface IAttributeDraft {
   id: string | null;
   name: string;
   isVariantOption: boolean;
+  isFilterable: boolean;
+  position: number;
+}
+
+export interface IAttributePayload {
+  name: string;
+  isVariantOption: boolean;
+  isFilterable: boolean;
+  position: number;
 }
 
 export interface IAttributeHandlers {
-  onCreateAttribute: (name: string, isVariantOption: boolean) => Promise<void>;
-  onRenameAttribute: (id: string, name: string) => Promise<void>;
+  onCreateAttribute: (payload: IAttributePayload) => Promise<void>;
+  onUpdateAttribute: (id: string, payload: IAttributePayload) => Promise<void>;
   onDeleteAttribute: (id: string) => Promise<void>;
   onSaveValues: (attributeId: string, values: string[]) => Promise<void>;
 }
+
+export const DEFAULT_ATTRIBUTE_POSITION = 100;
+
+export const toAttributePayload = (draft: IAttributeDraft): IAttributePayload => ({
+  name: draft.name.trim(),
+  isVariantOption: draft.isVariantOption,
+  isFilterable: draft.isFilterable,
+  position: draft.position,
+});
 
 export const AttributeTexts = {
   createTitle: 'Новая характеристика',
@@ -53,6 +71,12 @@ export const AttributeTexts = {
   optionHint: 'Характеристика для вариантов — по ней собираются комбинации товара.',
   addDetail: 'Характеристика',
   addOption: 'Вариант',
+  kindLabel: 'Как использовать',
+  kindOption: 'Для вариантов товара',
+  kindDetail: 'Просто описание',
+  filterableLabel: 'Участвует в фильтрах каталога',
+  positionLabel: 'Порядок',
+  positionHint: 'Меньше число — выше в карточке',
   deleteTitle: 'Удалить характеристику?',
   deleteHint: 'Она пропадёт из карточек всех товаров. Если где-то заполнена, удаление будет отклонено.',
 } as const;

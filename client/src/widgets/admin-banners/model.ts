@@ -134,7 +134,6 @@ export const BannersTexts = {
   hidden: 'скрыт',
   visible: 'виден',
   deleteTitle: 'Удалить баннер?',
-  reorderHint: 'Порядок меняется стрелками на первой странице без фильтров',
 } as const;
 
 export const toBannerForm = (banner: IAdminBanner): IBannerFormValues => ({
@@ -162,16 +161,24 @@ export const toBannerPayload = (values: IBannerFormValues, position: number) => 
   isActive: values.isActive,
 });
 
-export const swapItems = <T,>(items: T[], from: number, to: number): T[] => {
+export interface IBannerMove {
+  id: string;
+  beforeId?: string;
+  afterId?: string;
+}
+
+export const buildMove = (
+  items: IAdminBanner[],
+  from: number,
+  offset: number,
+): IBannerMove | null => {
+  const to = from + offset;
+
   if (to < 0 || to >= items.length) {
-    return items;
+    return null;
   }
 
-  const next = [...items];
-  const moved = next[from];
-
-  next[from] = next[to];
-  next[to] = moved;
-
-  return next;
+  return offset > 0
+    ? { id: items[from].id, afterId: items[to].id }
+    : { id: items[from].id, beforeId: items[to].id };
 };

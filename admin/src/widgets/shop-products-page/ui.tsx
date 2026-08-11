@@ -10,6 +10,8 @@ import { ListPagination } from '@/shared/ui/ListPagination';
 import { ProductsTable } from '@/features/products-table';
 import { ProductForm, IProductPayload } from '@/features/product-form';
 import { ProductImport, IImportRow, IImportResult } from '@/features/product-import';
+import type { IAttributePayload } from '@/features/attribute-value-picker';
+import type { ICategoryPayload } from '@/features/category-picker';
 import { useProductMutations } from '@/widgets/shop-products-page/lib';
 import { RenderToolbar } from '@/widgets/shop-products-page/ui/renderToolbar';
 import type {
@@ -131,32 +133,36 @@ export const ShopProductsPage = () => {
     [message],
   );
 
-  const handleCreateCategory = useCallback((name: string) => runCategoryAction(
-    mutations.createCategory.mutateAsync({ name }),
+  const handleCreateCategory = useCallback((payload: ICategoryPayload) => runCategoryAction(
+    mutations.createCategory.mutateAsync(payload),
     'Категория создана',
   ), [mutations.createCategory, runCategoryAction]);
 
-  const handleRenameCategory = useCallback((id: string, name: string) => runCategoryAction(
-    mutations.renameCategory.mutateAsync({ id, name }),
-    'Категория переименована',
-  ), [mutations.renameCategory, runCategoryAction]);
+  const handleUpdateCategory = useCallback(
+    (id: string, payload: ICategoryPayload) => runCategoryAction(
+      mutations.renameCategory.mutateAsync({ ...payload, id }),
+      'Категория обновлена',
+    ),
+    [mutations.renameCategory, runCategoryAction],
+  );
 
   const handleDeleteCategory = useCallback((id: string) => runCategoryAction(
     mutations.removeCategory.mutateAsync({ id }),
     'Категория удалена',
   ), [mutations.removeCategory, runCategoryAction]);
 
-  const handleCreateAttribute = useCallback((name: string, isVariantOption: boolean) => (
-    runCategoryAction(
-      mutations.createAttribute.mutateAsync({ name, isVariantOption }),
-      'Характеристика добавлена',
-    )
+  const handleCreateAttribute = useCallback((payload: IAttributePayload) => runCategoryAction(
+    mutations.createAttribute.mutateAsync(payload),
+    'Характеристика добавлена',
   ), [mutations.createAttribute, runCategoryAction]);
 
-  const handleRenameAttribute = useCallback((id: string, name: string) => runCategoryAction(
-    mutations.updateAttribute.mutateAsync({ id, name }),
-    'Характеристика переименована',
-  ), [mutations.updateAttribute, runCategoryAction]);
+  const handleUpdateAttribute = useCallback(
+    (id: string, payload: IAttributePayload) => runCategoryAction(
+      mutations.updateAttribute.mutateAsync({ ...payload, id }),
+      'Характеристика обновлена',
+    ),
+    [mutations.updateAttribute, runCategoryAction],
+  );
 
   const handleDeleteAttribute = useCallback((id: string) => runCategoryAction(
     mutations.removeAttribute.mutateAsync({ id }),
@@ -235,7 +241,7 @@ export const ShopProductsPage = () => {
           || mutations.removeCategory.isPending
         }
         onCreateCategory={handleCreateCategory}
-        onRenameCategory={handleRenameCategory}
+        onUpdateCategory={handleUpdateCategory}
         onDeleteCategory={handleDeleteCategory}
         isAttributeBusy={
           mutations.createAttribute.isPending
@@ -243,7 +249,7 @@ export const ShopProductsPage = () => {
           || mutations.removeAttribute.isPending
         }
         onCreateAttribute={handleCreateAttribute}
-        onRenameAttribute={handleRenameAttribute}
+        onUpdateAttribute={handleUpdateAttribute}
         onDeleteAttribute={handleDeleteAttribute}
         onSaveValues={handleSaveValues}
         onSubmit={handleSubmit}

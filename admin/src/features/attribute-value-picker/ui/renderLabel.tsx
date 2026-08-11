@@ -1,4 +1,4 @@
-import { Input, Modal, Typography } from 'antd';
+import { Form, Input, InputNumber, Modal, Radio, Switch, Typography } from 'antd';
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { AttributeTexts, IAttributeDraft } from '@/features/attribute-value-picker/model';
@@ -63,7 +63,7 @@ export const RenderAttributeAdd = ({ title, onClick }: IAddProps) => (
 interface IModalProps {
   draft: IAttributeDraft | null;
   isBusy: boolean;
-  onChange: (name: string) => void;
+  onChange: (patch: Partial<IAttributeDraft>) => void;
   onSubmit: () => void;
   onCancel: () => void;
 }
@@ -77,7 +77,7 @@ export const RenderAttributeModal = ({
 }: IModalProps) => (
   <Modal
     open={Boolean(draft)}
-    width={440}
+    width={480}
     title={draft?.id ? AttributeTexts.renameTitle : AttributeTexts.createTitle}
     okText="Сохранить"
     cancelText="Отмена"
@@ -87,23 +87,64 @@ export const RenderAttributeModal = ({
     onCancel={onCancel}
     destroyOnClose
   >
-    <Typography.Text className="mb-1.5! block text-sm! font-medium! text-slate-700!">
-      {AttributeTexts.nameLabel}
-    </Typography.Text>
+    <Form layout="vertical" requiredMark={false}>
+      <Form.Item label={AttributeTexts.nameLabel} className="mb-3!">
+        <Input
+          autoFocus
+          size="large"
+          value={draft?.name ?? ''}
+          placeholder={draft?.isVariantOption
+            ? AttributeTexts.optionPlaceholder
+            : AttributeTexts.detailPlaceholder}
+          onChange={(event) => onChange({ name: event.target.value })}
+          onPressEnter={onSubmit}
+        />
+      </Form.Item>
 
-    <Input
-      autoFocus
-      size="large"
-      value={draft?.name ?? ''}
-      placeholder={draft?.isVariantOption
-        ? AttributeTexts.optionPlaceholder
-        : AttributeTexts.detailPlaceholder}
-      onChange={(event) => onChange(event.target.value)}
-      onPressEnter={onSubmit}
-    />
+      <Form.Item
+        label={AttributeTexts.kindLabel}
+        extra={draft?.isVariantOption ? AttributeTexts.optionHint : AttributeTexts.detailHint}
+        className="mb-3!"
+      >
+        <Radio.Group
+          value={draft?.isVariantOption === true}
+          onChange={(event) => onChange({ isVariantOption: event.target.value })}
+          optionType="button"
+          buttonStyle="solid"
+          options={[
+            { value: true, label: AttributeTexts.kindOption },
+            { value: false, label: AttributeTexts.kindDetail },
+          ]}
+        />
+      </Form.Item>
 
-    <Typography.Text className="mt-2! block text-xs! text-slate-500!">
-      {draft?.isVariantOption ? AttributeTexts.optionHint : AttributeTexts.detailHint}
-    </Typography.Text>
+      <div className="flex flex-wrap items-start gap-4">
+        <Form.Item className="mb-0! flex-1">
+          <div className="flex items-center gap-3">
+            <Switch
+              checked={draft?.isFilterable !== false}
+              onChange={(isFilterable) => onChange({ isFilterable })}
+            />
+            <Typography.Text className="text-sm! text-slate-600!">
+              {AttributeTexts.filterableLabel}
+            </Typography.Text>
+          </div>
+        </Form.Item>
+
+        <Form.Item
+          label={AttributeTexts.positionLabel}
+          extra={AttributeTexts.positionHint}
+          className="mb-0! w-32"
+        >
+          <InputNumber
+            min={0}
+            step={10}
+            value={draft?.position}
+            onChange={(position) => onChange({ position: Number(position ?? 0) })}
+            className="w-full!"
+          />
+        </Form.Item>
+      </div>
+    </Form>
   </Modal>
 );

@@ -60,15 +60,27 @@ export const updateAttributeFields = async (
   name: string | null,
   position: number | null,
   values: string[] | null,
+  isVariantOption: boolean | null,
+  isFilterable: boolean | null,
 ): Promise<void> => {
   await tenantQuery(
     tenantId,
     `UPDATE attributes
      SET name = COALESCE($3, name),
          position = COALESCE($4, position),
-         values = COALESCE($5::jsonb, values)
+         values = COALESCE($5::jsonb, values),
+         is_variant_option = COALESCE($6, is_variant_option),
+         is_filterable = COALESCE($7, is_filterable)
      WHERE tenant_id = $1 AND id = $2`,
-    [tenantId, id, name, position, values ? JSON.stringify(values) : null],
+    [
+      tenantId,
+      id,
+      name,
+      position,
+      values ? JSON.stringify(values) : null,
+      isVariantOption,
+      isFilterable,
+    ],
   );
 };
 

@@ -17,9 +17,11 @@ import {
 import { CategoryPicker, ICategoryPickerHandlers } from '@/features/category-picker';
 import {
   AttributeTexts,
+  DEFAULT_ATTRIBUTE_POSITION,
   IAttributeDraft,
   IAttributeHandlers,
   RenderAttributeModal,
+  toAttributePayload,
 } from '@/features/attribute-value-picker';
 import type { IShopAttribute, IShopCategory, IShopProduct } from '@/entities/shop';
 
@@ -46,10 +48,10 @@ export const ProductForm = ({
   onSubmit,
   onCancel,
   onCreateCategory,
-  onRenameCategory,
+  onUpdateCategory,
   onDeleteCategory,
   onCreateAttribute,
-  onRenameAttribute,
+  onUpdateAttribute,
   onDeleteAttribute,
   onSaveValues,
 }: IProps) => {
@@ -89,18 +91,18 @@ export const ProductForm = ({
   }, [open, editing, optionCodes, form]);
 
   const handleAttributeSubmit = useCallback(async () => {
-    const name = attributeDraft?.name.trim() ?? '';
-
-    if (!name) {
+    if (!attributeDraft?.name.trim()) {
       return;
     }
 
-    await (attributeDraft?.id
-      ? onRenameAttribute(attributeDraft.id, name)
-      : onCreateAttribute(name, attributeDraft?.isVariantOption === true));
+    const payload = toAttributePayload(attributeDraft);
+
+    await (attributeDraft.id
+      ? onUpdateAttribute(attributeDraft.id, payload)
+      : onCreateAttribute(payload));
 
     setAttributeDraft(null);
-  }, [attributeDraft, onCreateAttribute, onRenameAttribute]);
+  }, [attributeDraft, onCreateAttribute, onUpdateAttribute]);
 
   const handleDeleteAttribute = useCallback((id: string, name: string) => {
     modal.confirm({
@@ -187,7 +189,7 @@ export const ProductForm = ({
               categories={categories}
               isBusy={isCategoryBusy}
               onCreateCategory={onCreateCategory}
-              onRenameCategory={onRenameCategory}
+              onUpdateCategory={onUpdateCategory}
               onDeleteCategory={onDeleteCategory}
             />
           </Form.Item>
@@ -220,11 +222,19 @@ export const ProductForm = ({
         isBusy={isAttributeBusy}
         onChange={(code, value) => setDetails((current) => ({ ...current, [code]: value }))}
         onSaveValues={onSaveValues}
-        onAdd={() => setAttributeDraft({ id: null, name: '', isVariantOption: false })}
+        onAdd={() => setAttributeDraft({
+          id: null,
+          name: '',
+          isVariantOption: false,
+          isFilterable: true,
+          position: DEFAULT_ATTRIBUTE_POSITION,
+        })}
         onRename={(attribute) => setAttributeDraft({
           id: attribute.id,
           name: attribute.name,
-          isVariantOption: false,
+          isVariantOption: attribute.isVariantOption,
+          isFilterable: attribute.isFilterable,
+          position: attribute.position,
         })}
         onDelete={(attribute) => handleDeleteAttribute(attribute.id, attribute.name)}
       />
@@ -240,11 +250,19 @@ export const ProductForm = ({
         onSelect={handleSelect}
         onRowChange={handleRowChange}
         onSaveValues={onSaveValues}
-        onAdd={() => setAttributeDraft({ id: null, name: '', isVariantOption: true })}
+        onAdd={() => setAttributeDraft({
+          id: null,
+          name: '',
+          isVariantOption: true,
+          isFilterable: true,
+          position: DEFAULT_ATTRIBUTE_POSITION,
+        })}
         onRename={(attribute) => setAttributeDraft({
           id: attribute.id,
           name: attribute.name,
-          isVariantOption: true,
+          isVariantOption: attribute.isVariantOption,
+          isFilterable: attribute.isFilterable,
+          position: attribute.position,
         })}
         onDelete={(attribute) => handleDeleteAttribute(attribute.id, attribute.name)}
       />
@@ -252,7 +270,7 @@ export const ProductForm = ({
       <RenderAttributeModal
         draft={attributeDraft}
         isBusy={isAttributeBusy}
-        onChange={(name) => setAttributeDraft((current) => (current ? { ...current, name } : current))}
+        onChange={(patch) => setAttributeDraft((current) => (current ? { ...current, ...patch } : current))}
         onSubmit={handleAttributeSubmit}
         onCancel={() => setAttributeDraft(null)}
       />

@@ -1,6 +1,6 @@
 import { ApiRoutes, QueryKeys } from '@/shared/config';
 import { useMutationQuery } from '@/shared/hooks';
-import { IAdminBanner } from '@/widgets/admin-banners/model';
+import { IAdminBanner, IBannerMove } from '@/widgets/admin-banners/model';
 
 const INVALIDATE = [[QueryKeys.adminBanners]];
 
@@ -17,7 +17,7 @@ export const useBannerMutations = () => ({
     (body) => `${ApiRoutes.manageBannerDelete}/${body.id}`,
     { method: 'delete', invalidate: INVALIDATE },
   ),
-  reorder: useMutationQuery<{ ids: string[] }, IAdminBanner[]>(
+  reorder: useMutationQuery<IBannerMove, IAdminBanner[]>(
     ApiRoutes.manageBannerReorder,
     { invalidate: INVALIDATE },
   ),

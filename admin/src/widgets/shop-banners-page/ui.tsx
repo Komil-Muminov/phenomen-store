@@ -7,7 +7,7 @@ import { useGetQuery, useListQuery } from '@/shared/hooks';
 import { buildListKey, buildListParams, parseVisibility } from '@/shared/lib';
 import { If } from '@/shared/ui/If';
 import { ListPagination } from '@/shared/ui/ListPagination';
-import { BannersTable } from '@/features/banners-table';
+import { BannersTable, IBannerMove } from '@/features/banners-table';
 import { BannerForm, IBannerFormValues } from '@/features/banner-form';
 import { useBannerMutations } from '@/widgets/shop-banners-page/lib';
 import { RenderToolbar } from '@/widgets/shop-banners-page/ui/renderToolbar';
@@ -72,8 +72,8 @@ export const ShopBannersPage = () => {
     });
   }, [mutations.deactivate, message]);
 
-  const handleReorder = useCallback((ids: string[]) => {
-    mutations.reorder.mutate({ ids }, {
+  const handleReorder = useCallback((move: IBannerMove) => {
+    mutations.reorder.mutate(move, {
       onSuccess: () => message.success(UiMessages.reorderedBanners),
       onError: (error) => message.error(extractErrorMessage(error)),
     });
@@ -127,7 +127,6 @@ export const ShopBannersPage = () => {
   const items = bannersQuery.data?.items ?? [];
   const total = bannersQuery.data?.total ?? 0;
   const products = productsQuery.data?.items ?? [];
-  const canReorder = applied.page === 1 && !applied.search && applied.isActive === undefined;
 
   return (
     <>
@@ -136,7 +135,6 @@ export const ShopBannersPage = () => {
         search={draft.search}
         isActive={draft.isActive}
         isFetching={bannersQuery.isFetching}
-        canReorder={canReorder}
         onSearch={setSearch}
         onVisibility={handleVisibility}
         onRefresh={handleRefresh}
@@ -168,8 +166,7 @@ export const ShopBannersPage = () => {
           categories={categoriesQuery.data ?? []}
           products={products}
           isLoading={bannersQuery.isLoading || mutations.reorder.isPending}
-          canReorder={canReorder}
-          onEdit={handleEdit}
+            onEdit={handleEdit}
           onDeactivate={handleDeactivate}
           onDelete={handleDelete}
           onReorder={handleReorder}
