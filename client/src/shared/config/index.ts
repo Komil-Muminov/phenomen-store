@@ -148,10 +148,8 @@ export const StaffScopes = {
 } as const;
 
 export const StaffTexts = {
-  switchToStaff: 'Вход для сотрудников',
-  switchToCustomer: 'Вход для покупателей',
   title: 'Вход в управление',
-  subtitle: 'Логин супер-админа платформы или email сотрудника магазина',
+  subtitle: 'Похоже на логин — введите пароль. Для входа по SMS сотрите буквы',
   loginLabel: 'Логин',
   loginPlaceholder: 'km или owner@shop.ru',
   passwordLabel: 'Пароль',

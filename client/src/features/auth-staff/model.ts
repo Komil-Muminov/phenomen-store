@@ -24,3 +24,7 @@ export const EMPTY_CREDENTIALS: IStaffCredentials = { login: '', password: '' };
 export const isCredentialsValid = ({ login, password }: IStaffCredentials): boolean => (
   login.trim().length > 0 && password.length > 0
 );
+
+const PHONE_CHARS = /^[\d\s+()-]*$/;
+
+export const isStaffIdentifier = (value: string): boolean => !PHONE_CHARS.test(value);

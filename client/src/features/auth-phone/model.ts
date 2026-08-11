@@ -7,8 +7,8 @@ export type TAuthStep = (typeof AuthSteps)[keyof typeof AuthSteps];
 
 export const AuthLabels = {
   title: 'Вход в профиль',
-  subtitle: 'Отправим код подтверждения по SMS',
-  phonePlaceholder: '+992 999 99 13 06',
+  subtitle: 'Введите номер телефона — пришлём код. Сотрудники входят по логину',
+  phonePlaceholder: '+992 999 99 13 06 или логин',
   codePlaceholder: 'Код из SMS',
   sendCode: 'Получить код',
   confirm: 'Подтвердить',

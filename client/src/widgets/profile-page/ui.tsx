@@ -4,7 +4,12 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IOrder } from '@/entities/order';
 import { AuthSteps, RESEND_DELAY_SEC, TAuthStep } from '@/features/auth-phone';
-import { EMPTY_CREDENTIALS, IStaffCredentials, ISigninResult } from '@/features/auth-staff';
+import {
+  EMPTY_CREDENTIALS,
+  IStaffCredentials,
+  ISigninResult,
+  isStaffIdentifier,
+} from '@/features/auth-staff';
 import { ProfileOrders } from '@/features/profile-orders';
 import { ApiRoutes, AppRoutes, QueryKeys, StaffScopes, StaleTimeMs } from '@/shared/config';
 import { useStaffAuth } from '@/shared/staff-auth';
@@ -32,7 +37,6 @@ export const ProfilePage = () => {
   const safeTop = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
   const { isAuthorized, ready, login, logout } = useAuth();
   const { signIn: staffSignIn } = useStaffAuth();
-  const [staffMode, setStaffMode] = useState(false);
   const [credentials, setCredentials] = useState<IStaffCredentials>(EMPTY_CREDENTIALS);
   const [staffError, setStaffError] = useState<string | null>(null);
   const [step, setStep] = useState<TAuthStep>(AuthSteps.phone);
@@ -44,6 +48,15 @@ export const ProfilePage = () => {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const [resendSeconds, setResendSeconds] = useState(0);
+
+  const staffMode = isStaffIdentifier(phone);
+
+  const handleIdentifierChange = useCallback((value: string) => {
+    setAuthError(null);
+    setStaffError(null);
+    setPhone(value);
+    setCredentials((current) => ({ ...current, login: value.trim() }));
+  }, []);
 
   const { data: profile, isLoading } = useGetQuery<IProfile>(
     [QueryKeys.profile],
@@ -84,12 +97,6 @@ export const ProfilePage = () => {
     return () => clearInterval(timer);
   }, [resendSeconds]);
 
-  const handleToggleMode = useCallback(() => {
-    setStaffError(null);
-    setAuthError(null);
-    setStaffMode((current) => !current);
-  }, []);
-
   const handleStaffSubmit = useCallback(() => {
     setStaffError(null);
 
@@ -106,6 +113,7 @@ export const ProfilePage = () => {
             tenantName: result.tenantName ?? null,
           }).then(() => {
             setCredentials(EMPTY_CREDENTIALS);
+            setPhone('');
             router.replace(toHref(AppRoutes.admin));
           });
         },
@@ -183,8 +191,7 @@ export const ProfilePage = () => {
                 credentials={credentials}
                 staffError={staffError}
                 staffBusy={staffSignin.isPending}
-                onToggleMode={handleToggleMode}
-                onPhoneChange={setPhone}
+                onPhoneChange={handleIdentifierChange}
                 onCodeChange={setCode}
                 onRequestCode={handleRequestCode}
                 onVerify={handleVerify}

@@ -45,6 +45,7 @@ export const AuthStaff = ({ values, errorMessage, busy, onChange, onSubmit }: IP
               <Icon name="user" size={18} color="#737373" />
             </View>
             <TextInput
+              autoFocus
               value={values.login}
               placeholder={StaffTexts.loginPlaceholder}
               placeholderTextColor="#a3a3a3"

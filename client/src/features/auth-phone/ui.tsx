@@ -9,8 +9,11 @@ import {
   isCodeValid,
   isPhoneValid,
 } from '@/features/auth-phone/model';
+import { isStaffIdentifier } from '@/features/auth-staff';
 import { triggerHapticLight, triggerHapticSuccess } from '@/shared/lib/haptics';
 import { Button, ButtonVariants, Icon, If } from '@/shared/ui';
+
+const IDENTIFIER_MAX_LENGTH = 64;
 
 interface IProps {
   step: TAuthStep;
@@ -201,12 +204,15 @@ export const AuthPhone = ({
           <View className="relative justify-center">
             <TextInput
               value={phone}
-              onChangeText={(val) => onPhoneChange(formatPhoneMask(val))}
+              onChangeText={(val) => onPhoneChange(
+                isStaffIdentifier(val) ? val.trim() : formatPhoneMask(val),
+              )}
               placeholder={AuthLabels.phonePlaceholder}
               placeholderTextColor="#a3a3a3"
-              keyboardType="phone-pad"
+              autoCapitalize="none"
+              autoCorrect={false}
               editable={!busy}
-              maxLength={18}
+              maxLength={IDENTIFIER_MAX_LENGTH}
               style={{ paddingVertical: 0 }}
               textAlignVertical="center"
               className="h-14 rounded-2xl border border-line bg-surface pl-4 pr-10 text-base font-bold text-content tracking-wide"
