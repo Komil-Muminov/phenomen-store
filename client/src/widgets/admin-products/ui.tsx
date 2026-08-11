@@ -30,6 +30,7 @@ import {
   toFormValues,
   toPayload,
 } from '@/widgets/admin-products/model';
+import { IImportResult, IImportRow, ProductImport } from '@/features/product-import';
 import { RenderForm } from '@/widgets/admin-products/ui/renderForm';
 
 export const AdminProducts = () => {
@@ -44,6 +45,8 @@ export const AdminProducts = () => {
   const [selected, setSelected] = useState<Record<string, string[]>>({});
   const [rows, setRows] = useState<IVariantRow[]>([]);
   const [hasVariants, setHasVariants] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importResult, setImportResult] = useState<IImportResult | null>(null);
   const mutations = useProductMutations();
 
   useEffect(() => {
@@ -125,6 +128,19 @@ export const AdminProducts = () => {
     mutations.create.mutate(payload, { onSuccess });
   }, [values, attributeValues, rows, hasVariants, editing, mutations.update, mutations.create]);
 
+  const handleDuplicate = useCallback((product: IAdminProduct) => {
+    mutations.duplicate.mutate({ id: product.id });
+  }, [mutations.duplicate]);
+
+  const handleImportOpen = useCallback(() => {
+    setImportResult(null);
+    setImportOpen(true);
+  }, []);
+
+  const handleImport = useCallback((rows: IImportRow[]) => {
+    mutations.importRows.mutate({ rows }, { onSuccess: setImportResult });
+  }, [mutations.importRows]);
+
   const handleCreateCategory = useCallback((name: string) => {
     mutations.createCategory.mutate({ name }, {
       onSuccess: (category) => setValues((current) => ({ ...current, categoryId: category.id })),
@@ -152,6 +168,15 @@ export const AdminProducts = () => {
           </Text>
           <Text className="text-xs text-muted">{`Найдено: ${total}`}</Text>
         </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Загрузить из таблицы"
+          onPress={handleImportOpen}
+          className="h-10 w-10 items-center justify-center rounded-xl bg-surface active:opacity-80"
+        >
+          <Icon name="sparkles" size={18} />
+        </Pressable>
 
         <Pressable
           accessibilityRole="button"
@@ -221,14 +246,25 @@ export const AdminProducts = () => {
                 </Text>
               </View>
 
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={ProductsTexts.hide}
-                onPress={() => mutations.hide.mutate({ id: product.id })}
-                className="h-9 w-9 items-center justify-center rounded-xl bg-background active:opacity-80"
-              >
-                <Icon name="close" size={14} />
-              </Pressable>
+              <View className="gap-1">
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Дублировать товар"
+                  onPress={() => handleDuplicate(product)}
+                  className="h-9 w-9 items-center justify-center rounded-xl bg-background active:opacity-80"
+                >
+                  <Icon name="plus" size={14} />
+                </Pressable>
+
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={ProductsTexts.hide}
+                  onPress={() => mutations.hide.mutate({ id: product.id })}
+                  className="h-9 w-9 items-center justify-center rounded-xl bg-background active:opacity-80"
+                >
+                  <Icon name="close" size={14} />
+                </Pressable>
+              </View>
             </Pressable>
           ))}
         </If>
@@ -264,6 +300,14 @@ export const AdminProducts = () => {
         onToggleVariants={setHasVariants}
         onSubmit={handleSubmit}
         onClose={() => setFormOpen(false)}
+      />
+
+      <ProductImport
+        open={importOpen}
+        saving={mutations.importRows.isPending}
+        result={importResult}
+        onSubmit={handleImport}
+        onClose={() => setImportOpen(false)}
       />
     </Screen>
   );

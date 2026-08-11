@@ -53,6 +53,8 @@ export const ApiRoutes = {
   manageProductCreate: '/products/create',
   manageProductUpdate: '/products/update',
   manageProductDeactivate: '/products/deactivate',
+  manageProductDuplicate: '/products/duplicate',
+  manageProductImport: '/products/import',
   manageStock: '/products/stock/search',
   manageStockUpdate: '/products/stock/update',
   manageBanners: '/banners/manage/search',

@@ -1,5 +1,6 @@
 import { ApiRoutes, QueryKeys } from '@/shared/config';
 import { useMutationQuery } from '@/shared/hooks';
+import { IImportResult, IImportRow } from '@/features/product-import';
 import { IAdminCategory, IAdminProduct } from '@/widgets/admin-products/model';
 
 const INVALIDATE = [[QueryKeys.adminProducts], [QueryKeys.adminStock]];
@@ -18,6 +19,14 @@ export const useProductMutations = () => ({
   hide: useMutationQuery<{ id: string }, IAdminProduct>(
     (body) => `${ApiRoutes.manageProductDeactivate}/${body.id}`,
     { method: 'patch', invalidate: INVALIDATE },
+  ),
+  duplicate: useMutationQuery<{ id: string }, IAdminProduct>(
+    (body) => `${ApiRoutes.manageProductDuplicate}/${body.id}`,
+    { invalidate: INVALIDATE },
+  ),
+  importRows: useMutationQuery<{ rows: IImportRow[] }, IImportResult>(
+    ApiRoutes.manageProductImport,
+    { invalidate: INVALIDATE },
   ),
   createCategory: useMutationQuery<{ name: string }, IAdminCategory>(
     ApiRoutes.manageCategoryCreate,
