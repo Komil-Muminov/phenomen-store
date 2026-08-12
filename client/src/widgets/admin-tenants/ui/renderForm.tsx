@@ -3,7 +3,7 @@ import { Button, ButtonVariants, Icon, If } from '@/shared/ui';
 import {
   FormTexts,
   ITenantFormValues,
-  KEY_PATTERN,
+  TTenantFormField,
   TenantPlans,
   TenantVerticals,
 } from '@/widgets/admin-tenants/model';
@@ -13,6 +13,7 @@ interface IProps {
   editing: boolean;
   values: ITenantFormValues;
   saving: boolean;
+  fieldErrors: Partial<Record<TTenantFormField, string>>;
   errorMessage: string | null;
   onChange: (values: ITenantFormValues) => void;
   onSubmit: () => void;
@@ -30,6 +31,7 @@ export const RenderTenantForm = ({
   editing,
   values,
   saving,
+  fieldErrors,
   errorMessage,
   onChange,
   onSubmit,
@@ -61,10 +63,16 @@ export const RenderTenantForm = ({
               onChangeText={(key) => onChange({ ...values, key: key.toLowerCase() })}
               autoCapitalize="none"
               autoCorrect={false}
+              autoComplete="off"
               placeholder="my-shop"
               className={FIELD}
             />
-            <Text className="text-xs text-muted">{FormTexts.keyHint}</Text>
+            <If
+              condition={Boolean(fieldErrors.key)}
+              fallback={<Text className="text-xs text-muted">{FormTexts.keyHint}</Text>}
+            >
+              <Text className="text-xs font-semibold text-danger">{fieldErrors.key}</Text>
+            </If>
           </View>
         </If>
 
@@ -73,9 +81,13 @@ export const RenderTenantForm = ({
           <TextInput
             value={values.name}
             onChangeText={(name) => onChange({ ...values, name })}
+            autoComplete="off"
             placeholder="Мой магазин"
             className={FIELD}
           />
+          <If condition={Boolean(fieldErrors.name)}>
+            <Text className="text-xs font-semibold text-danger">{fieldErrors.name}</Text>
+          </If>
         </View>
 
         <View className="gap-1.5">
@@ -124,6 +136,7 @@ export const RenderTenantForm = ({
             value={values.bundleId}
             onChangeText={(bundleId) => onChange({ ...values, bundleId })}
             autoCapitalize="none"
+            autoComplete="off"
             placeholder="store.phenomen.myshop"
             className={FIELD}
           />
@@ -137,6 +150,7 @@ export const RenderTenantForm = ({
             <TextInput
               value={values.ownerName}
               onChangeText={(ownerName) => onChange({ ...values, ownerName })}
+              autoComplete="off"
               placeholder={FormTexts.ownerNameLabel}
               className={FIELD}
             />
@@ -144,17 +158,28 @@ export const RenderTenantForm = ({
               value={values.ownerLogin}
               onChangeText={(ownerLogin) => onChange({ ...values, ownerLogin })}
               autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="off"
               keyboardType="email-address"
               placeholder={FormTexts.ownerLoginLabel}
               className={FIELD}
             />
+            <If condition={Boolean(fieldErrors.ownerLogin)}>
+              <Text className="text-xs font-semibold text-danger">{fieldErrors.ownerLogin}</Text>
+            </If>
             <TextInput
               value={values.ownerPassword}
               onChangeText={(ownerPassword) => onChange({ ...values, ownerPassword })}
               secureTextEntry
+              autoComplete="off"
               placeholder={FormTexts.ownerPasswordLabel}
               className={FIELD}
             />
+            <If condition={Boolean(fieldErrors.ownerPassword)}>
+              <Text className="text-xs font-semibold text-danger">
+                {fieldErrors.ownerPassword}
+              </Text>
+            </If>
           </View>
         </If>
 
@@ -166,7 +191,7 @@ export const RenderTenantForm = ({
           <Button
             title={FormTexts.save}
             loading={saving}
-            disabled={!values.name.trim() || (!editing && !KEY_PATTERN.test(values.key))}
+            disabled={saving}
             onPress={onSubmit}
           />
           <Button

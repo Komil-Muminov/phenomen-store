@@ -20,10 +20,12 @@ import {
   ITenant,
   ITenantFormValues,
   ITenantList,
+  TTenantFormField,
   TenantsTexts,
   toCreatePayload,
   toTenantForm,
   toUpdatePayload,
+  validateTenantForm,
 } from '@/widgets/admin-tenants/model';
 import { RenderTenantForm } from '@/widgets/admin-tenants/ui/renderForm';
 
@@ -36,6 +38,7 @@ export const AdminTenants = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [values, setValues] = useState<ITenantFormValues>(EMPTY_TENANT);
   const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<TTenantFormField, string>>>({});
   const [deleting, setDeleting] = useState<ITenant | null>(null);
   const [deleteKey, setDeleteKey] = useState('');
   const mutations = useTenantMutations();
@@ -63,6 +66,7 @@ export const AdminTenants = () => {
     setEditing(null);
     setValues(EMPTY_TENANT);
     setFormError(null);
+    setFieldErrors({});
     setFormOpen(true);
   }, []);
 
@@ -70,10 +74,20 @@ export const AdminTenants = () => {
     setEditing(tenant);
     setValues(toTenantForm(tenant));
     setFormError(null);
+    setFieldErrors({});
     setFormOpen(true);
   }, []);
 
   const handleSubmit = useCallback(() => {
+    const validation = validateTenantForm(values, Boolean(editing));
+
+    setFieldErrors(validation);
+    setFormError(null);
+
+    if (Object.keys(validation).length > 0) {
+      return;
+    }
+
     const onSuccess = () => setFormOpen(false);
     const onError = (error: Error) => setFormError(error.message);
 
@@ -258,7 +272,11 @@ export const AdminTenants = () => {
         values={values}
         saving={mutations.create.isPending || mutations.update.isPending}
         errorMessage={formError}
-        onChange={setValues}
+        fieldErrors={fieldErrors}
+        onChange={(next) => {
+          setValues(next);
+          setFieldErrors({});
+        }}
         onSubmit={handleSubmit}
         onClose={() => setFormOpen(false)}
       />

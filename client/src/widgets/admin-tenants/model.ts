@@ -89,7 +89,7 @@ export const FormTexts = {
   createTitle: 'Новый магазин',
   editTitle: 'Настройки магазина',
   keyLabel: 'Ключ магазина',
-  keyHint: 'Латиницей, менять потом нельзя',
+  keyHint: 'Латиница, цифры и дефис, минимум 3 символа. Потом не меняется',
   nameLabel: 'Название',
   verticalLabel: 'Вертикаль',
   planLabel: 'Тариф',
@@ -113,6 +113,56 @@ export const FormTexts = {
 } as const;
 
 export const KEY_PATTERN = /^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/;
+
+export const OWNER_PASSWORD_MIN_LENGTH = 6;
+
+export type TTenantFormField = keyof ITenantFormValues;
+
+export const TenantFormErrors = {
+  keyRequired: 'Укажите ключ магазина',
+  keyInvalid: 'Минимум 3 символа: латиница, цифры и дефис',
+  nameRequired: 'Укажите название магазина',
+  ownerLoginRequired: 'Укажите почту владельца',
+  ownerPasswordRequired: 'Придумайте пароль владельца',
+  ownerPasswordShort: `Пароль не короче ${OWNER_PASSWORD_MIN_LENGTH} символов`,
+} as const;
+
+export const validateTenantForm = (
+  values: ITenantFormValues,
+  editing: boolean,
+): Partial<Record<TTenantFormField, string>> => {
+  const errors: Partial<Record<TTenantFormField, string>> = {};
+  const key = values.key.trim();
+  const hasOwner = Boolean(
+    values.ownerName.trim() || values.ownerLogin.trim() || values.ownerPassword,
+  );
+
+  if (!values.name.trim()) {
+    errors.name = TenantFormErrors.nameRequired;
+  }
+
+  if (!editing && !key) {
+    errors.key = TenantFormErrors.keyRequired;
+  }
+
+  if (!editing && key && !KEY_PATTERN.test(key)) {
+    errors.key = TenantFormErrors.keyInvalid;
+  }
+
+  if (!editing && hasOwner && !values.ownerLogin.trim()) {
+    errors.ownerLogin = TenantFormErrors.ownerLoginRequired;
+  }
+
+  if (!editing && hasOwner && !values.ownerPassword) {
+    errors.ownerPassword = TenantFormErrors.ownerPasswordRequired;
+  }
+
+  if (!editing && values.ownerPassword && values.ownerPassword.length < OWNER_PASSWORD_MIN_LENGTH) {
+    errors.ownerPassword = TenantFormErrors.ownerPasswordShort;
+  }
+
+  return errors;
+};
 
 export const toTenantForm = (tenant: ITenant): ITenantFormValues => ({
   ...EMPTY_TENANT,
