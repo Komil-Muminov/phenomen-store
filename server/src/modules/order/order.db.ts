@@ -197,6 +197,19 @@ export const selectOrderItems = async (tenantId: string, orderId: string): Promi
   )
 );
 
+export const selectOrderOwner = async (
+  tenantId: string,
+  orderId: string,
+): Promise<string | null> => {
+  const rows = await tenantQuery<{ user_id: string | null }>(
+    tenantId,
+    'SELECT user_id FROM orders WHERE tenant_id = $1 AND id = $2 LIMIT 1',
+    [tenantId, orderId],
+  );
+
+  return rows[0]?.user_id ?? null;
+};
+
 export const selectOrderById = async (tenantId: string, orderId: string): Promise<IOrderRow | null> => {
   const rows = await tenantQuery<IOrderRow>(
     tenantId,

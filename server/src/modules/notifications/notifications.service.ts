@@ -1,109 +1,106 @@
-export interface INotificationItem {
-  id: string;
-  tenantId: string;
-  title: string;
-  text: string;
-  time: string;
-  kind: 'promo' | 'order' | 'system';
-  unread: boolean;
-  actionUrl?: string;
-  createdAt: string;
-}
+import { ErrorMessages, HttpStatus } from '@/shared/config';
+import { ITenantContext } from '@/shared/types';
+import { AppError, pickString } from '@/shared/utils';
+import {
+  countUnread,
+  deleteAllNotifications,
+  deleteNotificationById,
+  insertNotification,
+  markAllRead,
+  markRead,
+  selectNotificationPage,
+} from '@/modules/notifications/notifications.db';
+import {
+  INotificationFilters,
+  INotificationInput,
+  INotificationRow,
+  NotificationKinds,
+  NotificationTexts,
+  OrderStatusLabels,
+  TNotificationKind,
+} from '@/modules/notifications/types';
 
-const INITIAL_NOTIFICATIONS: Omit<INotificationItem, 'tenantId'>[] = [
-  {
-    id: 'n1',
-    title: 'Закрытая распродажа PHENOMEN',
-    text: 'Эксклюзивная скидка 15% на всю новую осеннюю коллекцию оверсайз курток и худи. Промокод: PHENOMEN15',
-    time: '15 минут назад',
-    kind: 'promo',
-    unread: true,
-    actionUrl: '/catalog',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'n2',
-    title: 'Статус заказа #9821 обновлен',
-    text: 'Ваш заказ передан в курьерскую службу доставки. Ожидайте звонка курьера за 30 минут.',
-    time: '2 часа назад',
-    kind: 'order',
-    unread: true,
-    actionUrl: '/profile',
-    createdAt: new Date(Date.now() - 7200000).toISOString(),
-  },
-  {
-    id: 'n3',
-    title: 'Безопасный вход в профиль',
-    text: 'Вы успешно авторизовались с нового устройства. Если это были не вы, немедленно свяжитесь с поддержкой.',
-    time: 'Вчера, 18:40',
-    kind: 'system',
-    unread: false,
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: 'n4',
-    title: 'Новое поступление: Кроссовки Street',
-    text: 'Ограниченная серия премиальных кожаных кроссовок уже в наличии в каталоге.',
-    time: '3 дня назад',
-    kind: 'promo',
-    unread: false,
-    actionUrl: '/catalog',
-    createdAt: new Date(Date.now() - 259200000).toISOString(),
-  },
-];
+const KINDS: string[] = Object.values(NotificationKinds);
 
-const tenantStore: Record<string, INotificationItem[]> = {};
+const mapNotification = (row: INotificationRow) => ({
+  id: row.id,
+  kind: row.kind,
+  title: row.title,
+  text: row.text,
+  actionUrl: row.action_url,
+  unread: row.read_at === null,
+  createdAt: row.created_at,
+});
 
-const getTenantNotifications = (tenantId: string): INotificationItem[] => {
-  if (!tenantStore[tenantId]) {
-    tenantStore[tenantId] = INITIAL_NOTIFICATIONS.map((item) => ({
-      ...item,
-      tenantId,
-    }));
-  }
-  return tenantStore[tenantId];
+export const pickNotificationKind = (value: unknown): string | null => {
+  const kind = pickString(value);
+
+  return KINDS.includes(kind) ? kind : null;
 };
 
-export const getNotifications = async (
-  tenantId: string,
-  kind?: string,
-  page: number = 1,
-  limit: number = 20,
+export const listNotifications = async (
+  tenant: ITenantContext,
+  userId: string,
+  filters: INotificationFilters,
+  page: number,
+  limit: number,
+  offset: number,
 ) => {
-  const all = getTenantNotifications(tenantId);
-  const filtered = (kind && kind !== 'all')
-    ? all.filter((n) => n.kind === kind)
-    : all;
-
-  const startIndex = (page - 1) * limit;
-  const paginated = filtered.slice(startIndex, startIndex + limit);
+  const { items, total } = await selectNotificationPage(tenant.id, userId, filters, limit, offset);
 
   return {
-    items: paginated,
-    total: filtered.length,
-    unreadCount: all.filter((n) => n.unread).length,
+    items: items.map(mapNotification),
+    total,
     page,
     limit,
-    totalPages: Math.ceil(filtered.length / limit),
+    unreadCount: await countUnread(tenant.id, userId),
   };
 };
 
-export const deleteNotification = async (tenantId: string, id: string) => {
-  const all = getTenantNotifications(tenantId);
-  tenantStore[tenantId] = all.filter((n) => n.id !== id);
-  return { success: true };
+export const createNotification = async (
+  tenant: ITenantContext,
+  input: INotificationInput,
+) => mapNotification(await insertNotification(tenant.id, input));
+
+export const readNotification = async (tenant: ITenantContext, userId: string, id: string) => {
+  const changed = await markRead(tenant.id, userId, id);
+
+  return { changed: changed > 0 };
 };
 
-export const clearAllNotifications = async (tenantId: string) => {
-  tenantStore[tenantId] = [];
-  return { success: true };
-};
+export const readAllNotifications = async (tenant: ITenantContext, userId: string) => ({
+  changed: await markAllRead(tenant.id, userId),
+});
 
-export const markNotificationRead = async (tenantId: string, id: string) => {
-  const all = getTenantNotifications(tenantId);
-  const item = all.find((n) => n.id === id);
-  if (item) {
-    item.unread = false;
+export const removeNotification = async (tenant: ITenantContext, userId: string, id: string) => {
+  const removed = await deleteNotificationById(tenant.id, userId, id);
+
+  if (removed === 0) {
+    throw new AppError(ErrorMessages.notFound, HttpStatus.notFound);
   }
-  return { success: true };
+
+  return { removed: true };
+};
+
+export const clearNotifications = async (tenant: ITenantContext, userId: string) => ({
+  removed: await deleteAllNotifications(tenant.id, userId),
+});
+
+export const notifyOrderStatus = async (
+  tenant: ITenantContext,
+  userId: string | null,
+  orderNumber: string,
+  status: string,
+): Promise<void> => {
+  if (!userId) {
+    return;
+  }
+
+  await insertNotification(tenant.id, {
+    userId,
+    kind: NotificationKinds.order as TNotificationKind,
+    title: NotificationTexts.orderStatusTitle(orderNumber),
+    text: NotificationTexts.orderStatusBody(OrderStatusLabels[status] ?? status),
+    actionUrl: NotificationTexts.orderActionUrl,
+  });
 };

@@ -11,6 +11,7 @@ const TENANT_TABLES = [
   'users',
   'otp_codes',
   'addresses',
+  'notifications',
   'storefront_sections',
   'banners',
   'categories',

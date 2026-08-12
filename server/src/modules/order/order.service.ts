@@ -4,12 +4,14 @@ import { AppError, isPlainObject, pickString } from '@/shared/utils';
 import { getPublicConfig } from '@/modules/tenant';
 import { assertOrderAllowed, buildRules, calculateTotals, DeliveryMethods } from '@/modules/pricing';
 import { getCartPricing, ICartOwner } from '@/modules/cart';
+import { notifyOrderStatus } from '@/modules/notifications';
 import {
   applyOrderStatus,
   insertOrder,
   selectOrderById,
   selectOrderByIdempotencyKey,
   selectOrderItems,
+  selectOrderOwner,
   selectOrders,
   selectTenantOrders,
 } from '@/modules/order/order.db';
@@ -210,6 +212,13 @@ export const changeOrderStatus = async (
     nextStatus,
     nextStatus === OrderStatus.cancelled,
     userId,
+  );
+
+  await notifyOrderStatus(
+    tenant,
+    await selectOrderOwner(tenant.id, orderId),
+    updated.number,
+    nextStatus,
   );
 
   return mapOrder(updated, await selectOrderItems(tenant.id, orderId));

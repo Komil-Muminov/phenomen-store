@@ -1,67 +1,104 @@
-import { Router } from 'express';
+import { NextFunction, Response, Router } from 'express';
+import { ErrorMessages, HttpStatus } from '@/shared/config';
+import { authMiddleware } from '@/shared/middlewares';
+import { IAppRequest } from '@/shared/types';
+import { AppError, parsePagination, requireUuid, sendList, sendOk } from '@/shared/utils';
 import {
-  clearAllNotifications,
-  deleteNotification,
-  getNotifications,
-  markNotificationRead,
-} from './notifications.service';
+  clearNotifications,
+  listNotifications,
+  pickNotificationKind,
+  readAllNotifications,
+  readNotification,
+  removeNotification,
+} from '@/modules/notifications/notifications.service';
+import { NotificationPaths } from '@/modules/notifications/types';
+
+const requireTenant = (req: IAppRequest) => {
+  if (!req.tenant) {
+    throw new AppError(ErrorMessages.tenantRequired, HttpStatus.badRequest);
+  }
+
+  return req.tenant;
+};
+
+const requireUserId = (req: IAppRequest): string => {
+  if (!req.user?.id) {
+    throw new AppError(ErrorMessages.unauthorized, HttpStatus.unauthorized);
+  }
+
+  return req.user.id;
+};
 
 export const notificationsRouter = Router();
 
-notificationsRouter.get('/get', async (req: any, res: any, next: any) => {
-  try {
-    const tenantId = req.tenant?.id;
-    if (!tenantId) {
-      res.json({
-        success: true,
-        data: { items: [], total: 0, unreadCount: 0, page: 1, limit: 20, totalPages: 0 },
-      });
+notificationsRouter.use(authMiddleware);
 
-      return;
+notificationsRouter.get(
+  NotificationPaths.search,
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const params = req.query as Record<string, unknown>;
+      const { page, limit, offset } = parsePagination(params);
+      const filters = { kind: pickNotificationKind(params.kind) };
+
+      sendList(res, await listNotifications(
+        requireTenant(req),
+        requireUserId(req),
+        filters,
+        page,
+        limit,
+        offset,
+      ));
+    } catch (error) {
+      next(error);
     }
+  },
+);
 
-    const kind = req.query.kind as string | undefined;
-    const page = parseInt((req.query.page as string) || '1', 10);
-    const limit = parseInt((req.query.limit as string) || '20', 10);
+notificationsRouter.patch(
+  NotificationPaths.read,
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
 
-    const data = await getNotifications(tenantId, kind, page, limit);
-    res.json({ success: true, data });
-  } catch (err) {
-    next(err);
-  }
-});
+      sendOk(res, await readNotification(requireTenant(req), requireUserId(req), id));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
-notificationsRouter.all('/delete/:id', async (req: any, res: any, next: any) => {
-  try {
-    const tenantId = req.tenant.id;
-    const { id } = req.params;
+notificationsRouter.patch(
+  NotificationPaths.readAll,
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      sendOk(res, await readAllNotifications(requireTenant(req), requireUserId(req)));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
-    const data = await deleteNotification(tenantId, id);
-    res.json({ success: true, data });
-  } catch (err) {
-    next(err);
-  }
-});
+notificationsRouter.delete(
+  NotificationPaths.delete,
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const id = requireUuid(req.params.id, 'id');
 
-notificationsRouter.all('/clear-all', async (req: any, res: any, next: any) => {
-  try {
-    const tenantId = req.tenant.id;
+      sendOk(res, await removeNotification(requireTenant(req), requireUserId(req), id));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
-    const data = await clearAllNotifications(tenantId);
-    res.json({ success: true, data });
-  } catch (err) {
-    next(err);
-  }
-});
-
-notificationsRouter.all('/read/:id', async (req: any, res: any, next: any) => {
-  try {
-    const tenantId = req.tenant.id;
-    const { id } = req.params;
-
-    const data = await markNotificationRead(tenantId, id);
-    res.json({ success: true, data });
-  } catch (err) {
-    next(err);
-  }
-});
+notificationsRouter.delete(
+  NotificationPaths.clearAll,
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      sendOk(res, await clearNotifications(requireTenant(req), requireUserId(req)));
+    } catch (error) {
+      next(error);
+    }
+  },
+);

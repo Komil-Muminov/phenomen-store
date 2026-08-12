@@ -5,15 +5,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { Button, Icon, If } from '@/shared/ui';
+import { formatMoment } from '@/shared/lib';
 
 interface INotification {
   id: string;
   title: string;
   text: string;
-  time: string;
   kind: 'promo' | 'order' | 'system';
   unread: boolean;
-  actionUrl?: string;
+  actionUrl: string | null;
+  createdAt: string;
 }
 
 interface INotificationsResponse {
@@ -22,8 +23,9 @@ interface INotificationsResponse {
   unreadCount: number;
   page: number;
   limit: number;
-  totalPages: number;
 }
+
+const PAGE_LIMIT = 20;
 
 const TABS = [
   { key: 'all', label: 'Все' },
@@ -39,14 +41,15 @@ export const NotificationsPage = () => {
 
   const { data, isLoading } = useGetQuery<INotificationsResponse>(
     [QueryKeys.notifications, activeTab, page],
-    ApiRoutes.notificationsGet,
+    ApiRoutes.notificationsSearch,
     {
-      params: { kind: activeTab, page, limit: 20 },
+      params: { kind: activeTab, page, limit: PAGE_LIMIT },
       staleTime: StaleTimeMs.short,
     },
   );
 
   const items = data?.items ?? [];
+  const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / PAGE_LIMIT));
 
   const deleteOne = useMutationQuery<string, void>(
     (id: string) => `${ApiRoutes.notificationsDelete}/${id}`,
@@ -232,7 +235,7 @@ export const NotificationsPage = () => {
 
                       {/* Нижняя строка: Время и лаконичная ссылка */}
                       <View className="flex-row items-center justify-between pt-1.5 mt-0.5">
-                        <Text className="text-[11px] font-medium text-muted/70">{item.time}</Text>
+                        <Text className="text-[11px] font-medium text-muted/70">{formatMoment(item.createdAt)}</Text>
 
                         <If condition={Boolean(item.actionUrl)}>
                           <Pressable
@@ -251,7 +254,7 @@ export const NotificationsPage = () => {
               ))}
 
               {/* Пагинатор страниц при наличии нескольких страниц */}
-              <If condition={Boolean(data?.totalPages && data.totalPages > 1)}>
+              <If condition={Boolean(totalPages > 1)}>
                 <View className="flex-row items-center justify-between pt-4 pb-8 border-t border-line">
                   <Button
                     title="‹ Назад"
@@ -260,12 +263,12 @@ export const NotificationsPage = () => {
                     onPress={() => setPage((p) => Math.max(p - 1, 1))}
                   />
                   <Text className="text-xs font-bold text-muted">
-                    Стр. {page} из {data?.totalPages}
+                    Стр. {page} из {totalPages}
                   </Text>
                   <Button
                     title="Вперед ›"
                     size="small"
-                    disabled={page >= (data?.totalPages ?? 1)}
+                    disabled={page >= totalPages}
                     onPress={() => setPage((p) => p + 1)}
                   />
                 </View>
