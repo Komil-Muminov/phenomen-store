@@ -2,7 +2,7 @@ import { Pressable, Text, View } from 'react-native';
 import { IOrder } from '@/entities/order';
 import { ManageOrderStatuses } from '@/shared/config';
 import { If } from '@/shared/ui';
-import { formatDate, formatMoney } from '@/widgets/admin-orders/model';
+import { formatCustomerName, formatDate, formatMoney } from '@/widgets/admin-orders/model';
 
 interface IProps {
   order: IOrder;
@@ -18,7 +18,7 @@ export const RenderOrder = ({ order, saving, onChangeStatus }: IProps) => (
       <View className="flex-1 gap-0.5">
         <Text className="text-base font-bold text-content">{order.number}</Text>
         <Text className="text-xs text-muted">
-          {`${formatDate(order.createdAt)} · ${order.customer.name ?? 'без имени'}`}
+          {`${formatDate(order.createdAt)} · ${formatCustomerName(order.customer)}`}
         </Text>
         <If condition={Boolean(order.customer.phone)}>
           <Text className="text-xs text-muted">{order.customer.phone}</Text>

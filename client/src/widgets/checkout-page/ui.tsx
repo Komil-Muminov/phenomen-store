@@ -28,6 +28,7 @@ interface IProfile {
   phone: string | null;
   email: string | null;
   name: string | null;
+  lastName: string | null;
 }
 
 export const CheckoutPage = () => {
@@ -59,10 +60,11 @@ export const CheckoutPage = () => {
     setForm((current) => ({
       ...current,
       name: current.name || (profile?.name ?? ''),
+      lastName: current.lastName || (profile?.lastName ?? ''),
       phone: current.phone || (profile?.phone ?? ''),
       email: current.email || (profile?.email ?? ''),
     }));
-  }, [profile?.name, profile?.phone, profile?.email]);
+  }, [profile?.name, profile?.lastName, profile?.phone, profile?.email]);
 
   const createOrder = useMutationQuery<ReturnType<typeof buildOrderPayload>, IOrderResponse>(
     ApiRoutes.ordersCreate,

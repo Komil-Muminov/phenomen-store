@@ -8,6 +8,7 @@
   "scripts": {
     "test": "npm run test --workspace server",
     "typecheck": "npm run typecheck --workspace server && npm run typecheck --prefix admin && npm run typecheck --prefix client",
+    "doctor": "node doctor.js",
     "kill": "node kill-ports.js",
     "predev": "npm run kill && npm run db:init && npm run usb:reverse",
     "dev": "wt -d . powershell -NoExit -Command \"npm run dev:server\" ; split-pane -d . powershell -NoExit -Command \"npm run usb:mobile\" ; split-pane -H -d . powershell -NoExit -Command \"npm run dev:admin\"",

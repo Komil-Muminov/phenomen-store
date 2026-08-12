@@ -41,6 +41,7 @@ export const CheckoutForm = ({
       <View className="gap-3 rounded-2xl border border-line bg-surface/50 p-4">
         <Text className="text-base font-extrabold text-content">{SectionLabels.contacts}</Text>
         <FormField field="name" form={form} error={errors.name} onChange={onChange} />
+        <FormField field="lastName" form={form} error={errors.lastName} onChange={onChange} />
         <FormField field="phone" form={form} error={errors.phone} keyboardType="phone-pad" onChange={onChange} />
         <FormField field="email" form={form} error={errors.email} keyboardType="email-address" onChange={onChange} />
       </View>

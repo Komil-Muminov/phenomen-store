@@ -63,6 +63,7 @@ export interface IOrderItemRow {
 
 export interface ICustomerPayload {
   name: string;
+  lastName: string | null;
   phone: string;
   email: string | null;
 }

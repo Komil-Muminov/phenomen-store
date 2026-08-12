@@ -16,6 +16,12 @@ export const OrdersTexts = {
   loadMore: 'Показать ещё',
 } as const;
 
+export const formatCustomerName = (customer: Record<string, string>): string => {
+  const parts = [customer.name, customer.lastName].filter(Boolean);
+
+  return parts.length > 0 ? parts.join(' ') : 'без имени';
+};
+
 export const formatMoney = (value: number, currency: string): string => (
   `${new Intl.NumberFormat('ru-RU').format(value)} ${currency === 'TJS' ? 'смн' : currency}`
 );

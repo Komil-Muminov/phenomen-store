@@ -22,9 +22,10 @@ const formatMoney = (value: number, currency: string): string => `${value.toLoca
 const formatDateTime = (value: string): string => new Date(value).toLocaleString('ru-RU');
 
 const readCustomerName = (customer: Record<string, unknown> | null): string => {
-  const name = customer?.name;
+  const parts = [customer?.name, customer?.lastName]
+    .filter((part): part is string => typeof part === 'string' && part.length > 0);
 
-  return typeof name === 'string' && name ? name : '—';
+  return parts.length > 0 ? parts.join(' ') : '—';
 };
 
 export const buildOrderColumns = ({ onStatusChange, savingId }: IHandlers): ColumnsType<IOrder> => [

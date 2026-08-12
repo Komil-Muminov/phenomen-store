@@ -63,7 +63,12 @@ const parseCustomer = (payload: unknown): ICustomerPayload => {
     throw new AppError(OrderErrors.customerRequired, HttpStatus.badRequest);
   }
 
-  return { name, phone, email: pickString(source.email) || null };
+  return {
+    name,
+    lastName: pickString(source.lastName) || null,
+    phone,
+    email: pickString(source.email) || null,
+  };
 };
 
 const parseDelivery = (payload: unknown, allowedMethods: string[]): IDeliveryPayload => {

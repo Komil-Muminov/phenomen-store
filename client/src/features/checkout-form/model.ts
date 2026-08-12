@@ -2,6 +2,7 @@ import { DeliveryMethods } from '@/entities/cart';
 
 export interface ICheckoutForm {
   name: string;
+  lastName: string;
   phone: string;
   email: string;
   address: string;
@@ -15,6 +16,7 @@ export type TCheckoutField = keyof ICheckoutForm;
 
 export const EMPTY_FORM: ICheckoutForm = {
   name: '',
+  lastName: '',
   phone: '',
   email: '',
   address: '',
@@ -26,6 +28,7 @@ export const EMPTY_FORM: ICheckoutForm = {
 
 export const FieldLabels: Record<string, string> = {
   name: 'Имя получателя',
+  lastName: 'Фамилия',
   phone: 'Телефон',
   email: 'E-mail',
   address: 'Адрес доставки',
@@ -48,6 +51,10 @@ export const validateForm = (form: ICheckoutForm): Partial<Record<TCheckoutField
     errors.name = 'Укажите имя';
   }
 
+  if (form.lastName.trim().length < 2) {
+    errors.lastName = 'Укажите фамилию';
+  }
+
   if (form.phone.replace(/\D/g, '').length < PHONE_MIN_DIGITS) {
     errors.phone = 'Укажите корректный телефон';
   }
@@ -66,6 +73,7 @@ export const validateForm = (form: ICheckoutForm): Partial<Record<TCheckoutField
 export const buildOrderPayload = (form: ICheckoutForm) => ({
   customer: {
     name: form.name.trim(),
+    lastName: form.lastName.trim(),
     phone: form.phone.trim(),
     email: form.email.trim() || null,
   },

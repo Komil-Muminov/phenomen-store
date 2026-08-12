@@ -18,6 +18,7 @@ interface IOrderResponse {
   id: string;
   number: string;
   status: string;
+  customer: { name: string; lastName: string | null };
   totals: { itemsTotal: number; grandTotal: number };
   items: { quantity: number; total: number }[];
 }
@@ -51,7 +52,7 @@ const placeOrder = async (
     method: 'POST',
     headers: guestHeaders(guest),
     body: {
-      customer: { name: 'Тестовый покупатель', phone: '+992900112233' },
+      customer: { name: 'Иван', lastName: 'Петров', phone: '+992900112233' },
       delivery: { method: 'pickup' },
       paymentMethod: 'cash_on_delivery',
       ...overrides,
@@ -91,6 +92,20 @@ describe('оформление заказа', () => {
     assert.equal(order.items[0].quantity, QUANTITY);
     assert.equal(order.totals.itemsTotal, PRICE * QUANTITY);
     assert.ok(order.number.length > 0);
+  });
+
+  it('сохраняет фамилию покупателя', async (t: TestContext) => {
+    if (!context) {
+      t.skip(SKIP_REASON);
+
+      return;
+    }
+
+    const response = await placeOrder(context, `guest-lastname-${Date.now()}`);
+    const order = response.body.data as IOrderResponse;
+
+    assert.equal(order.customer.name, 'Иван');
+    assert.equal(order.customer.lastName, 'Петров');
   });
 
   it('отклоняет заказ с пустой корзиной', async (t: TestContext) => {
