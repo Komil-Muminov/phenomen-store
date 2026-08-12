@@ -30,6 +30,9 @@ export const ShopActions = {
   bannerDeactivate: 'shop.banner.deactivate',
   bannerDelete: 'shop.banner.delete',
   bannerReorder: 'shop.banner.reorder',
+  promotionCreate: 'shop.promotion.create',
+  promotionUpdate: 'shop.promotion.update',
+  promotionDelete: 'shop.promotion.delete',
   orderStatus: 'shop.order.status',
   configUpdate: 'shop.config.update',
 } as const;

@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import {
   BarChartOutlined,
   DatabaseOutlined,
+  GiftOutlined,
   PictureOutlined,
   SettingOutlined,
   ShoppingOutlined,
@@ -25,6 +26,7 @@ export const CatalogNavItems: INavItem[] = [
   { to: AppRoutes.shopProducts, label: 'Товары', icon: <TagsOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopStock, label: 'Остатки', icon: <DatabaseOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopBanners, label: 'Баннеры', icon: <PictureOutlined aria-hidden="true" /> },
+  { to: AppRoutes.shopPromotions, label: 'Акции', icon: <GiftOutlined aria-hidden="true" /> },
 ];
 
 const CatalogRoutes = CatalogNavItems.map((item) => item.to);

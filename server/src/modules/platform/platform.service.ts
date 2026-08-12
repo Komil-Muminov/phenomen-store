@@ -4,7 +4,7 @@ import { Env, EntityStatus, ErrorMessages, HttpStatus, PlatformRoles, UserRoles 
 import { IListResult, IPlatformContext, ITenantContext } from '@/shared/types';
 import { AppError, pickString } from '@/shared/utils';
 import { invalidateTenantCache } from '@/modules/tenant';
-import { issueToken, loginWithPassword, loginStaffWithPassword, normalizePhone } from '@/modules/auth';
+import { issueToken, loginStaffWithPassword, normalizePhone } from '@/modules/auth';
 import { applyVerticalPreset } from '@/modules/attributes';
 import {
   countTenants,

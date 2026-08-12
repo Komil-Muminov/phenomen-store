@@ -13,6 +13,7 @@ export const ApiRoutes = {
   reviews: '/reviews',
   wishlist: '/wishlist',
   notifications: '/notifications',
+  promotions: '/promotions',
   stats: '/stats',
   health: '/health',
 } as const;
