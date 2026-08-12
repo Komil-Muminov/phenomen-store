@@ -26,7 +26,20 @@ export type TIconName =
   | 'eyeoff'
   | 'phone'
   | 'zap'
-  | 'gift';
+  | 'gift'
+  | 'clock'
+  | 'trash'
+  | 'edit'
+  | 'package'
+  | 'store'
+  | 'chevron-down'
+  | 'chevronDown'
+  | 'chevron-up'
+  | 'chevronUp'
+  | 'refresh'
+  | 'globe'
+  | 'grid'
+  | 'list';
 
 interface IProps {
   name: TIconName | string;
@@ -168,6 +181,34 @@ export const Icon = ({ name, size = 20, color = '#171717' }: IProps) => {
       <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
         <SvgPath
           d="M9 18l6-6-6-6"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </SvgComponent>
+    );
+  }
+
+  if (normName === 'chevron-down' || normName === 'chevrondown') {
+    return (
+      <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <SvgPath
+          d="M6 9l6 6 6-6"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </SvgComponent>
+    );
+  }
+
+  if (normName === 'chevron-up' || normName === 'chevronup') {
+    return (
+      <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <SvgPath
+          d="M18 15l-6-6-6 6"
           stroke={color}
           strokeWidth="2"
           strokeLinecap="round"
@@ -338,6 +379,132 @@ export const Icon = ({ name, size = 20, color = '#171717' }: IProps) => {
     );
   }
 
+  if (normName === 'clock') {
+    return (
+      <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <SvgPath
+          d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <SvgPath
+          d="M12 6V12L16 14"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </SvgComponent>
+    );
+  }
+
+  if (normName === 'trash') {
+    return (
+      <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <SvgPath
+          d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </SvgComponent>
+    );
+  }
+
+  if (normName === 'edit') {
+    return (
+      <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <SvgPath
+          d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </SvgComponent>
+    );
+  }
+
+  if (normName === 'package' || normName === 'box') {
+    return (
+      <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <SvgPath
+          d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <SvgPath
+          d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </SvgComponent>
+    );
+  }
+
+  if (normName === 'store') {
+    return (
+      <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <SvgPath
+          d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <SvgPath
+          d="M9 22V12h6v10"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </SvgComponent>
+    );
+  }
+
+  if (normName === 'refresh') {
+    return (
+      <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <SvgPath
+          d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </SvgComponent>
+    );
+  }
+
+  if (normName === 'globe') {
+    return (
+      <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <SvgPath
+          d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <SvgPath
+          d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </SvgComponent>
+    );
+  }
+
   return (
     <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
       <SvgPath
@@ -350,3 +517,4 @@ export const Icon = ({ name, size = 20, color = '#171717' }: IProps) => {
     </SvgComponent>
   );
 };
+

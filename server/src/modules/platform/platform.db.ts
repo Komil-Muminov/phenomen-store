@@ -329,8 +329,8 @@ export interface IAuditFilters {
 const AUDIT_FROM = `
   FROM platform_audit_log a
   LEFT JOIN tenants t ON t.id = a.tenant_id
-  WHERE ($1::text IS NULL OR a.action = $1::text)
-    AND ($2::text IS NULL OR t.key = $2::text)
+  WHERE ($1::text IS NULL OR a.action = $1::text OR a.action ILIKE $1::text || '.%')
+    AND ($2::text IS NULL OR t.key ILIKE $2::text)
     AND ($3::text IS NULL OR a.actor_login ILIKE '%' || $3::text || '%'
          OR a.payload::text ILIKE '%' || $3::text || '%'
          OR t.key ILIKE '%' || $3::text || '%')

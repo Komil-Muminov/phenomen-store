@@ -102,18 +102,61 @@ export const resolveMediaUrl = (value: string | null | undefined): string => {
   return markIndex < 0 ? url : `${Env.apiUrl}${url.slice(markIndex)}`;
 };
 
-export const formatMoment = (value: string): string => {
-  const raw = typeof value === 'string' ? value.replace(' ', 'T') : '';
-  const date = new Date(raw);
+export const formatMoment = (value: string | Date | number | undefined | null): string => {
+  if (!value) return '—';
+  let date: Date;
 
-  if (!raw || Number.isNaN(date.getTime())) {
+  if (value instanceof Date) {
+    date = value;
+  } else if (typeof value === 'number') {
+    date = new Date(value);
+  } else {
+    let str = String(value).trim();
+    // Replace space between date and time with T
+    str = str.replace(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})/, '$1T$2');
+    // Truncate microseconds (.123456) to milliseconds (.123)
+    str = str.replace(/(\.\d{3})\d+/, '$1');
+    date = new Date(str);
+
+    if (Number.isNaN(date.getTime())) {
+      const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/);
+      if (match) {
+        date = new Date(
+          Number(match[1]),
+          Number(match[2]) - 1,
+          Number(match[3]),
+          Number(match[4]),
+          Number(match[5]),
+        );
+      }
+    }
+  }
+
+  if (Number.isNaN(date.getTime())) {
     return '—';
+  }
+
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  if (isToday) {
+    return `Сегодня, ${hours}:${minutes}`;
+  }
+
+  if (isYesterday) {
+    return `Вчера, ${hours}:${minutes}`;
   }
 
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const year = date.getFullYear();
 
-  return `${day}.${month}.${date.getFullYear()} ${hours}:${minutes}`;
+  return `${day}.${month}.${year} ${hours}:${minutes}`;
 };
