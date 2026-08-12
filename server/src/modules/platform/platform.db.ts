@@ -227,16 +227,6 @@ export const selectTenantStaffById = async (
   return rows[0] ?? null;
 };
 
-export const countTenantOwners = async (tenantId: string): Promise<number> => {
-  const rows = await tenantQuery<{ total: string }>(
-    tenantId,
-    'SELECT COUNT(*)::text AS total FROM users WHERE tenant_id = $1 AND role = $2',
-    [tenantId, UserRoles.owner],
-  );
-
-  return Number(rows[0]?.total ?? 0);
-};
-
 export const updateTenantStaffFields = async (
   tenantId: string,
   id: string,
@@ -257,14 +247,6 @@ export const updateTenantStaffFields = async (
          updated_at = now()
      WHERE tenant_id = $1 AND id = $2`,
     [tenantId, id, name, email, phone, passwordHash, status],
-  );
-};
-
-export const deleteTenantStaff = async (tenantId: string, id: string): Promise<void> => {
-  await tenantQuery(
-    tenantId,
-    'DELETE FROM users WHERE tenant_id = $1 AND id = $2',
-    [tenantId, id],
   );
 };
 

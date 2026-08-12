@@ -94,11 +94,11 @@ export const FormTexts = {
   verticalLabel: 'Вертикаль',
   planLabel: 'Тариф',
   bundleLabel: 'Bundle ID',
-  ownerBlock: 'Владелец',
+  ownerBlock: 'Админ магазина',
   ownerNameLabel: 'Имя',
   ownerLoginLabel: 'Email или телефон',
   ownerPasswordLabel: 'Пароль',
-  ownerHint: 'Можно оставить пустым и добавить владельца позже',
+  ownerHint: 'Заводится вместе с магазином. Потом добавить второго нельзя',
   save: 'Сохранить',
   cancel: 'Отмена',
   staffTitle: 'Сотрудники',
@@ -133,9 +133,6 @@ export const validateTenantForm = (
 ): Partial<Record<TTenantFormField, string>> => {
   const errors: Partial<Record<TTenantFormField, string>> = {};
   const key = values.key.trim();
-  const hasOwner = Boolean(
-    values.ownerName.trim() || values.ownerLogin.trim() || values.ownerPassword,
-  );
 
   if (!values.name.trim()) {
     errors.name = TenantFormErrors.nameRequired;
@@ -149,11 +146,11 @@ export const validateTenantForm = (
     errors.key = TenantFormErrors.keyInvalid;
   }
 
-  if (!editing && hasOwner && !values.ownerLogin.trim()) {
+  if (!editing && !values.ownerLogin.trim()) {
     errors.ownerLogin = TenantFormErrors.ownerLoginRequired;
   }
 
-  if (!editing && hasOwner && !values.ownerPassword) {
+  if (!editing && !values.ownerPassword) {
     errors.ownerPassword = TenantFormErrors.ownerPasswordRequired;
   }
 

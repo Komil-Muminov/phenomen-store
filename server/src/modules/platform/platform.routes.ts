@@ -16,9 +16,7 @@ import {
   authenticatePlatform,
   changePlatformPassword,
   createTenant,
-  createTenantOwner,
   deleteTenant,
-  deleteTenantStaffMember,
   enterTenant,
   listAudit,
   listAuditActions,
@@ -30,7 +28,6 @@ import {
   updateTenantStaff,
 } from '@/modules/platform/platform.service';
 import {
-  ICreateOwnerPayload,
   ICreateTenantPayload,
   IUpdateStaffPayload,
   PlatformPaths,
@@ -211,30 +208,6 @@ platformRouter.post(
   },
 );
 
-platformRouter.post(
-  PlatformPaths.ownerCreate,
-  platformRoleMiddleware([PlatformRoles.superadmin]),
-  async (req: IAppRequest, res: Response, next: NextFunction) => {
-    try {
-      const id = requireUuid(req.params.id, 'id');
-      const body = (req.body ?? {}) as Record<string, unknown>;
-
-      requireFields(body, ['password', 'name']);
-      sendCreated(
-        res,
-        await createTenantOwner(
-          requireActor(req),
-          id,
-          body as unknown as ICreateOwnerPayload,
-          readIp(req),
-        ),
-      );
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
 platformRouter.get(
   PlatformPaths.ownerSearch,
   async (req: IAppRequest, res: Response, next: NextFunction) => {
@@ -263,21 +236,6 @@ platformRouter.patch(
         (req.body ?? {}) as IUpdateStaffPayload,
         readIp(req),
       ));
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-platformRouter.delete(
-  PlatformPaths.ownerDelete,
-  platformRoleMiddleware([PlatformRoles.superadmin]),
-  async (req: IAppRequest, res: Response, next: NextFunction) => {
-    try {
-      const id = requireUuid(req.params.id, 'id');
-      const staffId = requireUuid(req.params[STAFF_ID_PARAM], STAFF_ID_PARAM);
-
-      sendOk(res, await deleteTenantStaffMember(requireActor(req), id, staffId, readIp(req)));
     } catch (error) {
       next(error);
     }

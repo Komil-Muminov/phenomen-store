@@ -17,7 +17,7 @@ import { useTenantMutations } from '@/widgets/tenants-page/lib';
 import type { ITenant, ITenantList, ITenantStaff } from '@/entities/tenant';
 
 export const TenantsPage = () => {
-  const { message, modal } = AntApp.useApp();
+  const { message } = AntApp.useApp();
   const navigate = useNavigate();
   const { signIn: shopSignIn } = useShopAuth();
   const queryClient = useQueryClient();
@@ -120,67 +120,31 @@ export const TenantsPage = () => {
     });
   }, [mutations.enter, shopSignIn, message, navigate, showError]);
 
-  const handleAddStaff = useCallback(() => {
-    setState((current) => ({ ...current, staffOpen: true, editingStaff: null }));
-  }, []);
-
   const handleEditStaff = useCallback((staff: ITenantStaff) => {
     setState((current) => ({ ...current, staffOpen: true, editingStaff: staff }));
   }, []);
-
-  const handleDeleteStaff = useCallback((staff: ITenantStaff) => {
-    if (!state.target) {
-      return;
-    }
-
-    const tenantId = state.target.id;
-
-    modal.confirm({
-      title: `Удалить сотрудника «${staff.name ?? staff.email ?? staff.phone}»?`,
-      content: 'Он потеряет доступ к кабинету магазина. Заказы, которые он оформлял, останутся.',
-      okText: 'Удалить',
-      okButtonProps: { danger: true },
-      cancelText: 'Отмена',
-      onOk: () => new Promise<void>((resolve) => {
-        mutations.removeStaff.mutate({ id: tenantId, staffId: staff.id }, {
-          onSuccess: () => message.success(UiMessages.deletedStaff),
-          onError: showError,
-          onSettled: () => resolve(),
-        });
-      }),
-    });
-  }, [mutations.removeStaff, state.target, modal, message, showError]);
 
   const handleStaffSubmit = useCallback((values: IOwnerFormValues) => {
     if (!state.target) {
       return;
     }
 
-    if (state.editingStaff) {
-      mutations.updateStaff.mutate(
-        { ...values, id: state.target.id, staffId: state.editingStaff.id },
-        {
-          onSuccess: () => {
-            message.success(UiMessages.updatedStaff);
-            closeStaffForm();
-          },
-          onError: showError,
-        },
-      );
-
+    if (!state.editingStaff) {
       return;
     }
 
-    mutations.createStaff.mutate({ ...values, id: state.target.id }, {
-      onSuccess: () => {
-        message.success(UiMessages.createdOwner);
-        closeStaffForm();
+    mutations.updateStaff.mutate(
+      { ...values, id: state.target.id, staffId: state.editingStaff.id },
+      {
+        onSuccess: () => {
+          message.success(UiMessages.updatedStaff);
+          closeStaffForm();
+        },
+        onError: showError,
       },
-      onError: showError,
-    });
+    );
   }, [
     mutations.updateStaff,
-    mutations.createStaff,
     state.target,
     state.editingStaff,
     message,
@@ -232,9 +196,7 @@ export const TenantsPage = () => {
         isEntering={mutations.enter.isPending}
         onSubmit={handleCardSubmit}
         onEnterShop={handleEnterShop}
-        onAddStaff={handleAddStaff}
         onEditStaff={handleEditStaff}
-        onDeleteStaff={handleDeleteStaff}
         onToggleStatus={handleToggleStatus}
         onDelete={handleDeleteTenant}
         onClose={closeAll}
@@ -244,7 +206,7 @@ export const TenantsPage = () => {
         open={state.staffOpen}
         tenant={state.target}
         editing={state.editingStaff}
-        isSaving={mutations.createStaff.isPending || mutations.updateStaff.isPending}
+        isSaving={mutations.updateStaff.isPending}
         onSubmit={handleStaffSubmit}
         onCancel={closeStaffForm}
       />

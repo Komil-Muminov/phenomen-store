@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ApiRoutes, AppRoutes, QueryKeys } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
@@ -37,26 +37,10 @@ export const AdminStaff = () => {
     { enabled: Boolean(tenantId) },
   );
 
-  const createMutation = useMutationQuery<Record<string, unknown>, { id: string }>(
-    `${ApiRoutes.tenantsStaffCreate}/${tenantId}`,
-    { invalidate: [[QueryKeys.adminStaff]] },
-  );
   const updateMutation = useMutationQuery<Record<string, unknown> & { staffId: string }, IStaffMember>(
     (body) => `${ApiRoutes.tenantsStaffUpdate}/${tenantId}/${body.staffId}`,
     { method: 'patch', invalidate: [[QueryKeys.adminStaff]] },
   );
-  const removeMutation = useMutationQuery<{ staffId: string }, { deleted: boolean }>(
-    (body) => `${ApiRoutes.tenantsStaffDelete}/${tenantId}/${body.staffId}`,
-    { method: 'delete', invalidate: [[QueryKeys.adminStaff]] },
-  );
-
-  const handleCreate = useCallback(() => {
-    setEditing(null);
-    setValues(EMPTY_STAFF_VALUES);
-    setError(null);
-    setFormOpen(true);
-  }, []);
-
   const handleEdit = useCallback((member: IStaffMember) => {
     setEditing(member);
     setValues(toStaffValues(member));
@@ -65,29 +49,15 @@ export const AdminStaff = () => {
   }, []);
 
   const handleSubmit = useCallback(() => {
-    const payload = buildStaffPayload(values);
-    const onSuccess = () => setFormOpen(false);
-    const onError = (mutationError: Error) => setError(mutationError.message);
-
-    if (editing) {
-      updateMutation.mutate({ ...payload, staffId: editing.id }, { onSuccess, onError });
-
+    if (!editing) {
       return;
     }
 
-    createMutation.mutate(payload, { onSuccess, onError });
-  }, [values, editing, updateMutation, createMutation]);
-
-  const handleDelete = useCallback((member: IStaffMember) => {
-    Alert.alert(StaffTexts.deleteTitle, `${member.name ?? member.email}. ${StaffTexts.deleteHint}`, [
-      { text: StaffTexts.cancel, style: 'cancel' },
-      {
-        text: 'Удалить',
-        style: 'destructive',
-        onPress: () => removeMutation.mutate({ staffId: member.id }),
-      },
-    ]);
-  }, [removeMutation]);
+    updateMutation.mutate({ ...buildStaffPayload(values), staffId: editing.id }, {
+      onSuccess: () => setFormOpen(false),
+      onError: (mutationError: Error) => setError(mutationError.message),
+    });
+  }, [values, editing, updateMutation]);
 
   const items = staffQuery.data ?? [];
 
@@ -110,14 +80,6 @@ export const AdminStaff = () => {
           <Text className="text-xs text-muted">{tenantName ?? ''}</Text>
         </View>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={StaffTexts.add}
-          onPress={handleCreate}
-          className="h-10 w-10 items-center justify-center rounded-xl bg-primary active:opacity-80"
-        >
-          <Icon name="plus" size={18} color="#ffffff" />
-        </Pressable>
       </View>
 
       <ScrollView
@@ -157,14 +119,6 @@ export const AdminStaff = () => {
                   <Text className="text-xs font-semibold text-onPrimary">Изменить</Text>
                 </Pressable>
 
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Удалить сотрудника"
-                  onPress={() => handleDelete(member)}
-                  className="h-10 w-10 items-center justify-center rounded-xl bg-background active:opacity-80"
-                >
-                  <Icon name="close" size={14} />
-                </Pressable>
               </View>
             </View>
           ))}
@@ -243,7 +197,7 @@ export const AdminStaff = () => {
             <View className="gap-2 pt-2">
               <Button
                 title={StaffTexts.save}
-                loading={createMutation.isPending || updateMutation.isPending}
+                loading={updateMutation.isPending}
                 disabled={!isStaffValid(values, Boolean(editing))}
                 onPress={handleSubmit}
               />

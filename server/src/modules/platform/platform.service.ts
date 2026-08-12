@@ -7,11 +7,9 @@ import { invalidateTenantCache } from '@/modules/tenant';
 import { issueToken, loginWithPassword, normalizePhone } from '@/modules/auth';
 import { applyVerticalPreset } from '@/modules/attributes';
 import {
-  countTenantOwners,
   countTenants,
   deleteStaffLoginsByUser,
   deleteTenantById,
-  deleteTenantStaff,
   existsStaffLogin,
   existsTenantKey,
   insertAuditEntry,
@@ -323,9 +321,15 @@ export const createTenant = async (
 ): Promise<ITenantSummary> => {
   const key = pickString(payload.key).toLowerCase();
   const name = pickString(payload.name);
+  const ownerLogin = pickString(payload.ownerLogin);
+  const ownerPassword = typeof payload.ownerPassword === 'string' ? payload.ownerPassword : '';
 
   if (!KEY_PATTERN.test(key)) {
     throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
+  }
+
+  if (!ownerLogin || !ownerPassword) {
+    throw new AppError(PlatformErrors.ownerRequired, HttpStatus.badRequest);
   }
 
   if (await existsTenantKey(key)) {
@@ -351,22 +355,17 @@ export const createTenant = async (
     ip,
   });
 
-  const ownerLogin = pickString(payload.ownerLogin);
-  const ownerPassword = typeof payload.ownerPassword === 'string' ? payload.ownerPassword : '';
-
-  if (ownerLogin && ownerPassword) {
-    await createTenantOwner(
-      actor,
-      tenant.id,
-      {
-        name: pickString(payload.ownerName, name),
-        password: ownerPassword,
-        email: ownerLogin.includes('@') ? ownerLogin : undefined,
-        phone: ownerLogin.includes('@') ? undefined : ownerLogin,
-      },
-      ip,
-    );
-  }
+  await createTenantOwner(
+    actor,
+    tenant.id,
+    {
+      name: pickString(payload.ownerName, name),
+      password: ownerPassword,
+      email: ownerLogin.includes('@') ? ownerLogin : undefined,
+      phone: ownerLogin.includes('@') ? undefined : ownerLogin,
+    },
+    ip,
+  );
 
   return tenant;
 };
@@ -598,33 +597,6 @@ export const updateTenantStaff = async (
   });
 
   return mapStaff(await requireStaffRow(tenant.id, staff.id));
-};
-
-export const deleteTenantStaffMember = async (
-  actor: IPlatformContext,
-  tenantId: string,
-  staffId: string,
-  ip: string | null,
-) => {
-  const tenant = await requireTenantRow(tenantId);
-  const staff = await requireStaffRow(tenant.id, staffId);
-
-  if (staff.role === UserRoles.owner && await countTenantOwners(tenant.id) < 2) {
-    throw new AppError(PlatformErrors.staffLastOwner, HttpStatus.conflict);
-  }
-
-  await deleteStaffLoginsByUser(staff.id);
-  await deleteTenantStaff(tenant.id, staff.id);
-  await insertAuditEntry({
-    actorId: actor.id,
-    actorLogin: actor.login,
-    action: PlatformActions.ownerDelete,
-    tenantId: tenant.id,
-    payload: { staffId: staff.id, email: staff.email, phone: staff.phone },
-    ip,
-  });
-
-  return { deleted: true };
 };
 
 export const deleteTenant = async (
