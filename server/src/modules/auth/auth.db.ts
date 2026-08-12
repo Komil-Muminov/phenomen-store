@@ -23,6 +23,21 @@ export const selectUserForPasswordLogin = async (
   return rows[0] ?? null;
 };
 
+export const selectUserByIdWithPassword = async (
+  tenantId: string,
+  userId: string,
+): Promise<IUserAuthRow | null> => {
+  const rows = await tenantQuery<IUserAuthRow>(
+    tenantId,
+    `SELECT ${USER_COLUMNS}, password_hash FROM users
+     WHERE tenant_id = $1 AND id = $2
+     LIMIT 1`,
+    [tenantId, userId],
+  );
+
+  return rows[0] ?? null;
+};
+
 export const countRecentCodes = async (tenantId: string, email: string): Promise<number> => {
   const rows = await tenantQuery<{ total: string }>(
     tenantId,

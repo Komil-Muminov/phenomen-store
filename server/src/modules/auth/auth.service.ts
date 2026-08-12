@@ -16,6 +16,7 @@ import {
   selectUserById,
   existsUserEmail,
   existsUserPhone,
+  selectUserByIdWithPassword,
   selectUserForPasswordLogin,
   updateUserEmail,
   updateUserPassword,
@@ -79,6 +80,34 @@ export const loginWithPassword = async (
     login.includes(EMAIL_MARKER) ? login : null,
     normalizePhone(login),
   );
+  const matched = await bcrypt.compare(
+    password,
+    user?.password_hash ?? PasswordSettings.dummyHash,
+  );
+
+  if (!user || !user.password_hash || !matched) {
+    throw new AppError(AuthErrors.invalidCredentials, HttpStatus.unauthorized);
+  }
+
+  if (user.status !== EntityStatus.active) {
+    throw new AppError(AuthErrors.userBlocked, HttpStatus.forbidden);
+  }
+
+  return { token: issueToken(user), user: mapUser(user) };
+};
+
+export const loginStaffWithPassword = async (
+  tenant: ITenantContext,
+  userId: string,
+  rawPassword: unknown,
+) => {
+  const password = typeof rawPassword === 'string' ? rawPassword : '';
+
+  if (!password) {
+    throw new AppError(AuthErrors.invalidCredentials, HttpStatus.unauthorized);
+  }
+
+  const user = await selectUserByIdWithPassword(tenant.id, userId);
   const matched = await bcrypt.compare(
     password,
     user?.password_hash ?? PasswordSettings.dummyHash,

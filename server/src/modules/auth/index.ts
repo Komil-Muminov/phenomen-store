@@ -5,6 +5,7 @@ export {
   getProfile,
   updateProfile,
   loginWithPassword,
+  loginStaffWithPassword,
   issueToken,
   changePassword,
 } from '@/modules/auth/auth.service';

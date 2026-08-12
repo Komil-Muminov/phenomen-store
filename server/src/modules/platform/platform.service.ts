@@ -4,7 +4,7 @@ import { Env, EntityStatus, ErrorMessages, HttpStatus, PlatformRoles, UserRoles 
 import { IListResult, IPlatformContext, ITenantContext } from '@/shared/types';
 import { AppError, pickString } from '@/shared/utils';
 import { invalidateTenantCache } from '@/modules/tenant';
-import { issueToken, loginWithPassword, normalizePhone } from '@/modules/auth';
+import { issueToken, loginWithPassword, loginStaffWithPassword, normalizePhone } from '@/modules/auth';
 import { applyVerticalPreset } from '@/modules/attributes';
 import {
   countTenants,
@@ -228,9 +228,9 @@ export const signIn = async (
     throw new AppError(PlatformErrors.accountDisabled, HttpStatus.forbidden);
   }
 
-  const session = await loginWithPassword(
+  const session = await loginStaffWithPassword(
     { id: tenant.id, key: tenant.key, name: tenant.name, status: tenant.status },
-    login,
+    entry.user_id,
     password,
   );
 
@@ -454,19 +454,20 @@ export const createTenantOwner = async (
   ip: string | null,
 ): Promise<{ id: string }> => {
   const tenant = await requireTenantRow(tenantId);
-  const phone = pickString(payload.phone) || null;
+  const rawPhone = pickString(payload.phone) || null;
   const email = pickString(payload.email) || null;
   const password = typeof payload.password === 'string' ? payload.password : '';
+  const normalizedPhone = rawPhone ? normalizePhone(rawPhone) : null;
 
-  if (!phone && !email) {
+  const directoryLogin = (email ?? rawPhone) as string;
+
+  if (!directoryLogin) {
     throw new AppError(PlatformErrors.staffContactRequired, HttpStatus.badRequest);
   }
 
   if (password.length < OWNER_PASSWORD_MIN_LENGTH) {
     throw new AppError(PlatformErrors.passwordTooShort, HttpStatus.badRequest);
   }
-
-  const directoryLogin = (email ?? phone) as string;
 
   if (await existsStaffLogin(directoryLogin)) {
     throw new AppError(PlatformErrors.loginTaken, HttpStatus.conflict);
@@ -477,14 +478,14 @@ export const createTenantOwner = async (
     await bcrypt.hash(password, SALT_ROUNDS),
     pickString(payload.name, tenant.name),
     UserRoles.owner,
-    phone,
+    normalizedPhone,
     email,
   );
 
   await insertStaffLogin(directoryLogin, tenant.id, ownerId);
 
-  if (email && phone) {
-    await insertStaffLogin(phone, tenant.id, ownerId);
+  if (normalizedPhone && normalizedPhone !== directoryLogin) {
+    await insertStaffLogin(normalizedPhone, tenant.id, ownerId);
   }
 
   await insertAuditEntry({
@@ -492,7 +493,7 @@ export const createTenantOwner = async (
     actorLogin: actor.login,
     action: PlatformActions.ownerCreate,
     tenantId: tenant.id,
-    payload: { ownerId, phone, email },
+    payload: { ownerId, phone: normalizedPhone, email, login: directoryLogin },
     ip,
   });
 
@@ -560,7 +561,8 @@ export const updateTenantStaff = async (
   const tenant = await requireTenantRow(tenantId);
   const staff = await requireStaffRow(tenant.id, staffId);
   const email = payload.email === undefined ? staff.email : pickString(payload.email) || null;
-  const phone = payload.phone === undefined ? staff.phone : pickString(payload.phone) || null;
+  const rawPhone = payload.phone === undefined ? staff.phone : pickString(payload.phone) || null;
+  const phone = rawPhone ? normalizePhone(rawPhone) : null;
   const password = typeof payload.password === 'string' ? payload.password : '';
 
   if (!email && !phone) {
