@@ -7,10 +7,8 @@ export const PlatformPaths = {
   tenantActivate: '/tenants/activate/:id',
   tenantDelete: '/tenants/delete/:id',
   tenantEnter: '/tenants/enter/:id',
-  ownerCreate: '/tenants/owner/create/:id',
   ownerSearch: '/tenants/owner/search/:id',
   ownerUpdate: '/tenants/owner/update/:id/:staffId',
-  ownerDelete: '/tenants/owner/delete/:id/:staffId',
   passwordUpdate: '/auth/password/update',
   signin: '/auth/signin',
   auditSearch: '/audit/search',
@@ -27,7 +25,6 @@ export const PlatformActions = {
   tenantEnter: 'tenant.enter',
   ownerCreate: 'tenant.owner.create',
   ownerUpdate: 'tenant.owner.update',
-  ownerDelete: 'tenant.owner.delete',
   passwordUpdate: 'auth.password.update',
 } as const;
 
@@ -42,9 +39,9 @@ export const PlatformErrors = {
   passwordSame: 'Новый пароль совпадает с текущим',
   keyMismatch: 'Введите ключ магазина точно так, как он указан в таблице',
   staffMissing: 'Сотрудник магазина не найден',
-  staffLastOwner: 'Нельзя удалить единственного владельца магазина',
   staffContactRequired: 'Нужен email или телефон для входа',
   staffNoOwner: 'В магазине нет активного владельца — сначала добавьте сотрудника',
+  ownerRequired: 'Укажите почту и пароль администратора магазина',
 } as const;
 
 export interface ITenantStaffRow {
@@ -99,9 +96,9 @@ export interface ICreateTenantPayload {
   vertical?: string;
   plan?: string;
   bundleId?: string;
-  ownerLogin?: string;
+  ownerLogin: string;
   ownerName?: string;
-  ownerPassword?: string;
+  ownerPassword: string;
 }
 
 export interface ICreateOwnerPayload {

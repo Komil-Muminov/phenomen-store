@@ -9,9 +9,7 @@ export interface ITenantCardValues {
 
 export interface ITenantCardHandlers {
   onSubmit: (values: ITenantCardValues) => void;
-  onAddStaff: () => void;
   onEditStaff: (staff: ITenantStaff) => void;
-  onDeleteStaff: (staff: ITenantStaff) => void;
   onToggleStatus: (tenant: ITenant) => void;
   onEnterShop: (tenant: ITenant) => void;
   onDelete: (key: string) => void;

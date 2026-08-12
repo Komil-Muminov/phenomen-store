@@ -23,19 +23,11 @@ export const useTenantMutations = () => ({
     (body) => `${ApiRoutes.tenantsDelete}/${body.id}`,
     { method: 'delete', invalidate: INVALIDATE },
   ),
-  createStaff: useMutationQuery<Record<string, unknown> & { id: string }, { id: string }>(
-    (body) => `${ApiRoutes.tenantsStaffCreate}/${body.id}`,
-    { invalidate: STAFF_INVALIDATE },
-  ),
   updateStaff: useMutationQuery<
     Record<string, unknown> & { id: string; staffId: string },
     ITenantStaff
   >(
     (body) => `${ApiRoutes.tenantsStaffUpdate}/${body.id}/${body.staffId}`,
     { method: 'patch', invalidate: STAFF_INVALIDATE },
-  ),
-  removeStaff: useMutationQuery<{ id: string; staffId: string }, { deleted: boolean }>(
-    (body) => `${ApiRoutes.tenantsStaffDelete}/${body.id}/${body.staffId}`,
-    { method: 'delete', invalidate: STAFF_INVALIDATE },
   ),
 });

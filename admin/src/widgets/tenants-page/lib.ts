@@ -14,8 +14,6 @@ const TENANTS_KEY = [[QueryKeys.tenants]];
 
 const STAFF_KEY = [[QueryKeys.tenantStaff]];
 
-const BOTH_KEYS = [[QueryKeys.tenants], [QueryKeys.tenantStaff]];
-
 export const useTenantMutations = () => ({
   create: useMutationQuery<ITenantFormValues, ITenant>(
     ApiRoutes.tenantsCreate,
@@ -40,16 +38,8 @@ export const useTenantMutations = () => ({
   enter: useMutationQuery<TWithId, ISigninResult>(
     (body) => buildUpdateUrl(ApiRoutes.tenantsEnter, body.id),
   ),
-  createStaff: useMutationQuery<IOwnerFormValues & TWithId, { id: string }>(
-    (body) => buildUpdateUrl(ApiRoutes.tenantsOwnerCreate, body.id),
-    { invalidate: BOTH_KEYS },
-  ),
   updateStaff: useMutationQuery<IOwnerFormValues & TWithStaff, ITenantStaff>(
     (body) => buildStaffUrl(ApiRoutes.tenantsStaffUpdate, body.id, body.staffId),
     { method: 'patch', invalidate: STAFF_KEY },
-  ),
-  removeStaff: useMutationQuery<TWithStaff, { deleted: boolean }>(
-    (body) => buildStaffUrl(ApiRoutes.tenantsStaffDelete, body.id, body.staffId),
-    { method: 'delete', invalidate: STAFF_KEY },
   ),
 });

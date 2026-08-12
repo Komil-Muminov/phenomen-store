@@ -1,5 +1,5 @@
 import { Button, Empty, Spin, Tag, Typography } from 'antd';
-import { DeleteOutlined, EditOutlined, UserAddOutlined } from '@ant-design/icons';
+import { EditOutlined } from '@ant-design/icons';
 import { EntityStatuses, StaffRoleLabels, StaffRoles, UiMessages } from '@/shared/config';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { If } from '@/shared/ui/If';
@@ -9,9 +9,7 @@ import type { ITenantStaff } from '@/entities/tenant';
 interface IProps {
   staff: ITenantStaff[];
   isLoading: boolean;
-  onAddStaff: ITenantCardHandlers['onAddStaff'];
   onEditStaff: ITenantCardHandlers['onEditStaff'];
-  onDeleteStaff: ITenantCardHandlers['onDeleteStaff'];
 }
 
 const formatContacts = (member: ITenantStaff): string => (
@@ -21,9 +19,7 @@ const formatContacts = (member: ITenantStaff): string => (
 export const RenderStaff = ({
   staff,
   isLoading,
-  onAddStaff,
   onEditStaff,
-  onDeleteStaff,
 }: IProps) => (
   <section className="mb-6 rounded-xl border border-violet-200 p-4">
     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -31,15 +27,6 @@ export const RenderStaff = ({
         {CardTitles.staff}
       </Typography.Text>
 
-      <Button
-        size="small"
-        type="primary"
-        icon={<UserAddOutlined />}
-        onClick={onAddStaff}
-        className="cursor-pointer!"
-      >
-        Добавить
-      </Button>
     </div>
 
     <If
@@ -86,16 +73,6 @@ export const RenderStaff = ({
                   />
                 </Tooltip>
 
-                <Tooltip title="Удалить сотрудника">
-                  <Button
-                    type="text"
-                    danger
-                    aria-label="Удалить сотрудника"
-                    icon={<DeleteOutlined />}
-                    onClick={() => onDeleteStaff(member)}
-                    className="cursor-pointer!"
-                  />
-                </Tooltip>
               </div>
             </li>
           ))}

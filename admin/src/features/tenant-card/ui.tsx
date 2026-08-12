@@ -35,9 +35,7 @@ export const TenantCard = ({
   isDeleting,
   isEntering,
   onSubmit,
-  onAddStaff,
   onEditStaff,
-  onDeleteStaff,
   onToggleStatus,
   onEnterShop,
   onDelete,
@@ -137,9 +135,7 @@ export const TenantCard = ({
         <RenderStaff
           staff={staff}
           isLoading={isStaffLoading}
-          onAddStaff={onAddStaff}
           onEditStaff={onEditStaff}
-          onDeleteStaff={onDeleteStaff}
         />
 
         <RenderDanger

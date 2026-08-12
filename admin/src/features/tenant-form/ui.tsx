@@ -88,18 +88,18 @@ export const TenantForm = ({ open, isSaving, onSubmit, onCancel }: IProps) => {
           <Input placeholder="store.phenomen.myshop" className="font-mono!" />
         </Form.Item>
 
-        <Divider className="mt-2! mb-4!">Владелец магазина</Divider>
+        <Divider className="mt-2! mb-4!">Админ магазина</Divider>
 
         <Alert
           type="info"
           showIcon
           className="mb-4!"
-          message="Владелец создаётся сразу вместе с магазином и входит на этой же странице входа. Остальных сотрудников добавите в карточке магазина."
+          message="Админ создаётся сразу вместе с магазином и входит на этой же странице входа. Второго админа добавить нельзя — данные этого можно будет изменить в карточке магазина."
         />
 
         <Form.Item
           name="ownerName"
-          label="Имя владельца"
+          label="Имя админа"
           rules={[{ required: true, message: UiMessages.required }]}
         >
           <Input placeholder="Иван Иванов" />
