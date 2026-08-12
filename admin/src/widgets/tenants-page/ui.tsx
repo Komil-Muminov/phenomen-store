@@ -114,7 +114,7 @@ export const TenantsPage = () => {
           role: result.user?.role ?? '',
         });
         message.success(UiMessages.enteredShop);
-        navigate(AppRoutes.shopOrders);
+        navigate(AppRoutes.shopStats);
       },
       onError: showError,
     });

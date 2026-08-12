@@ -34,7 +34,7 @@ export const LoginPage = () => {
       email: result.user?.email ?? null,
       role: result.user?.role ?? '',
     });
-    navigate(AppRoutes.shopOrders, { replace: true });
+    navigate(AppRoutes.shopStats, { replace: true });
   }, [signIn, shopSignIn, navigate]);
 
   const handleSubmit = useCallback((values: ILoginValues) => {
@@ -52,7 +52,7 @@ export const LoginPage = () => {
         <Navigate to={AppRoutes.tenants} replace />
       ) : (
         isShopAuthorized ? (
-          <Navigate to={AppRoutes.shopOrders} replace />
+          <Navigate to={AppRoutes.shopStats} replace />
         ) : (
           <LoginForm
             onSubmit={handleSubmit}

@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import {
+  BarChartOutlined,
   DatabaseOutlined,
   PictureOutlined,
   SettingOutlined,
@@ -29,6 +30,7 @@ export const CatalogNavItems: INavItem[] = [
 const CatalogRoutes = CatalogNavItems.map((item) => item.to);
 
 export const ShopNavItems: INavItem[] = [
+  { to: AppRoutes.shopStats, label: 'Сводка', icon: <BarChartOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopOrders, label: 'Заказы', icon: <ShoppingOutlined aria-hidden="true" /> },
   {
     to: AppRoutes.shopProducts,

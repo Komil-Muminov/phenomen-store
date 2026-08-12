@@ -16,6 +16,7 @@ import { antTheme } from '@/app/theme';
 const Login = lazy(() => import('@/pages/login'));
 const Tenants = lazy(() => import('@/pages/tenants'));
 const PlatformAudit = lazy(() => import('@/pages/platform-audit'));
+const ShopStats = lazy(() => import('@/pages/shop-stats'));
 const ShopOrders = lazy(() => import('@/pages/shop-orders'));
 const ShopProducts = lazy(() => import('@/pages/shop-products'));
 const ShopStock = lazy(() => import('@/pages/shop-stock'));
@@ -43,6 +44,7 @@ const ContentFallback = () => (
 const EMPTY_PREFETCH: IPrefetchList[] = [];
 
 const preloadShopPages = (): void => {
+  void import('@/pages/shop-stats');
   void import('@/pages/shop-orders');
   void import('@/pages/shop-products');
   void import('@/pages/shop-stock');
@@ -102,6 +104,7 @@ const Router = () => (
     </Route>
 
     <Route element={<ShopLayout />}>
+      <Route path={AppRoutes.shopStats} element={<ShopStats />} />
       <Route path={AppRoutes.shopOrders} element={<ShopOrders />} />
       <Route path={AppRoutes.shopProducts} element={<ShopProducts />} />
       <Route path={AppRoutes.shopStock} element={<ShopStock />} />
