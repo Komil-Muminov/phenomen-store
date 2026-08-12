@@ -9,7 +9,7 @@ export const AuthLabels = {
   title: 'Вход или регистрация',
   codeTitle: 'Введите код из письма',
   subtitle: 'Пришлём код на почту. Сотрудники входят по логину и паролю',
-  emailPlaceholder: 'Почта или логин сотрудника',
+  emailPlaceholder: 'Email',
   sendCode: 'Продолжить',
   confirm: 'Подтвердить',
   changeEmail: 'Изменить адрес',
