@@ -25,6 +25,8 @@ export const isCredentialsValid = ({ login, password }: IStaffCredentials): bool
   login.trim().length > 0 && password.length > 0
 );
 
-const PHONE_CHARS = /^[\d\s+()-]*$/;
+const EMAIL_MARKER = '@';
 
-export const isStaffIdentifier = (value: string): boolean => !PHONE_CHARS.test(value);
+export const isStaffIdentifier = (value: string): boolean => (
+  value.trim().length > 0 && !value.includes(EMAIL_MARKER)
+);

@@ -4,6 +4,7 @@ import { EntityStatus, Env, HttpStatus, UserRoles } from '@/shared/config';
 import { ITenantContext, IUserContext, TUserRole } from '@/shared/types';
 import { AppError, pickString } from '@/shared/utils';
 import { mergeGuestCart } from '@/modules/cart';
+import { isMailConfigured, minutesFromSeconds, sendOtpLetter } from '@/modules/mail';
 import {
   consumeOtp,
   countRecentCodes,
@@ -16,13 +17,14 @@ import {
   selectUserForPasswordLogin,
   updateUserPassword,
   updateUserProfile,
-  upsertUserByPhone,
+  upsertUserByEmail,
 } from '@/modules/auth/auth.db';
 import {
   AuthErrors,
   IUserRow,
   OtpSettings,
   PasswordSettings,
+  normalizeEmail,
   normalizePhone,
 } from '@/modules/auth/types';
 
@@ -128,14 +130,14 @@ export const changePassword = async (
   return { changed: true };
 };
 
-export const requestCode = async (tenant: ITenantContext, rawPhone: unknown) => {
-  const phone = normalizePhone(rawPhone);
+export const requestCode = async (tenant: ITenantContext, rawEmail: unknown) => {
+  const email = normalizeEmail(rawEmail);
 
-  if (!phone) {
-    throw new AppError(AuthErrors.invalidPhone, HttpStatus.badRequest);
+  if (!email) {
+    throw new AppError(AuthErrors.invalidEmail, HttpStatus.badRequest);
   }
 
-  const recent = await countRecentCodes(tenant.id, phone);
+  const recent = await countRecentCodes(tenant.id, email);
 
   if (recent >= OtpSettings.maxRequestsPerWindow) {
     throw new AppError(AuthErrors.tooManyRequests, HttpStatus.conflict);
@@ -143,10 +145,17 @@ export const requestCode = async (tenant: ITenantContext, rawPhone: unknown) => 
 
   const code = generateCode();
 
-  await insertOtpCode(tenant.id, phone, await bcrypt.hash(code, OtpSettings.saltRounds));
+  await insertOtpCode(tenant.id, email, await bcrypt.hash(code, OtpSettings.saltRounds));
+  await sendOtpLetter({
+    to: email,
+    code,
+    shopName: tenant.name,
+    ttlMinutes: minutesFromSeconds(OtpSettings.ttlSeconds),
+  });
 
   return {
-    phone,
+    email,
+    delivered: isMailConfigured(),
     expiresIn: OtpSettings.ttlSeconds,
     code: Env.isProduction ? null : code,
   };
@@ -154,18 +163,18 @@ export const requestCode = async (tenant: ITenantContext, rawPhone: unknown) => 
 
 export const verifyCode = async (
   tenant: ITenantContext,
-  rawPhone: unknown,
+  rawEmail: unknown,
   rawCode: unknown,
   guestKey: string | null,
 ) => {
-  const phone = normalizePhone(rawPhone);
+  const email = normalizeEmail(rawEmail);
   const code = pickString(rawCode);
 
-  if (!phone) {
-    throw new AppError(AuthErrors.invalidPhone, HttpStatus.badRequest);
+  if (!email) {
+    throw new AppError(AuthErrors.invalidEmail, HttpStatus.badRequest);
   }
 
-  const otp = await selectActiveOtp(tenant.id, phone);
+  const otp = await selectActiveOtp(tenant.id, email);
 
   if (!otp) {
     throw new AppError(AuthErrors.codeNotFound, HttpStatus.notFound);
@@ -184,7 +193,7 @@ export const verifyCode = async (
 
   await consumeOtp(tenant.id, otp.id);
 
-  const user = await upsertUserByPhone(tenant.id, phone);
+  const user = await upsertUserByEmail(tenant.id, email);
 
   if (user.status === EntityStatus.disabled) {
     throw new AppError(AuthErrors.userBlocked, HttpStatus.forbidden);

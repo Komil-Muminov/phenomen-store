@@ -23,12 +23,12 @@ export const selectUserForPasswordLogin = async (
   return rows[0] ?? null;
 };
 
-export const countRecentCodes = async (tenantId: string, phone: string): Promise<number> => {
+export const countRecentCodes = async (tenantId: string, email: string): Promise<number> => {
   const rows = await tenantQuery<{ total: string }>(
     tenantId,
     `SELECT COUNT(*)::text AS total FROM otp_codes
-     WHERE tenant_id = $1 AND phone = $2 AND created_at > now() - ($3 || ' seconds')::interval`,
-    [tenantId, phone, String(OtpSettings.requestWindowSeconds)],
+     WHERE tenant_id = $1 AND email = $2 AND created_at > now() - ($3 || ' seconds')::interval`,
+    [tenantId, email, String(OtpSettings.requestWindowSeconds)],
   );
 
   return Number(rows[0]?.total ?? 0);
@@ -36,26 +36,26 @@ export const countRecentCodes = async (tenantId: string, phone: string): Promise
 
 export const insertOtpCode = async (
   tenantId: string,
-  phone: string,
+  email: string,
   codeHash: string,
 ): Promise<void> => {
   await tenantQuery(
     tenantId,
-    `INSERT INTO otp_codes (tenant_id, phone, code_hash, expires_at)
+    `INSERT INTO otp_codes (tenant_id, email, code_hash, expires_at)
      VALUES ($1, $2, $3, now() + ($4 || ' seconds')::interval)`,
-    [tenantId, phone, codeHash, String(OtpSettings.ttlSeconds)],
+    [tenantId, email, codeHash, String(OtpSettings.ttlSeconds)],
   );
 };
 
-export const selectActiveOtp = async (tenantId: string, phone: string): Promise<IOtpRow | null> => {
+export const selectActiveOtp = async (tenantId: string, email: string): Promise<IOtpRow | null> => {
   const rows = await tenantQuery<IOtpRow>(
     tenantId,
     `SELECT id, code_hash, attempts, expires_at::text AS expires_at
      FROM otp_codes
-     WHERE tenant_id = $1 AND phone = $2 AND consumed_at IS NULL AND expires_at > now()
+     WHERE tenant_id = $1 AND email = $2 AND consumed_at IS NULL AND expires_at > now()
      ORDER BY created_at DESC
      LIMIT 1`,
-    [tenantId, phone],
+    [tenantId, email],
   );
 
   return rows[0] ?? null;
@@ -77,15 +77,15 @@ export const consumeOtp = async (tenantId: string, otpId: string): Promise<void>
   );
 };
 
-export const upsertUserByPhone = async (tenantId: string, phone: string): Promise<IUserRow> => {
+export const upsertUserByEmail = async (tenantId: string, email: string): Promise<IUserRow> => {
   const rows = await tenantQuery<IUserRow>(
     tenantId,
-    `INSERT INTO users (tenant_id, phone)
+    `INSERT INTO users (tenant_id, email)
      VALUES ($1, $2)
-     ON CONFLICT (tenant_id, phone) WHERE phone IS NOT NULL
+     ON CONFLICT (tenant_id, email) WHERE email IS NOT NULL
      DO UPDATE SET updated_at = now()
      RETURNING ${USER_COLUMNS}`,
-    [tenantId, phone],
+    [tenantId, email],
   );
 
   return rows[0];

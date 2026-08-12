@@ -11,14 +11,20 @@ interface IProps {
   busy: boolean;
   onChange: (values: IStaffCredentials) => void;
   onSubmit: () => void;
+  onBack: () => void;
 }
 
-export const AuthStaff = ({ values, errorMessage, busy, onChange, onSubmit }: IProps) => {
+export const AuthStaff = ({ values, errorMessage, busy, onChange, onSubmit, onBack }: IProps) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleToggleShowPassword = () => {
     triggerHapticLight();
     setShowPassword((prev) => !prev);
+  };
+
+  const handleBack = () => {
+    triggerHapticLight();
+    onBack();
   };
 
   const handleSubmitWithHaptics = () => {
@@ -28,7 +34,16 @@ export const AuthStaff = ({ values, errorMessage, busy, onChange, onSubmit }: IP
 
   return (
     <View className="gap-5 px-1 py-1">
-      {/* Header */}
+      <Pressable
+        onPress={handleBack}
+        disabled={busy}
+        accessibilityRole="button"
+        className="flex-row items-center gap-2 self-start rounded-full border border-line/60 bg-surface px-3 py-1.5 active:bg-surface/80"
+      >
+        <Icon name="arrow-left" size={16} color="#0284c7" />
+        <Text className="text-xs font-bold text-primary">{StaffTexts.back}</Text>
+      </Pressable>
+
       <View className="gap-1">
         <Text className="text-xl font-extrabold tracking-tight text-content">
           {StaffTexts.title}

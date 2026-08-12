@@ -50,6 +50,14 @@ export const Env = {
   defaultTenantKey: readString('DEFAULT_TENANT_KEY', 'demo-fashion'),
   jwtSecret: readString('JWT_SECRET', 'dev_secret'),
   jwtExpiresIn: readString('JWT_EXPIRES_IN', '30d'),
+  mail: {
+    host: readString('SMTP_HOST', ''),
+    port: readNumber('SMTP_PORT', 587),
+    secure: readString('SMTP_SECURE', 'false') === 'true',
+    user: readString('SMTP_USER', ''),
+    password: readString('SMTP_PASSWORD', ''),
+    from: readString('SMTP_FROM', ''),
+  },
   platform: {
     jwtSecret: readString('PLATFORM_JWT_SECRET', 'dev_platform_secret'),
     jwtExpiresIn: readString('PLATFORM_JWT_EXPIRES_IN', '12h'),

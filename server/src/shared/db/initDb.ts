@@ -133,6 +133,28 @@ const runFormatted = async (
   await admin.query(built.rows[0].sql);
 };
 
+const MIGRATIONS_SQL = `
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'otp_codes' AND column_name = 'phone'
+  ) THEN
+    ALTER TABLE otp_codes ADD COLUMN IF NOT EXISTS email TEXT;
+    UPDATE otp_codes SET email = phone WHERE email IS NULL;
+    ALTER TABLE otp_codes DROP COLUMN phone;
+    ALTER TABLE otp_codes ALTER COLUMN email SET NOT NULL;
+  END IF;
+END
+$$;
+
+DROP INDEX IF EXISTS otp_codes_phone_idx;
+`;
+
+const applyMigrations = async (admin: PoolClient): Promise<void> => {
+  await admin.query(MIGRATIONS_SQL);
+};
+
 const applyTrigramIndexes = async (admin: PoolClient): Promise<void> => {
   try {
     await admin.query(TRIGRAM_SCHEMA_SQL);
@@ -304,6 +326,7 @@ export const initDb = async (): Promise<void> => {
 
   try {
     await admin.query('SELECT pg_advisory_lock($1)', [INIT_LOCK_KEY]);
+    await applyMigrations(admin);
     await admin.query(CORE_SCHEMA_SQL);
     await admin.query(CATALOG_SCHEMA_SQL);
     await admin.query(SALES_SCHEMA_SQL);

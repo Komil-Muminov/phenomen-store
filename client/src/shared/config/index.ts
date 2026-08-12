@@ -149,7 +149,8 @@ export const StaffScopes = {
 
 export const StaffTexts = {
   title: 'Вход в управление',
-  subtitle: 'Похоже на логин — введите пароль. Для входа по SMS сотрите буквы',
+  subtitle: 'Введите пароль от учётной записи сотрудника',
+  back: 'Назад',
   loginLabel: 'Логин',
   loginPlaceholder: 'km или owner@shop.ru',
   passwordLabel: 'Пароль',

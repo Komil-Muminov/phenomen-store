@@ -1,24 +1,25 @@
 import { View } from 'react-native';
-import { AuthPhone, TAuthStep } from '@/features/auth-phone';
+import { AuthEmail, TAuthStep } from '@/features/auth-email';
 import { AuthStaff, IStaffCredentials } from '@/features/auth-staff';
 
 interface IProps {
   staffMode: boolean;
   step: TAuthStep;
-  phone: string;
+  email: string;
   code: string;
   devCode: string | null;
+  delivered: boolean;
   errorMessage: string | null;
   busy: boolean;
   resendSeconds: number;
   credentials: IStaffCredentials;
   staffError: string | null;
   staffBusy: boolean;
-  onPhoneChange: (value: string) => void;
+  onEmailChange: (value: string) => void;
   onCodeChange: (value: string) => void;
   onRequestCode: () => void;
-  onVerify: () => void;
-  onChangePhone: () => void;
+  onVerify: (code: string) => void;
+  onChangeEmail: () => void;
   onCredentialsChange: (values: IStaffCredentials) => void;
   onStaffSubmit: () => void;
 }
@@ -26,20 +27,21 @@ interface IProps {
 export const RenderAuth = ({
   staffMode,
   step,
-  phone,
+  email,
   code,
   devCode,
+  delivered,
   errorMessage,
   busy,
   resendSeconds,
   credentials,
   staffError,
   staffBusy,
-  onPhoneChange,
+  onEmailChange,
   onCodeChange,
   onRequestCode,
   onVerify,
-  onChangePhone,
+  onChangeEmail,
   onCredentialsChange,
   onStaffSubmit,
 }: IProps) => {
@@ -52,21 +54,23 @@ export const RenderAuth = ({
           busy={staffBusy}
           onChange={onCredentialsChange}
           onSubmit={onStaffSubmit}
+          onBack={onChangeEmail}
         />
       ) : (
-        <AuthPhone
+        <AuthEmail
           step={step}
-          phone={phone}
+          email={email}
           code={code}
           devCode={devCode}
+          delivered={delivered}
           errorMessage={errorMessage}
           busy={busy}
           resendSeconds={resendSeconds}
-          onPhoneChange={onPhoneChange}
+          onEmailChange={onEmailChange}
           onCodeChange={onCodeChange}
           onRequestCode={onRequestCode}
           onVerify={onVerify}
-          onChangePhone={onChangePhone}
+          onChangeEmail={onChangeEmail}
         />
       )}
     </View>

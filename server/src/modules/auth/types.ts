@@ -22,6 +22,7 @@ export interface IOtpRow {
 
 export const AuthErrors = {
   invalidPhone: 'Некорректный номер телефона',
+  invalidEmail: 'Некорректный адрес почты',
   tooManyRequests: 'Слишком много запросов, попробуйте позже',
   codeNotFound: 'Код не запрашивался или истёк',
   codeInvalid: 'Неверный код',
@@ -68,4 +69,14 @@ export const normalizePhone = (raw: unknown): string | null => {
   }
 
   return `+${digits}`;
+};
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+export const MaxEmailLength = 254;
+
+export const normalizeEmail = (raw: unknown): string | null => {
+  const email = typeof raw === 'string' ? raw.trim().toLowerCase() : '';
+
+  return EMAIL_PATTERN.test(email) && email.length <= MaxEmailLength ? email : null;
 };

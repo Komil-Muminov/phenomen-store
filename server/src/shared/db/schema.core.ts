@@ -46,7 +46,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS users_tenant_email_uniq ON users(tenant_id, em
 CREATE TABLE IF NOT EXISTS otp_codes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  phone TEXT NOT NULL,
+  email TEXT NOT NULL,
   code_hash TEXT NOT NULL,
   attempts INTEGER NOT NULL DEFAULT 0,
   expires_at TIMESTAMPTZ NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS otp_codes (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS otp_codes_phone_idx ON otp_codes(tenant_id, phone, created_at DESC);
+CREATE INDEX IF NOT EXISTS otp_codes_email_idx ON otp_codes(tenant_id, email, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS addresses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

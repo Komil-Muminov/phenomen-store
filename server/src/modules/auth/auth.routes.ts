@@ -53,7 +53,7 @@ authRouter.post(AuthActions.login, async (req: IAppRequest, res: Response, next:
 
 authRouter.post(AuthActions.code, async (req: IAppRequest, res: Response, next: NextFunction) => {
   try {
-    sendOk(res, await requestCode(requireTenant(req), req.body?.phone));
+    sendOk(res, await requestCode(requireTenant(req), req.body?.email));
   } catch (error) {
     next(error);
   }
@@ -64,7 +64,7 @@ authRouter.post(AuthActions.verify, async (req: IAppRequest, res: Response, next
     const tenant = requireTenant(req);
     const guestKey = pickString(req.headers[GuestHeader]) || pickString(req.body?.guestKey) || null;
 
-    sendOk(res, await verifyCode(tenant, req.body?.phone, req.body?.code, guestKey));
+    sendOk(res, await verifyCode(tenant, req.body?.email, req.body?.code, guestKey));
   } catch (error) {
     next(error);
   }

@@ -3,7 +3,7 @@ import { Platform, ScrollView, StatusBar, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IOrder } from '@/entities/order';
-import { AuthSteps, RESEND_DELAY_SEC, TAuthStep } from '@/features/auth-phone';
+import { AuthSteps, RESEND_DELAY_SEC, TAuthStep } from '@/features/auth-email';
 import {
   EMPTY_CREDENTIALS,
   IStaffCredentials,
@@ -39,8 +39,9 @@ export const ProfilePage = () => {
   const { signIn: staffSignIn } = useStaffAuth();
   const [credentials, setCredentials] = useState<IStaffCredentials>(EMPTY_CREDENTIALS);
   const [staffError, setStaffError] = useState<string | null>(null);
-  const [step, setStep] = useState<TAuthStep>(AuthSteps.phone);
-  const [phone, setPhone] = useState('');
+  const [step, setStep] = useState<TAuthStep>(AuthSteps.email);
+  const [email, setEmail] = useState('');
+  const [delivered, setDelivered] = useState(false);
   const [code, setCode] = useState('');
   const [devCode, setDevCode] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -49,13 +50,23 @@ export const ProfilePage = () => {
 
   const [resendSeconds, setResendSeconds] = useState(0);
 
-  const staffMode = isStaffIdentifier(phone);
+  const [staffMode, setStaffMode] = useState(false);
 
   const handleIdentifierChange = useCallback((value: string) => {
     setAuthError(null);
     setStaffError(null);
-    setPhone(value);
+    setEmail(value);
     setCredentials((current) => ({ ...current, login: value.trim() }));
+  }, []);
+
+  const handleBackToIdentifier = useCallback(() => {
+    setStaffMode(false);
+    setStaffError(null);
+    setAuthError(null);
+    setStep(AuthSteps.email);
+    setCode('');
+    setDevCode(null);
+    setResendSeconds(0);
   }, []);
 
   const { data: profile, isLoading } = useGetQuery<IProfile>(
@@ -70,8 +81,14 @@ export const ProfilePage = () => {
   );
 
   const staffSignin = useMutationQuery<IStaffCredentials, ISigninResult>(ApiRoutes.staffSignin);
-  const requestCode = useMutationQuery<{ phone: string }, { code: string | null }>(ApiRoutes.authCode);
-  const verifyCode = useMutationQuery<{ phone: string; code: string }, { token: string }>(ApiRoutes.authVerify);
+  const requestCode = useMutationQuery<
+    { email: string },
+    { code: string | null; delivered: boolean }
+  >(ApiRoutes.authCode);
+  const verifyCode = useMutationQuery<
+    { email: string; code: string },
+    { token: string }
+  >(ApiRoutes.authVerify);
   const saveProfile = useMutationQuery<{ name: string; email: string }, IProfile>(
     ApiRoutes.authUpdate,
     { method: 'patch', invalidate: [[QueryKeys.profile]] },
@@ -113,7 +130,8 @@ export const ProfilePage = () => {
             tenantName: result.tenantName ?? null,
           }).then(() => {
             setCredentials(EMPTY_CREDENTIALS);
-            setPhone('');
+            setEmail('');
+            setStaffMode(false);
             router.replace(toHref(AppRoutes.admin));
           });
         },
@@ -124,36 +142,38 @@ export const ProfilePage = () => {
 
   const handleRequestCode = useCallback(() => {
     setAuthError(null);
-    requestCode.mutate({ phone }, {
+
+    if (isStaffIdentifier(email)) {
+      setStaffMode(true);
+
+      return;
+    }
+
+    requestCode.mutate({ email }, {
       onSuccess: (data) => {
         setDevCode(data.code);
+        setDelivered(data.delivered);
         setStep(AuthSteps.code);
         setResendSeconds(RESEND_DELAY_SEC);
       },
       onError: (error) => setAuthError(error.message),
     });
-  }, [phone, requestCode]);
+  }, [email, requestCode]);
 
-  const handleChangePhone = useCallback(() => {
-    setStep(AuthSteps.phone);
-    setCode('');
-    setDevCode(null);
-    setAuthError(null);
-    setResendSeconds(0);
-  }, []);
 
-  const handleVerify = useCallback(() => {
+
+  const handleVerify = useCallback((entered: string) => {
     setAuthError(null);
-    verifyCode.mutate({ phone, code }, {
+    verifyCode.mutate({ email, code: entered }, {
       onSuccess: async (data) => {
         await login(data.token);
         setCode('');
         setDevCode(null);
-        setStep(AuthSteps.phone);
+        setStep(AuthSteps.email);
       },
       onError: (error) => setAuthError(error.message),
     });
-  }, [code, login, phone, verifyCode]);
+  }, [login, email, verifyCode]);
 
   const handleCancelOrder = useCallback((order: IOrder) => {
     setCancellingId(order.id);
@@ -182,7 +202,8 @@ export const ProfilePage = () => {
               <RenderAuth
                 staffMode={staffMode}
                 step={step}
-                phone={phone}
+                email={email}
+                delivered={delivered}
                 code={code}
                 devCode={devCode}
                 errorMessage={authError}
@@ -191,11 +212,11 @@ export const ProfilePage = () => {
                 credentials={credentials}
                 staffError={staffError}
                 staffBusy={staffSignin.isPending}
-                onPhoneChange={handleIdentifierChange}
+                onEmailChange={handleIdentifierChange}
                 onCodeChange={setCode}
                 onRequestCode={handleRequestCode}
                 onVerify={handleVerify}
-                onChangePhone={handleChangePhone}
+                onChangeEmail={handleBackToIdentifier}
                 onCredentialsChange={setCredentials}
                 onStaffSubmit={handleStaffSubmit}
               />
