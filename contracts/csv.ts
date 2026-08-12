@@ -119,3 +119,57 @@ export const buildTemplate = (): string => [
   'Футболка базовая;199;249;Женщинам;PHENOMEN;Хлопок 100%;piece;https://example.com/1.jpg',
   'Сыр гауда;89;;Продукты;;Вес указан за килограмм;kg;',
 ].join('\n');
+
+const EXPORT_HEADERS = [
+  'название',
+  'ключ',
+  'цена',
+  'старая цена',
+  'категория',
+  'бренд',
+  'описание',
+  'единица',
+  'картинки',
+];
+
+const SEPARATOR = ';';
+
+const escapeCell = (value: string): string => (
+  /[";\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value
+);
+
+const toCell = (value: string | number | null | undefined): string => {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  return escapeCell(String(value));
+};
+
+export interface IExportRow {
+  name: string;
+  slug: string;
+  price: number;
+  oldPrice: number | null;
+  category: string | null;
+  brand: string | null;
+  description: string | null;
+  unit: string;
+  media: string[];
+}
+
+export const buildCsv = (rows: IExportRow[]): string => {
+  const lines = rows.map((row) => [
+    toCell(row.name),
+    toCell(row.slug),
+    toCell(row.price),
+    toCell(row.oldPrice),
+    toCell(row.category),
+    toCell(row.brand),
+    toCell(row.description),
+    toCell(row.unit),
+    toCell((row.media ?? []).join('|')),
+  ].join(SEPARATOR));
+
+  return [EXPORT_HEADERS.join(SEPARATOR), ...lines].join('\n');
+};

@@ -16,11 +16,13 @@ import {
 } from '@/shared/utils';
 import {
   buildSearchParams,
+  bulkUpdateProducts,
   changeStock,
   createCategory,
   createProduct,
   deactivateProduct,
   duplicateProduct,
+  exportProducts,
   importProducts,
   removeCategory,
   listStock,
@@ -45,6 +47,10 @@ const STOCK_UPDATE_ACTION = '/stock/update/:id';
 const DUPLICATE_ACTION = '/duplicate/:id';
 
 const IMPORT_ACTION = '/import';
+
+const BULK_UPDATE_ACTION = '/bulk/update';
+
+const EXPORT_ACTION = '/export';
 
 const STAFF_ROLES = [UserRoles.manager, UserRoles.admin, UserRoles.owner, UserRoles.platform];
 
@@ -146,6 +152,33 @@ productRouter.patch(
       const id = requireUuid(req.params.id, 'id');
 
       sendOk(res, await changeStock(requireTenant(req), id, req.body?.stock));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+productRouter.get(
+  EXPORT_ACTION,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      sendOk(res, await exportProducts(requireTenant(req)));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+productRouter.post(
+  BULK_UPDATE_ACTION,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.productBulkUpdate),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      sendOk(res, await bulkUpdateProducts(requireTenant(req), req.body ?? {}));
     } catch (error) {
       next(error);
     }

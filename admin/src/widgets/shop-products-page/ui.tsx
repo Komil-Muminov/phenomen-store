@@ -1,7 +1,9 @@
 import { useCallback, useState } from 'react';
 import { Alert, App as AntApp } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
-import { extractErrorMessage } from '@/shared/api';
+import { extractErrorMessage, requestData } from '@/shared/api';
+import { buildCsv, IExportRow } from '@contracts/csv';
+import { downloadCsv } from '@/shared/lib';
 import { ApiRoutes, ListLimits, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery, useListQuery } from '@/shared/hooks';
 import { buildListKey, buildListParams, parseVisibility } from '@/shared/lib';
@@ -14,6 +16,7 @@ import type { IAttributePayload } from '@/features/attribute-value-picker';
 import type { ICategoryPayload } from '@/features/category-picker';
 import { useProductMutations } from '@/widgets/shop-products-page/lib';
 import { RenderToolbar } from '@/widgets/shop-products-page/ui/renderToolbar';
+import { RenderBulk } from '@/widgets/shop-products-page/ui/renderBulk';
 import type {
   IShopAttribute,
   IShopCategory,
@@ -27,6 +30,7 @@ export const ShopProductsPage = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<IShopProduct | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
   const [importResult, setImportResult] = useState<IImportResult | null>(null);
 
   const { draft, applied, setFilter, setSearch, setPage } = useListQuery({
@@ -71,9 +75,43 @@ export const ShopProductsPage = () => {
     queryClient.invalidateQueries({ queryKey: [QueryKeys.shopProducts] });
   }, [queryClient]);
 
+  const handleBulkVisibility = useCallback((isActive: boolean) => {
+    mutations.bulk.mutate({ ids: selected, isActive }, {
+      onSuccess: (result) => {
+        message.success(`Изменено товаров: ${result.changed}`);
+        setSelected([]);
+      },
+      onError: (error) => message.error(extractErrorMessage(error)),
+    });
+  }, [mutations.bulk, selected, message]);
+
+  const handleBulkCategory = useCallback((categoryId: string) => {
+    mutations.bulk.mutate({ ids: selected, categoryId }, {
+      onSuccess: (result) => {
+        message.success(`Перенесено товаров: ${result.changed}`);
+        setSelected([]);
+      },
+      onError: (error) => message.error(extractErrorMessage(error)),
+    });
+  }, [mutations.bulk, selected, message]);
+
+  const handleExport = useCallback(async () => {
+    try {
+      const data = await requestData<{ rows: IExportRow[] }>(
+        { url: ApiRoutes.shopProductsExport, method: 'get' },
+        'shop',
+      );
+
+      downloadCsv(buildCsv(data.rows), 'products');
+      message.success(`Выгружено товаров: ${data.rows.length}`);
+    } catch (error) {
+      message.error(extractErrorMessage(error));
+    }
+  }, [message]);
+
   const handleToggle = useCallback((product: IShopProduct) => {
-    mutations.toggle.mutate({ id: product.id, isActive: !product.inStock }, {
-      onSuccess: () => message.success(product.inStock ? 'Товар скрыт' : 'Товар возвращён в каталог'),
+    mutations.toggle.mutate({ id: product.id, isActive: !product.isActive }, {
+      onSuccess: () => message.success(product.isActive ? 'Товар скрыт' : 'Товар возвращён в каталог'),
       onError: (error) => message.error(extractErrorMessage(error)),
     });
   }, [mutations.toggle, message]);
@@ -200,6 +238,7 @@ export const ShopProductsPage = () => {
         onVisibility={handleVisibility}
         onRefresh={handleRefresh}
         onImport={handleImportOpen}
+        onExport={handleExport}
         onCreate={handleCreate}
       />
 
@@ -213,7 +252,18 @@ export const ShopProductsPage = () => {
       </If>
 
       <section className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden p-0">
+        <RenderBulk
+          count={selected.length}
+          categories={categoriesQuery.data ?? []}
+          isSaving={mutations.bulk.isPending}
+          onVisibility={handleBulkVisibility}
+          onCategory={handleBulkCategory}
+          onReset={() => setSelected([])}
+        />
+
         <ProductsTable
+          selected={selected}
+          onSelect={setSelected}
           items={productsQuery.data?.items ?? []}
           isLoading={productsQuery.isLoading}
           onEdit={handleEdit}

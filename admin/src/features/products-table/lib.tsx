@@ -57,8 +57,8 @@ export const buildProductColumns = ({
   },
   {
     title: 'В каталоге',
-    dataIndex: 'inStock',
-    key: 'inStock',
+    dataIndex: 'isActive',
+    key: 'isActive',
     render: (value: boolean) => (
       value ? (
         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200/80">
@@ -99,11 +99,11 @@ export const buildProductColumns = ({
           />
         </Tooltip>
 
-        <Tooltip title={product.inStock ? 'Скрыть из каталога' : 'Вернуть в каталог'}>
+        <Tooltip title={product.isActive ? 'Скрыть из каталога' : 'Вернуть в каталог'}>
           <Button
             type="text"
-            aria-label={product.inStock ? 'Скрыть товар' : 'Вернуть товар'}
-            icon={product.inStock ? <StopOutlined className="text-slate-400 hover:text-red-600" /> : <CheckCircleOutlined className="text-emerald-600 hover:text-emerald-700" />}
+            aria-label={product.isActive ? 'Скрыть товар' : 'Вернуть товар'}
+            icon={product.isActive ? <StopOutlined className="text-slate-400 hover:text-red-600" /> : <CheckCircleOutlined className="text-emerald-600 hover:text-emerald-700" />}
             onClick={() => onToggle(product)}
             className="cursor-pointer! hover:bg-slate-100! rounded-lg!"
           />

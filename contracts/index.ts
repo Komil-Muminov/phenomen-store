@@ -24,6 +24,7 @@ export interface IProduct {
   oldPrice: number | null;
   categoryId: string | null;
   inStock: boolean;
+  isActive?: boolean;
   attributes: Record<string, string>;
   variants: IProductVariant[];
   media: string[];

@@ -21,6 +21,10 @@ export const useProductMutations = () => ({
     (body) => `${ApiRoutes.shopProductUpdate}/${body.id}`,
     { scope: 'shop', method: 'patch', invalidate: INVALIDATE },
   ),
+  bulk: useMutationQuery<
+    { ids: string[]; isActive?: boolean; categoryId?: string },
+    { changed: number }
+  >(ApiRoutes.shopProductsBulk, { scope: 'shop', invalidate: INVALIDATE }),
   toggle: useMutationQuery<{ id: string; isActive: boolean }, IShopProduct>(
     (body) => `${ApiRoutes.shopProductUpdate}/${body.id}`,
     { scope: 'shop', method: 'patch', invalidate: INVALIDATE },

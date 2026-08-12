@@ -106,3 +106,18 @@ export const ShopPrefetchLists: IPrefetchList[] = [
     ListLimits.banners,
   ),
 ];
+
+const CSV_MIME = 'text/csv;charset=utf-8;';
+
+const BOM = '\uFEFF';
+
+export const downloadCsv = (content: string, name: string): void => {
+  const blob = new Blob([BOM, content], { type: CSV_MIME });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = `${name}-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+};

@@ -18,7 +18,7 @@ interface IImportResult {
 }
 
 interface IProductList {
-  items: { slug: string; name: string; price: number; categoryId: string | null }[];
+  items: { id: string; slug: string; name: string; price: number; categoryId: string | null }[];
   total: number;
 }
 
@@ -224,5 +224,159 @@ describe('импорт сообщает об ошибках построчно',
     const list = response.body.data as IProductList;
 
     assert.equal(list.total, 0);
+  });
+});
+
+describe('массовые действия и выгрузка', () => {
+  const seedForBulk = async (ctx: ITestContext, prefix: string) => {
+    const slugs = [1, 2, 3].map((index) => `${prefix}-${Date.now()}-${index}`);
+
+    await runImport(ctx, slugs.map((slug, index) => ({
+      name: `Пакетный ${index + 1}`,
+      basePrice: 100 * (index + 1),
+      slug,
+    })));
+
+    const ids: string[] = [];
+
+    for (const slug of slugs) {
+      const stored = await findProduct(ctx, slug);
+
+      if (stored) {
+        ids.push((stored as unknown as { id: string }).id);
+      }
+    }
+
+    return { slugs, ids };
+  };
+
+  it('скрывает выбранные товары пачкой', async (t: TestContext) => {
+    if (!context) {
+      t.skip(SKIP_REASON);
+
+      return;
+    }
+
+    const { slugs, ids } = await seedForBulk(context, 'bulk-hide');
+    const response = await callApi(context, '/products/bulk/update', {
+      method: 'POST',
+      token: staffToken,
+      body: { ids, isActive: false },
+    });
+
+    assert.equal(response.status, HttpStatus.ok);
+    assert.equal((response.body.data as { changed: number }).changed, 3);
+
+    const visible = await callApi(context, '/products/manage/search?isActive=true&limit=100', {
+      token: staffToken,
+    });
+    const items = (visible.body.data as IProductList).items;
+
+    assert.ok(!items.some((item) => slugs.includes(item.slug)));
+  });
+
+  it('переносит выбранные товары в категорию', async (t: TestContext) => {
+    if (!context) {
+      t.skip(SKIP_REASON);
+
+      return;
+    }
+
+    const { slugs, ids } = await seedForBulk(context, 'bulk-move');
+
+    await callApi(context, '/products/bulk/update', {
+      method: 'POST',
+      token: staffToken,
+      body: { ids, categoryId },
+    });
+
+    const moved = await findProduct(context, slugs[0]);
+
+    assert.equal(moved?.categoryId, categoryId);
+  });
+
+  it('пустой список и лишние изменения отклоняются', async (t: TestContext) => {
+    if (!context) {
+      t.skip(SKIP_REASON);
+
+      return;
+    }
+
+    const { ids } = await seedForBulk(context, 'bulk-bad');
+
+    assert.equal((await callApi(context, '/products/bulk/update', {
+      method: 'POST',
+      token: staffToken,
+      body: { ids: [] },
+    })).status, HttpStatus.badRequest);
+
+    assert.equal((await callApi(context, '/products/bulk/update', {
+      method: 'POST',
+      token: staffToken,
+      body: { ids },
+    })).status, HttpStatus.badRequest);
+  });
+
+  it('чужие товары пачкой не изменить', async (t: TestContext) => {
+    if (!context) {
+      t.skip(SKIP_REASON);
+
+      return;
+    }
+
+    const { ids } = await seedForBulk(context, 'bulk-foreign');
+    const foreignToken = await createStaffToken(context, UserRoles.owner, context.other.id);
+    const response = await callApi(context, '/products/bulk/update', {
+      method: 'POST',
+      token: foreignToken,
+      tenantKey: context.other.key,
+      body: { ids, isActive: false },
+    });
+
+    assert.equal((response.body.data as { changed: number }).changed, 0);
+  });
+
+  it('выгрузка отдаёт товары в том же виде, что принимает загрузка', async (t: TestContext) => {
+    if (!context) {
+      t.skip(SKIP_REASON);
+
+      return;
+    }
+
+    const slug = `export-${Date.now()}`;
+
+    await runImport(context, [{
+      name: 'Товар на выгрузку',
+      basePrice: 777,
+      slug,
+      category: CATEGORY_NAME,
+      brand: 'PHENOMEN',
+    }]);
+
+    const response = await callApi(context, '/products/export', { token: staffToken });
+    const rows = (response.body.data as { rows: Record<string, unknown>[] }).rows;
+    const exported = rows.find((row) => row.slug === slug);
+
+    assert.equal(response.status, HttpStatus.ok);
+    assert.equal(exported?.name, 'Товар на выгрузку');
+    assert.equal(exported?.price, 777);
+    assert.equal(exported?.category, CATEGORY_NAME);
+    assert.equal(exported?.brand, 'PHENOMEN');
+  });
+
+  it('выгрузка закрыта от покупателя', async (t: TestContext) => {
+    if (!context) {
+      t.skip(SKIP_REASON);
+
+      return;
+    }
+
+    const customerToken = await createStaffToken(context, UserRoles.customer);
+
+    assert.equal((await callApi(context, '/products/export')).status, HttpStatus.unauthorized);
+    assert.equal(
+      (await callApi(context, '/products/export', { token: customerToken })).status,
+      HttpStatus.forbidden,
+    );
   });
 });

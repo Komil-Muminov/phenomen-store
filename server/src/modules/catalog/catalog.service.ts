@@ -1,13 +1,15 @@
 import { ErrorMessages, HttpStatus, Pagination } from '@/shared/config';
 import { ITenantContext, IListResult } from '@/shared/types';
-import { AppError, isPlainObject, pickString } from '@/shared/utils';
+import { AppError, isPlainObject, pickString, requireUuid } from '@/shared/utils';
 import { rememberValue } from '@/modules/attributes';
 import {
   existsProductSlug,
   insertProduct,
   selectCategories,
   selectManagedProductById,
+  bulkSetProductFields,
   selectManagedProductBySlug,
+  selectProductsForExport,
   selectManagedProducts,
   selectOptionFacets,
   replaceVariants,
@@ -30,6 +32,8 @@ import {
   updateProductFields,
 } from '@/modules/catalog/catalog.db';
 import {
+  BulkLimit,
+  CatalogBulkErrors,
   ICategoryRow,
   IManagedProductFilters,
   IProductRow,
@@ -67,6 +71,7 @@ const mapProduct = (row: IProductRow) => ({
   reviewsCount: row.reviews_count,
   media: row.media,
   inStock: row.in_stock,
+  isActive: row.is_active !== false,
   createdAt: row.created_at,
   variants: (row.variants ?? []).map(mapVariant),
 });
@@ -512,6 +517,54 @@ export const deactivateProduct = async (tenant: ITenantContext, id: string) => {
   await updateProductFields(tenant.id, id, { isActive: false });
 
   return mapProduct(await requireProduct(tenant, id));
+};
+
+export const bulkUpdateProducts = async (
+  tenant: ITenantContext,
+  payload: Record<string, unknown>,
+) => {
+  const ids = Array.isArray(payload.ids)
+    ? payload.ids.filter((id): id is string => typeof id === 'string')
+    : [];
+
+  if (ids.length === 0) {
+    throw new AppError(CatalogBulkErrors.idsRequired, HttpStatus.badRequest);
+  }
+
+  if (ids.length > BulkLimit) {
+    throw new AppError(CatalogBulkErrors.tooMany, HttpStatus.badRequest);
+  }
+
+  ids.forEach((id) => requireUuid(id, 'ids'));
+
+  const isActive = typeof payload.isActive === 'boolean' ? payload.isActive : null;
+  const categoryId = pickString(payload.categoryId)
+    ? requireUuid(payload.categoryId, 'categoryId')
+    : null;
+
+  if (isActive === null && categoryId === null) {
+    throw new AppError(CatalogBulkErrors.nothingToDo, HttpStatus.badRequest);
+  }
+
+  return { changed: await bulkSetProductFields(tenant.id, ids, isActive, categoryId) };
+};
+
+export const exportProducts = async (tenant: ITenantContext) => {
+  const rows = await selectProductsForExport(tenant.id);
+
+  return {
+    rows: rows.map((row) => ({
+      name: row.name,
+      slug: row.slug,
+      price: Number(row.base_price),
+      oldPrice: row.old_price === null ? null : Number(row.old_price),
+      category: row.category,
+      brand: row.brand,
+      description: row.description,
+      unit: row.unit,
+      media: row.media ?? [],
+    })),
+  };
 };
 
 export const getCategories = async (tenant: ITenantContext) => {

@@ -5,6 +5,7 @@ import {
   DemoProducts,
   DemoSizes,
   ICategoryRow,
+  IExportRow,
   IManagedProductFilters,
   IProductRow,
   IProductSearchParams,
@@ -19,7 +20,8 @@ const PRODUCT_COLUMNS = `
          COALESCE(m.media, ARRAY[]::text[]) AS media,
          COALESCE(v.variants, '[]'::json) AS variants,
          v.min_price,
-         COALESCE(v.in_stock, false) AS in_stock
+         COALESCE(v.in_stock, false) AS in_stock,
+         p.is_active
 `;
 
 const PRODUCT_FROM = `
@@ -588,3 +590,44 @@ export const seedDemoCatalog = async (tenantId: string): Promise<void> => {
     }
   });
 };
+
+export const bulkSetProductFields = async (
+  tenantId: string,
+  ids: string[],
+  isActive: boolean | null,
+  categoryId: string | null,
+): Promise<number> => {
+  const rows = await tenantQuery<{ id: string }>(
+    tenantId,
+    `UPDATE products
+     SET is_active = COALESCE($3, is_active),
+         category_id = COALESCE($4, category_id),
+         updated_at = now()
+     WHERE tenant_id = $1 AND id = ANY($2::uuid[])
+     RETURNING id`,
+    [tenantId, ids, isActive, categoryId],
+  );
+
+  return rows.length;
+};
+
+export const selectProductsForExport = async (
+  tenantId: string,
+): Promise<IExportRow[]> => tenantQuery<IExportRow>(
+  tenantId,
+  `SELECT p.name, p.slug, p.brand, p.description, p.unit,
+          p.base_price::text AS base_price,
+          p.old_price::text AS old_price,
+          c.name AS category,
+          COALESCE(m.media, ARRAY[]::text[]) AS media
+   FROM products p
+   LEFT JOIN categories c ON c.id = p.category_id AND c.tenant_id = p.tenant_id
+   LEFT JOIN LATERAL (
+     SELECT array_agg(pm.url ORDER BY pm.position) AS media
+     FROM product_media pm
+     WHERE pm.product_id = p.id
+   ) m ON true
+   WHERE p.tenant_id = $1
+   ORDER BY p.created_at DESC`,
+  [tenantId],
+);

@@ -18,6 +18,7 @@ export const ShopActions = {
   productDeactivate: 'shop.product.deactivate',
   productDuplicate: 'shop.product.duplicate',
   productImport: 'shop.product.import',
+  productBulkUpdate: 'shop.product.bulk',
   stockUpdate: 'shop.stock.update',
   categoryCreate: 'shop.category.create',
   categoryUpdate: 'shop.category.update',

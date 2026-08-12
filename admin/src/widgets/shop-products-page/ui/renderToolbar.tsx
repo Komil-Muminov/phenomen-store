@@ -1,5 +1,5 @@
 import { Button, Select } from 'antd';
-import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { DownloadOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { VisibilityOptions } from '@/shared/config';
 import { formatVisibility } from '@/shared/lib';
 import { ListToolbar } from '@/shared/ui/ListToolbar';
@@ -17,6 +17,7 @@ interface IProps {
   onVisibility: (value: string) => void;
   onRefresh: () => void;
   onImport: () => void;
+  onExport: () => void;
   onCreate: () => void;
 }
 
@@ -32,6 +33,7 @@ export const RenderToolbar = ({
   onVisibility,
   onRefresh,
   onImport,
+  onExport,
   onCreate,
 }: IProps) => (
   <ListToolbar
@@ -65,6 +67,10 @@ export const RenderToolbar = ({
     )}
     actions={(
       <>
+        <Button icon={<DownloadOutlined />} onClick={onExport} className="cursor-pointer!">
+          Выгрузить
+        </Button>
+
         <Button icon={<UploadOutlined />} onClick={onImport} className="cursor-pointer!">
           Загрузить из таблицы
         </Button>

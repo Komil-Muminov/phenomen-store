@@ -49,6 +49,7 @@ export interface IProductRow {
   variants: IVariantRow[];
   min_price: string | null;
   in_stock: boolean;
+  is_active: boolean;
   created_at?: string;
 }
 
@@ -173,3 +174,23 @@ export const DemoProducts = [
     ],
   },
 ];
+
+export interface IExportRow {
+  name: string;
+  slug: string;
+  brand: string | null;
+  description: string | null;
+  unit: string;
+  base_price: string;
+  old_price: string | null;
+  category: string | null;
+  media: string[];
+}
+
+export const BulkLimit = 200;
+
+export const CatalogBulkErrors = {
+  idsRequired: 'Выберите хотя бы один товар',
+  tooMany: `За раз можно изменить не больше ${BulkLimit} товаров`,
+  nothingToDo: 'Не выбрано ни одного изменения',
+} as const;
