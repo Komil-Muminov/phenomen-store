@@ -6,6 +6,7 @@ import { ApiRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { If } from '@/shared/ui/If';
 import { SettingsForm } from '@/features/settings-form';
+import { IPasswordValues, PasswordForm } from '@/features/password-form';
 import type { ITenantConfig, ITenantConfigPatch } from '@/entities/tenant-config';
 
 export const ShopSettingsPage = () => {
@@ -21,6 +22,18 @@ export const ShopSettingsPage = () => {
     ApiRoutes.shopConfig,
     { scope: 'shop', method: 'patch', invalidate: [[QueryKeys.shopConfig]] },
   );
+
+  const passwordMutation = useMutationQuery<IPasswordValues, { changed: boolean }>(
+    ApiRoutes.shopPasswordUpdate,
+    { scope: 'shop', method: 'patch' },
+  );
+
+  const handlePasswordSubmit = useCallback((values: IPasswordValues) => {
+    passwordMutation.mutate(values, {
+      onSuccess: () => message.success('Пароль изменён'),
+      onError: (error) => message.error(extractErrorMessage(error)),
+    });
+  }, [passwordMutation, message]);
 
   const handleSubmit = useCallback((patch: ITenantConfigPatch) => {
     saveMutation.mutate(patch, {
@@ -67,6 +80,8 @@ export const ShopSettingsPage = () => {
           isSaving={saveMutation.isPending}
           onSubmit={handleSubmit}
         />
+
+        <PasswordForm isSaving={passwordMutation.isPending} onSubmit={handlePasswordSubmit} />
       </If>
     </>
   );

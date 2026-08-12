@@ -8,12 +8,14 @@ import { Button, Icon, If, ImageField, Screen } from '@/shared/ui';
 import {
   ISettingsValues,
   ITenantConfig,
+  PasswordTexts,
   SettingsTexts,
   toSettingsPatch,
   toSettingsValues,
 } from '@/widgets/admin-settings/model';
 import { RenderColors } from '@/widgets/admin-settings/ui/renderColors';
 import { RenderFields } from '@/widgets/admin-settings/ui/renderFields';
+import { RenderPassword } from '@/widgets/admin-settings/ui/renderPassword';
 
 const FIELD = 'rounded-2xl border border-line bg-surface px-4 py-3 text-base text-content';
 
@@ -24,6 +26,8 @@ export const AdminSettings = () => {
   const [values, setValues] = useState<ISettingsValues | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const configQuery = useGetQuery<ITenantConfig>([QueryKeys.adminConfig], ApiRoutes.manageConfig);
 
@@ -37,6 +41,20 @@ export const AdminSettings = () => {
       setValues(toSettingsValues(configQuery.data));
     }
   }, [configQuery.data]);
+
+  const passwordMutation = useMutationQuery<
+    { currentPassword: string; newPassword: string },
+    { changed: boolean }
+  >(ApiRoutes.managePasswordUpdate, { method: 'patch' });
+
+  const handlePasswordSubmit = useCallback((currentPassword: string, newPassword: string) => {
+    setPasswordMessage(null);
+    setPasswordError(null);
+    passwordMutation.mutate({ currentPassword, newPassword }, {
+      onSuccess: () => setPasswordMessage(PasswordTexts.changed),
+      onError: (mutationError) => setPasswordError(mutationError.message),
+    });
+  }, [passwordMutation]);
 
   const handleSave = useCallback(() => {
     if (!values) {
@@ -143,6 +161,13 @@ export const AdminSettings = () => {
             title={SettingsTexts.save}
             loading={saveMutation.isPending}
             onPress={handleSave}
+          />
+
+          <RenderPassword
+            busy={passwordMutation.isPending}
+            message={passwordMessage}
+            errorMessage={passwordError}
+            onSubmit={handlePasswordSubmit}
           />
         </If>
       </ScrollView>

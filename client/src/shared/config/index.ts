@@ -70,6 +70,7 @@ export const ApiRoutes = {
   manageAttributeUpdate: '/attributes/update',
   manageAttributeDelete: '/attributes/delete',
   manageConfig: '/tenants/config',
+  managePasswordUpdate: '/auth/password/update',
   manageMediaUpload: '/media/upload',
   manageCategories: '/categories/search',
   manageAttributes: '/attributes/search',

@@ -57,6 +57,7 @@ export const ApiRoutes = {
   shopBannerDelete: '/banners/delete',
   shopBannerReorder: '/banners/reorder',
   shopConfig: '/tenants/config',
+  shopPasswordUpdate: '/auth/password/update',
   shopAttributeDelete: '/attributes/delete',
   shopMediaUpload: '/media/upload',
 } as const;

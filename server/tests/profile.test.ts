@@ -25,6 +25,7 @@ interface ICodeResponse {
 }
 
 let context: ITestContext | null = null;
+let platformToken = '';
 
 const uniqueEmail = (prefix: string): string => (
   `${prefix}.${Date.now()}.${Math.floor(Math.random() * 1000)}@test.local`
@@ -61,6 +62,17 @@ const readProfile = async (ctx: ITestContext, token: string): Promise<IProfile> 
 
 before(async () => {
   context = await startContext();
+
+  if (!context) {
+    return;
+  }
+
+  const signin = await callApi(context, '/platform/auth/signin', {
+    method: 'POST',
+    body: { login: 'km', password: '123' },
+  });
+
+  platformToken = (signin.body.data as { token?: string })?.token ?? '';
 });
 
 after(async () => {
@@ -390,5 +402,120 @@ describe('уникальность в пределах магазина', () => 
     });
 
     assert.equal(response.status, HttpStatus.ok);
+  });
+});
+
+describe('смена пароля сотрудником', () => {
+  const signInStaff = async (ctx: ITestContext, login: string, password: string) => callApi(
+    ctx,
+    '/auth/login',
+    { method: 'POST', body: { login, password } },
+  );
+
+  const seedStaff = async (ctx: ITestContext) => {
+    const login = uniqueEmail('staff');
+    const created = await callApi(ctx, '/platform/tenants/create', {
+      method: 'POST',
+      token: platformToken,
+      body: {
+        key: `pwd-${Date.now()}${Math.floor(Math.random() * 100)}`,
+        name: 'Магазин пароля',
+        ownerName: 'Админ',
+        ownerLogin: login,
+        ownerPassword: 'startpass1',
+      },
+    });
+    const key = (created.body.data as { key: string }).key;
+    const session = await callApi(ctx, '/auth/login', {
+      method: 'POST',
+      tenantKey: key,
+      body: { login, password: 'startpass1' },
+    });
+
+    return { key, login, token: (session.body.data as { token: string }).token };
+  };
+
+  it('меняет пароль и старый перестаёт работать', async (t: TestContext) => {
+    if (!context) {
+      t.skip(SKIP_REASON);
+
+      return;
+    }
+
+    const staff = await seedStaff(context);
+    const changed = await callApi(context, '/auth/password/update', {
+      method: 'PATCH',
+      token: staff.token,
+      tenantKey: staff.key,
+      body: { currentPassword: 'startpass1', newPassword: 'brandnew42' },
+    });
+
+    assert.equal(changed.status, HttpStatus.ok);
+
+    const withOld = await callApi(context, '/auth/login', {
+      method: 'POST',
+      tenantKey: staff.key,
+      body: { login: staff.login, password: 'startpass1' },
+    });
+    const withNew = await callApi(context, '/auth/login', {
+      method: 'POST',
+      tenantKey: staff.key,
+      body: { login: staff.login, password: 'brandnew42' },
+    });
+
+    assert.equal(withOld.status, HttpStatus.unauthorized);
+    assert.equal(withNew.status, HttpStatus.ok);
+  });
+
+  it('неверный текущий пароль не проходит', async (t: TestContext) => {
+    if (!context) {
+      t.skip(SKIP_REASON);
+
+      return;
+    }
+
+    const staff = await seedStaff(context);
+    const response = await callApi(context, '/auth/password/update', {
+      method: 'PATCH',
+      token: staff.token,
+      tenantKey: staff.key,
+      body: { currentPassword: 'wrongpass1', newPassword: 'brandnew42' },
+    });
+
+    assert.notEqual(response.status, HttpStatus.ok);
+    assert.equal((await signInStaff(context, staff.login, 'startpass1')).status !== 500, true);
+  });
+
+  it('короткий пароль отклоняется', async (t: TestContext) => {
+    if (!context) {
+      t.skip(SKIP_REASON);
+
+      return;
+    }
+
+    const staff = await seedStaff(context);
+    const response = await callApi(context, '/auth/password/update', {
+      method: 'PATCH',
+      token: staff.token,
+      tenantKey: staff.key,
+      body: { currentPassword: 'startpass1', newPassword: 'short' },
+    });
+
+    assert.equal(response.status, HttpStatus.badRequest);
+  });
+
+  it('смена пароля закрыта без токена', async (t: TestContext) => {
+    if (!context) {
+      t.skip(SKIP_REASON);
+
+      return;
+    }
+
+    const response = await callApi(context, '/auth/password/update', {
+      method: 'PATCH',
+      body: { currentPassword: 'startpass1', newPassword: 'brandnew42' },
+    });
+
+    assert.equal(response.status, HttpStatus.unauthorized);
   });
 });

@@ -151,3 +151,21 @@ export const toSettingsPatch = (values: ISettingsValues) => ({
 export const toggleMethod = (methods: string[], value: string): string[] => (
   methods.includes(value) ? methods.filter((item) => item !== value) : [...methods, value]
 );
+
+export const PASSWORD_MIN_LENGTH = 8;
+
+export const PasswordTexts = {
+  title: 'Пароль для входа',
+  subtitle: 'Смените пароль, который выдали при создании магазина',
+  current: 'Текущий пароль',
+  next: 'Новый пароль',
+  repeat: 'Повторите новый',
+  hint: `Минимум ${PASSWORD_MIN_LENGTH} символов`,
+  mismatch: 'Пароли не совпадают',
+  submit: 'Сменить пароль',
+  changed: 'Пароль изменён',
+} as const;
+
+export const isPasswordValid = (current: string, next: string): boolean => (
+  current.length > 0 && next.length >= PASSWORD_MIN_LENGTH && current !== next
+);
