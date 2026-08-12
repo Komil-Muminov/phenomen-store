@@ -1,7 +1,7 @@
 import { tenantQuery } from '@/shared/db';
-import { IOtpRow, IUserAuthRow, IUserRow, OtpSettings } from '@/modules/auth/types';
+import { IOtpRow, IProfilePatch, IUserAuthRow, IUserRow, OtpSettings } from '@/modules/auth/types';
 
-const USER_COLUMNS = 'id, tenant_id, phone, email, name, role, status, created_at::text AS created_at';
+const USER_COLUMNS = 'id, tenant_id, phone, email, name, last_name, role, status, created_at::text AS created_at';
 
 export const selectUserForPasswordLogin = async (
   tenantId: string,
@@ -130,16 +130,18 @@ export const selectUserById = async (tenantId: string, userId: string): Promise<
 export const updateUserProfile = async (
   tenantId: string,
   userId: string,
-  name: string | null,
-  email: string | null,
+  patch: IProfilePatch,
 ): Promise<IUserRow> => {
   const rows = await tenantQuery<IUserRow>(
     tenantId,
     `UPDATE users
-     SET name = COALESCE($3, name), email = COALESCE($4, email), updated_at = now()
+     SET name = COALESCE($3, name),
+         last_name = COALESCE($4, last_name),
+         phone = COALESCE($5, phone),
+         updated_at = now()
      WHERE tenant_id = $1 AND id = $2
      RETURNING ${USER_COLUMNS}`,
-    [tenantId, userId, name, email],
+    [tenantId, userId, patch.name, patch.lastName, patch.phone],
   );
 
   return rows[0];
@@ -155,4 +157,48 @@ export const savePushToken = async (
     'UPDATE users SET push_token = $3, updated_at = now() WHERE tenant_id = $1 AND id = $2',
     [tenantId, userId, token],
   );
+};
+
+export const existsUserPhone = async (
+  tenantId: string,
+  userId: string,
+  phone: string,
+): Promise<boolean> => {
+  const rows = await tenantQuery<{ id: string }>(
+    tenantId,
+    'SELECT id FROM users WHERE tenant_id = $1 AND phone = $2 AND id <> $3 LIMIT 1',
+    [tenantId, phone, userId],
+  );
+
+  return rows.length > 0;
+};
+
+export const existsUserEmail = async (
+  tenantId: string,
+  userId: string,
+  email: string,
+): Promise<boolean> => {
+  const rows = await tenantQuery<{ id: string }>(
+    tenantId,
+    'SELECT id FROM users WHERE tenant_id = $1 AND lower(email) = $2 AND id <> $3 LIMIT 1',
+    [tenantId, email, userId],
+  );
+
+  return rows.length > 0;
+};
+
+export const updateUserEmail = async (
+  tenantId: string,
+  userId: string,
+  email: string,
+): Promise<IUserRow> => {
+  const rows = await tenantQuery<IUserRow>(
+    tenantId,
+    `UPDATE users SET email = $3, updated_at = now()
+     WHERE tenant_id = $1 AND id = $2
+     RETURNING ${USER_COLUMNS}`,
+    [tenantId, userId, email],
+  );
+
+  return rows[0];
 };

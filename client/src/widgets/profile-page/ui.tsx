@@ -18,10 +18,24 @@ import { useAuth } from '@/shared/auth';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { toHref } from '@/shared/lib';
 import { BottomBar, If } from '@/shared/ui';
+import {
+  EMPTY_PROFILE,
+  IProfileValues,
+  ProfileForm,
+  formatPhoneMask,
+  toProfilePayload,
+} from '@/features/profile-form';
+import {
+  EmailChange,
+  EmailChangeSteps,
+  TEmailChangeStep,
+} from '@/features/email-change';
 
 interface IProfile {
   id: string;
   phone: string | null;
+  lastName: string | null;
+  profileComplete: boolean;
   email: string | null;
   name: string | null;
 }
@@ -45,7 +59,15 @@ export const ProfilePage = () => {
   const [code, setCode] = useState('');
   const [devCode, setDevCode] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [values, setValues] = useState({ name: '', email: '' });
+  const [values, setValues] = useState<IProfileValues>(EMPTY_PROFILE);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [emailFormOpen, setEmailFormOpen] = useState(false);
+  const [emailStep, setEmailStep] = useState<TEmailChangeStep>(EmailChangeSteps.email);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailCode, setEmailCode] = useState('');
+  const [emailDevCode, setEmailDevCode] = useState<string | null>(null);
+  const [emailDelivered, setEmailDelivered] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const [resendSeconds, setResendSeconds] = useState(0);
@@ -89,8 +111,16 @@ export const ProfilePage = () => {
     { email: string; code: string },
     { token: string }
   >(ApiRoutes.authVerify);
-  const saveProfile = useMutationQuery<{ name: string; email: string }, IProfile>(
-    ApiRoutes.authUpdate,
+  const saveProfile = useMutationQuery<
+    { name: string; lastName: string; phone: string },
+    IProfile
+  >(ApiRoutes.authUpdate, { method: 'patch', invalidate: [[QueryKeys.profile]] });
+  const emailCodeMutation = useMutationQuery<
+    { email: string },
+    { code: string | null; delivered: boolean }
+  >(ApiRoutes.authEmailCode);
+  const emailUpdateMutation = useMutationQuery<{ email: string; code: string }, IProfile>(
+    ApiRoutes.authEmailUpdate,
     { method: 'patch', invalidate: [[QueryKeys.profile]] },
   );
   const cancelOrder = useMutationQuery<{ id: string }, IOrder>(
@@ -99,7 +129,11 @@ export const ProfilePage = () => {
   );
 
   useEffect(() => {
-    setValues({ name: profile?.name ?? '', email: profile?.email ?? '' });
+    setValues({
+      name: profile?.name ?? '',
+      lastName: profile?.lastName ?? '',
+      phone: formatPhoneMask(profile?.phone ?? ''),
+    });
   }, [profile?.name, profile?.email]);
 
   useEffect(() => {
@@ -175,6 +209,42 @@ export const ProfilePage = () => {
     });
   }, [login, email, verifyCode]);
 
+  const handleSaveProfile = useCallback(() => {
+    setProfileError(null);
+    saveProfile.mutate(toProfilePayload(values), {
+      onError: (error) => setProfileError(error.message),
+    });
+  }, [saveProfile, values]);
+
+  const handleOpenEmailForm = useCallback(() => {
+    setEmailFormOpen(true);
+    setEmailStep(EmailChangeSteps.email);
+    setNewEmail('');
+    setEmailCode('');
+    setEmailDevCode(null);
+    setEmailError(null);
+  }, []);
+
+  const handleRequestEmailCode = useCallback(() => {
+    setEmailError(null);
+    emailCodeMutation.mutate({ email: newEmail }, {
+      onSuccess: (data) => {
+        setEmailDevCode(data.code);
+        setEmailDelivered(data.delivered);
+        setEmailStep(EmailChangeSteps.code);
+      },
+      onError: (error) => setEmailError(error.message),
+    });
+  }, [emailCodeMutation, newEmail]);
+
+  const handleConfirmEmail = useCallback(() => {
+    setEmailError(null);
+    emailUpdateMutation.mutate({ email: newEmail, code: emailCode }, {
+      onSuccess: () => setEmailFormOpen(false),
+      onError: (error) => setEmailError(error.message),
+    });
+  }, [emailUpdateMutation, newEmail, emailCode]);
+
   const handleCancelOrder = useCallback((order: IOrder) => {
     setCancellingId(order.id);
     cancelOrder.mutate({ id: order.id }, { onSettled: () => setCancellingId(null) });
@@ -231,22 +301,56 @@ export const ProfilePage = () => {
                 </View>
               )}
             >
-              <ProfileOrders
-                phone={profile?.phone ?? null}
-                values={values}
-                orders={orders?.items ?? []}
-                savingProfile={saveProfile.isPending}
-                cancellingId={cancellingId}
-                onChange={(field, value) => setValues((current) => ({ ...current, [field]: value }))}
-                onSave={() => saveProfile.mutate(values)}
-                onCancelOrder={handleCancelOrder}
-                onLogout={logout}
-              />
+              <If
+                condition={profile?.profileComplete !== false}
+                fallback={(
+                  <View className="px-4 pb-10 pt-4">
+                    <ProfileForm
+                      values={values}
+                      welcome
+                      busy={saveProfile.isPending}
+                      errorMessage={profileError}
+                      onChange={setValues}
+                      onSubmit={handleSaveProfile}
+                    />
+                  </View>
+                )}
+              >
+                <ProfileOrders
+                  email={profile?.email ?? null}
+                  values={values}
+                  orders={orders?.items ?? []}
+                  savingProfile={saveProfile.isPending}
+                  profileError={profileError}
+                  cancellingId={cancellingId}
+                  onChange={setValues}
+                  onSave={handleSaveProfile}
+                  onChangeEmail={handleOpenEmailForm}
+                  onCancelOrder={handleCancelOrder}
+                  onLogout={logout}
+                />
+              </If>
             </If>
           </If>
         </ScrollView>
       </If>
       <BottomBar />
+
+      <EmailChange
+        open={emailFormOpen}
+        step={emailStep}
+        email={newEmail}
+        code={emailCode}
+        devCode={emailDevCode}
+        delivered={emailDelivered}
+        errorMessage={emailError}
+        busy={emailCodeMutation.isPending || emailUpdateMutation.isPending}
+        onEmailChange={setNewEmail}
+        onCodeChange={setEmailCode}
+        onRequestCode={handleRequestEmailCode}
+        onConfirm={handleConfirmEmail}
+        onClose={() => setEmailFormOpen(false)}
+      />
     </View>
   );
 };

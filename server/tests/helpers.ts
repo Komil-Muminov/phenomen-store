@@ -92,6 +92,7 @@ export const createStaffToken = async (
     phone: null,
     email: null,
     name: null,
+    last_name: null,
     role,
     status: EntityStatus.active,
     created_at: new Date().toISOString(),

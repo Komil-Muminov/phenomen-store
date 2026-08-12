@@ -4,6 +4,7 @@ export interface IUserRow {
   phone: string | null;
   email: string | null;
   name: string | null;
+  last_name: string | null;
   role: string;
   status: string;
   created_at: string;
@@ -20,9 +21,19 @@ export interface IOtpRow {
   expires_at: string;
 }
 
+export interface IProfilePatch {
+  name: string | null;
+  lastName: string | null;
+  phone: string | null;
+}
+
 export const AuthErrors = {
   invalidPhone: 'Некорректный номер телефона',
   invalidEmail: 'Некорректный адрес почты',
+  phoneTaken: 'Этот номер уже занят другим покупателем магазина',
+  emailTaken: 'Эта почта уже занята другим покупателем магазина',
+  emailSame: 'Новый адрес совпадает с текущим',
+  profileIncomplete: 'Заполните имя, фамилию и номер телефона',
   tooManyRequests: 'Слишком много запросов, попробуйте позже',
   codeNotFound: 'Код не запрашивался или истёк',
   codeInvalid: 'Неверный код',

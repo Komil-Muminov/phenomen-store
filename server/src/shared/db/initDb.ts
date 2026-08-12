@@ -149,6 +149,8 @@ END
 $$;
 
 DROP INDEX IF EXISTS otp_codes_phone_idx;
+
+ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS last_name TEXT;
 `;
 
 const applyMigrations = async (admin: PoolClient): Promise<void> => {

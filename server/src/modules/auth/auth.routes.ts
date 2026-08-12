@@ -8,7 +8,9 @@ import {
   getProfile,
   loginWithPassword,
   registerPushToken,
+  confirmEmailChange,
   requestCode,
+  requestEmailChange,
   updateProfile,
   verifyCode,
 } from '@/modules/auth/auth.service';
@@ -20,6 +22,8 @@ const AuthActions = {
   verify: '/verify',
   profile: '/profile',
   update: '/update',
+  emailCode: '/email/code',
+  emailUpdate: '/email/update',
   push: '/push',
 } as const;
 
@@ -83,6 +87,30 @@ authRouter.patch(
         body.currentPassword,
         body.newPassword,
       ));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+authRouter.post(
+  AuthActions.emailCode,
+  authMiddleware,
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      sendOk(res, await requestEmailChange(requireTenant(req), requireUserId(req), req.body ?? {}));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+authRouter.patch(
+  AuthActions.emailUpdate,
+  authMiddleware,
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      sendOk(res, await confirmEmailChange(requireTenant(req), requireUserId(req), req.body ?? {}));
     } catch (error) {
       next(error);
     }

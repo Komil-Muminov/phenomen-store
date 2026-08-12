@@ -1,29 +1,27 @@
 import { useState } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { IOrder, OrderCard } from '@/entities/order';
 import { Button, ButtonVariants, Icon, If } from '@/shared/ui';
-
-interface IProfileValues {
-  name: string;
-  email: string;
-}
+import { IProfileValues, ProfileForm } from '@/features/profile-form';
 
 interface IProps {
-  phone: string | null;
+  email: string | null;
   values: IProfileValues;
   orders: IOrder[];
   savingProfile: boolean;
+  profileError: string | null;
   cancellingId: string | null;
-  onChange: (field: keyof IProfileValues, value: string) => void;
+  onChange: (values: IProfileValues) => void;
   onSave: () => void;
+  onChangeEmail: () => void;
   onCancelOrder: (order: IOrder) => void;
   onLogout: () => void;
 }
 
 const Labels = {
   profile: 'Профиль',
-  name: 'Имя',
-  email: 'E-mail',
+  emailLogin: 'Почта для входа',
+  changeEmail: 'Изменить',
   save: 'Сохранить изменения',
   logout: 'Выйти из профиля',
   orders: 'Мои заказы',
@@ -59,13 +57,15 @@ const getInitials = (name: string, phone: string | null): string => {
 };
 
 export const ProfileOrders = ({
-  phone,
+  email,
   values,
   orders,
   savingProfile,
+  profileError,
   cancellingId,
   onChange,
   onSave,
+  onChangeEmail,
   onCancelOrder,
   onLogout,
 }: IProps) => {
@@ -77,50 +77,47 @@ export const ProfileOrders = ({
         <View className="flex-row items-center gap-3">
           <View className="h-14 w-14 items-center justify-center rounded-full border border-line bg-background">
             <Text className="text-lg font-bold text-content">
-              {getInitials(values.name, phone)}
+              {getInitials(`${values.name} ${values.lastName}`, values.phone)}
             </Text>
           </View>
           <View className="flex-1 gap-0.5">
             <Text className="text-lg font-bold text-content">
-              {values.name.trim() || Labels.profile}
+              {`${values.name} ${values.lastName}`.trim() || Labels.profile}
             </Text>
-            <Text className="text-xs text-muted">{phone ?? ''}</Text>
+            <Text className="text-xs text-muted">{values.phone}</Text>
             <View className="mt-1 self-start rounded-full bg-primary/10 px-2.5 py-0.5">
               <Text className="text-[10px] font-bold text-primary">{Labels.statusBadge}</Text>
             </View>
           </View>
         </View>
 
-        <View className="gap-3 border-t border-line pt-3">
-          <View className="gap-1">
-            <Text className="text-xs font-semibold text-muted">{Labels.name}</Text>
-            <TextInput
-              value={values.name}
-              onChangeText={(value) => onChange('name', value)}
-              placeholder="Укажите ваше имя"
-              placeholderTextColor="#a3a3a3"
-              style={{ paddingVertical: 0 }}
-              textAlignVertical="center"
-              className="h-12 rounded-xl border border-line bg-background px-4 text-sm font-medium text-content"
-            />
-          </View>
+        <View className="gap-4 border-t border-line pt-3">
+          <ProfileForm
+            values={values}
+            welcome={false}
+            busy={savingProfile}
+            errorMessage={profileError}
+            onChange={onChange}
+            onSubmit={onSave}
+          />
 
-          <View className="gap-1">
-            <Text className="text-xs font-semibold text-muted">{Labels.email}</Text>
-            <TextInput
-              value={values.email}
-              onChangeText={(value) => onChange('email', value)}
-              placeholder="example@domain.com"
-              placeholderTextColor="#a3a3a3"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={{ paddingVertical: 0 }}
-              textAlignVertical="center"
-              className="h-12 rounded-xl border border-line bg-background px-4 text-sm font-medium text-content"
-            />
+          <View className="gap-1.5">
+            <Text className="text-xs font-semibold uppercase tracking-wide text-muted">
+              {Labels.emailLogin}
+            </Text>
+            <View className="flex-row items-center justify-between gap-3 rounded-2xl border border-line bg-background px-4 py-3">
+              <Text className="flex-1 text-sm font-semibold text-content" numberOfLines={1}>
+                {email ?? ''}
+              </Text>
+              <Pressable
+                onPress={onChangeEmail}
+                accessibilityRole="button"
+                className="rounded-full bg-primary/10 px-3 py-1.5 active:opacity-80"
+              >
+                <Text className="text-xs font-bold text-primary">{Labels.changeEmail}</Text>
+              </Pressable>
+            </View>
           </View>
-
-          <Button title={Labels.save} loading={savingProfile} onPress={onSave} />
 
           <If
             condition={confirmLogout}

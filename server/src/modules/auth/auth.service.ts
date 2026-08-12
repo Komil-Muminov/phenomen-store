@@ -14,7 +14,10 @@ import {
   selectActiveOtp,
   selectUserAuthById,
   selectUserById,
+  existsUserEmail,
+  existsUserPhone,
   selectUserForPasswordLogin,
+  updateUserEmail,
   updateUserPassword,
   updateUserProfile,
   upsertUserByEmail,
@@ -37,7 +40,9 @@ const mapUser = (row: IUserRow) => ({
   phone: row.phone,
   email: row.email,
   name: row.name,
+  lastName: row.last_name,
   role: row.role,
+  profileComplete: Boolean(row.name && row.last_name && row.phone),
   createdAt: row.created_at,
 });
 
@@ -219,10 +224,103 @@ export const updateProfile = async (
   userId: string,
   payload: Record<string, unknown>,
 ) => {
-  const name = pickString(payload.name) || null;
-  const email = pickString(payload.email) || null;
+  const phone = payload.phone === undefined ? null : normalizePhone(payload.phone);
 
-  return mapUser(await updateUserProfile(tenant.id, userId, name, email));
+  if (payload.phone !== undefined && !phone) {
+    throw new AppError(AuthErrors.invalidPhone, HttpStatus.badRequest);
+  }
+
+  if (phone && await existsUserPhone(tenant.id, userId, phone)) {
+    throw new AppError(AuthErrors.phoneTaken, HttpStatus.conflict);
+  }
+
+  return mapUser(await updateUserProfile(tenant.id, userId, {
+    name: pickString(payload.name) || null,
+    lastName: pickString(payload.lastName) || null,
+    phone,
+  }));
+};
+
+export const requestEmailChange = async (
+  tenant: ITenantContext,
+  userId: string,
+  payload: Record<string, unknown>,
+) => {
+  const email = normalizeEmail(payload.email);
+
+  if (!email) {
+    throw new AppError(AuthErrors.invalidEmail, HttpStatus.badRequest);
+  }
+
+  const current = await selectUserById(tenant.id, userId);
+
+  if (current?.email && current.email.toLowerCase() === email) {
+    throw new AppError(AuthErrors.emailSame, HttpStatus.badRequest);
+  }
+
+  if (await existsUserEmail(tenant.id, userId, email)) {
+    throw new AppError(AuthErrors.emailTaken, HttpStatus.conflict);
+  }
+
+  const recent = await countRecentCodes(tenant.id, email);
+
+  if (recent >= OtpSettings.maxRequestsPerWindow) {
+    throw new AppError(AuthErrors.tooManyRequests, HttpStatus.conflict);
+  }
+
+  const code = generateCode();
+
+  await insertOtpCode(tenant.id, email, await bcrypt.hash(code, OtpSettings.saltRounds));
+  await sendOtpLetter({
+    to: email,
+    code,
+    shopName: tenant.name,
+    ttlMinutes: minutesFromSeconds(OtpSettings.ttlSeconds),
+  });
+
+  return {
+    email,
+    delivered: isMailConfigured(),
+    expiresIn: OtpSettings.ttlSeconds,
+    code: Env.isProduction ? null : code,
+  };
+};
+
+export const confirmEmailChange = async (
+  tenant: ITenantContext,
+  userId: string,
+  payload: Record<string, unknown>,
+) => {
+  const email = normalizeEmail(payload.email);
+  const code = pickString(payload.code);
+
+  if (!email) {
+    throw new AppError(AuthErrors.invalidEmail, HttpStatus.badRequest);
+  }
+
+  if (await existsUserEmail(tenant.id, userId, email)) {
+    throw new AppError(AuthErrors.emailTaken, HttpStatus.conflict);
+  }
+
+  const otp = await selectActiveOtp(tenant.id, email);
+
+  if (!otp) {
+    throw new AppError(AuthErrors.codeNotFound, HttpStatus.notFound);
+  }
+
+  if (otp.attempts >= OtpSettings.maxAttempts) {
+    throw new AppError(AuthErrors.codeAttempts, HttpStatus.conflict);
+  }
+
+  if (!await bcrypt.compare(code, otp.code_hash)) {
+    await incrementOtpAttempts(tenant.id, otp.id);
+
+    throw new AppError(AuthErrors.codeInvalid, HttpStatus.unauthorized);
+  }
+
+  await consumeOtp(tenant.id, otp.id);
+
+  return mapUser(await updateUserEmail(tenant.id, userId, email));
 };
 
 export const registerPushToken = async (

@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT,
   password_hash TEXT,
   name TEXT,
+  last_name TEXT,
   role TEXT NOT NULL DEFAULT 'customer',
   status TEXT NOT NULL DEFAULT 'active',
   push_token TEXT,
