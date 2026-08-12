@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { DatePicker, Form, Input, InputNumber, Modal, Switch } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { BannerActionTypes, BannerDefaults } from '@/shared/config';
+import { If } from '@/shared/ui/If';
 import { ImageUploader } from '@/shared/ui/ImageUploader';
 import { RenderAction } from '@/features/banner-form/ui/renderAction';
 import type { IShopBanner, IShopCategory, IShopProduct } from '@/entities/shop';
@@ -12,7 +13,7 @@ export interface IBannerFormValues {
   subtitle: string | null;
   actionType: string;
   actionValue: string | null;
-  position: number;
+  position?: number;
   startsAt: string | null;
   endsAt: string | null;
   isActive: boolean;
@@ -83,12 +84,12 @@ export const BannerForm = ({
       subtitle: state.subtitle?.trim() ? state.subtitle.trim() : null,
       actionType: state.actionType,
       actionValue: state.actionValue?.trim() ? state.actionValue.trim() : null,
-      position: state.position ?? BannerDefaults.position,
+      position: editing ? (state.position ?? BannerDefaults.position) : undefined,
       startsAt: startsAt ? startsAt.startOf('day').toISOString() : null,
       endsAt: endsAt ? endsAt.endOf('day').toISOString() : null,
       isActive: state.isActive !== false,
     });
-  }, [onSubmit]);
+  }, [onSubmit, editing]);
 
   return (
     <Modal
@@ -143,14 +144,16 @@ export const BannerForm = ({
             />
           </Form.Item>
 
-          <Form.Item
-            name="position"
-            label="Порядок"
-            extra="Меньше число — левее в карусели"
-            className="w-32"
-          >
-            <InputNumber min={0} step={BannerDefaults.positionStep} className="w-full!" />
-          </Form.Item>
+          <If condition={Boolean(editing)}>
+            <Form.Item
+              name="position"
+              label="Порядок"
+              extra="Меньше число — левее в карусели"
+              className="w-32"
+            >
+              <InputNumber min={0} step={BannerDefaults.positionStep} className="w-full!" />
+            </Form.Item>
+          </If>
 
           <Form.Item name="isActive" label="Показывать" valuePropName="checked">
             <Switch />

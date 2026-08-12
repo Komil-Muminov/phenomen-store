@@ -138,7 +138,7 @@ export const toBannerForm = (banner: IAdminBanner): IBannerFormValues => ({
   isActive: banner.isActive,
 });
 
-export const toBannerPayload = (values: IBannerFormValues, position: number) => ({
+export const toBannerPayload = (values: IBannerFormValues, position?: number) => ({
   imageUrl: values.imageUrl.trim(),
   title: values.title.trim() ? values.title.trim() : null,
   subtitle: values.subtitle.trim() ? values.subtitle.trim() : null,

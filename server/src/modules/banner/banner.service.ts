@@ -203,13 +203,32 @@ export const listBanners = async (
   return { items: items.map(mapBanner), total, page, limit };
 };
 
+const normalizePositions = async (tenant: ITenantContext, orderedIds: string[]): Promise<void> => {
+  await updateBannerPositions(
+    tenant.id,
+    orderedIds,
+    orderedIds.map((_id, index) => (index + 1) * BannerDefaults.positionStep),
+  );
+};
+
 export const createBanner = async (tenant: ITenantContext, payload: Record<string, unknown>) => {
   const input = await buildInput(tenant, payload, null);
+  const pinFirst = payload.position === undefined;
 
   await ensureCarouselSection(tenant.id, SectionTypes.bannerCarousel, BannerDefaults.sectionPosition);
   await activateCarouselSection(tenant.id, SectionTypes.bannerCarousel);
 
-  return mapBanner(await insertBanner(tenant.id, input));
+  const created = await insertBanner(tenant.id, input);
+
+  if (!pinFirst) {
+    return mapBanner(created);
+  }
+
+  const rest = (await selectManagedBanners(tenant.id)).filter((row) => row.id !== created.id);
+
+  await normalizePositions(tenant, [created.id, ...rest.map((row) => row.id)]);
+
+  return mapBanner((await selectBannerById(tenant.id, created.id)) ?? created);
 };
 
 export const updateBanner = async (
@@ -264,11 +283,7 @@ export const reorderBanners = async (
     : anchorIndex + (beforeId ? 0 : 1);
   const ordered = [...rest.slice(0, target), moved, ...rest.slice(target)];
 
-  await updateBannerPositions(
-    tenant.id,
-    ordered.map((row) => row.id),
-    ordered.map((_row, index) => (index + 1) * BannerDefaults.positionStep),
-  );
+  await normalizePositions(tenant, ordered.map((row) => row.id));
 
   return (await selectManagedBanners(tenant.id)).map(mapBanner);
 };

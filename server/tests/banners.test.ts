@@ -108,6 +108,47 @@ describe('создание баннера', () => {
     assert.equal(banner.isActive, true);
   });
 
+  it('новый баннер встаёт первым', async (t: TestContext) => {
+    if (!context) {
+      t.skip(SKIP_REASON);
+
+      return;
+    }
+
+    await seedThree(context);
+    await createBanner(context, { title: 'Свежий' });
+
+    assert.deepEqual(await titlesInOrder(context), ['Свежий', 'А', 'Б', 'В']);
+  });
+
+  it('несколько новых подряд идут от самого свежего', async (t: TestContext) => {
+    if (!context) {
+      t.skip(SKIP_REASON);
+
+      return;
+    }
+
+    await clearBanners(context);
+    await createBanner(context, { title: 'Первый' });
+    await createBanner(context, { title: 'Второй' });
+    await createBanner(context, { title: 'Третий' });
+
+    assert.deepEqual(await titlesInOrder(context), ['Третий', 'Второй', 'Первый']);
+  });
+
+  it('явная позиция сильнее автоматической', async (t: TestContext) => {
+    if (!context) {
+      t.skip(SKIP_REASON);
+
+      return;
+    }
+
+    await seedThree(context);
+    await createBanner(context, { title: 'В конец', position: 999 });
+
+    assert.deepEqual(await titlesInOrder(context), ['А', 'Б', 'В', 'В конец']);
+  });
+
   it('требует картинку', async (t: TestContext) => {
     if (!context) {
       t.skip(SKIP_REASON);

@@ -27,8 +27,6 @@ interface IProductList {
   items: IPickerItem[];
 }
 
-const POSITION_STEP = 10;
-
 export const AdminBanners = () => {
   const router = useRouter();
   const [page, setPage] = useState(1);
@@ -68,8 +66,7 @@ export const AdminBanners = () => {
   }, []);
 
   const handleSubmit = useCallback(() => {
-    const position = editing?.position ?? (total + 1) * POSITION_STEP;
-    const payload = toBannerPayload(values, position);
+    const payload = toBannerPayload(values, editing?.position);
     const onSuccess = () => setFormOpen(false);
 
     if (editing) {
@@ -79,7 +76,7 @@ export const AdminBanners = () => {
     }
 
     mutations.create.mutate(payload, { onSuccess });
-  }, [values, editing, total, mutations.update, mutations.create]);
+  }, [values, editing, mutations.update, mutations.create]);
 
   const handleDelete = useCallback((banner: IAdminBanner) => {
     Alert.alert(BannersTexts.deleteTitle, banner.title ?? '', [
