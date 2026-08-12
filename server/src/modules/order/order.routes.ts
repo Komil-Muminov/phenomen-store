@@ -31,6 +31,18 @@ const OrderActions = {
 
 const STAFF_ROLES = [UserRoles.manager, UserRoles.admin, UserRoles.owner, UserRoles.platform];
 
+const ORDER_STATUSES: string[] = Object.values(OrderStatus);
+
+const requireOrderStatus = (value: unknown): TOrderStatus => {
+  const status = pickString(value);
+
+  if (!ORDER_STATUSES.includes(status)) {
+    throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
+  }
+
+  return status as TOrderStatus;
+};
+
 const requireTenant = (req: IAppRequest) => {
   if (!req.tenant) {
     throw new AppError(ErrorMessages.tenantRequired, HttpStatus.badRequest);
@@ -126,7 +138,7 @@ orderRouter.post(
     try {
       const tenant = requireTenant(req);
       const orderId = requireUuid(req.params.id, 'id');
-      const status = pickString(req.body?.status) as TOrderStatus;
+      const status = requireOrderStatus(req.body?.status);
 
       sendOk(res, await changeOrderStatus(tenant, orderId, status, req.user?.id ?? null));
     } catch (error) {
