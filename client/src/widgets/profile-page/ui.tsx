@@ -326,6 +326,7 @@ export const ProfilePage = () => {
                   onChange={setValues}
                   onSave={handleSaveProfile}
                   onChangeEmail={handleOpenEmailForm}
+                  onOpenSupport={() => router.push(toHref(AppRoutes.support))}
                   onCancelOrder={handleCancelOrder}
                   onLogout={logout}
                 />

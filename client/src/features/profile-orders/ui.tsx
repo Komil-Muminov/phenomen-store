@@ -6,6 +6,7 @@ import { IProfileValues, ProfileForm } from '@/features/profile-form';
 
 interface IProps {
   email: string | null;
+  onOpenSupport: () => void;
   values: IProfileValues;
   orders: IOrder[];
   savingProfile: boolean;
@@ -25,6 +26,8 @@ const Labels = {
   save: 'Сохранить изменения',
   logout: 'Выйти из профиля',
   orders: 'Мои заказы',
+  support: 'Написать в магазин',
+  supportHint: 'Вопрос по заказу, возврат, доставка',
   empty: 'У вас пока нет оформленных заказов',
   statusBadge: 'Покупатель PHENOMEN',
   logoutConfirmTitle: 'Выход из профиля',
@@ -58,6 +61,7 @@ const getInitials = (name: string, phone: string | null): string => {
 
 export const ProfileOrders = ({
   email,
+  onOpenSupport,
   values,
   orders,
   savingProfile,
@@ -156,6 +160,21 @@ export const ProfileOrders = ({
       </View>
 
       <View className="gap-3">
+        <Pressable
+          accessibilityRole="button"
+          onPress={onOpenSupport}
+          className="mb-2 flex-row items-center gap-3 rounded-2xl border border-line bg-surface/50 p-4 active:opacity-80"
+        >
+          <View className="h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+            <Icon name="chat" size={18} />
+          </View>
+          <View className="flex-1">
+            <Text className="text-sm font-bold text-content">{Labels.support}</Text>
+            <Text className="text-xs text-muted">{Labels.supportHint}</Text>
+          </View>
+          <Icon name="chevron-right" size={16} />
+        </Pressable>
+
         <Text className="text-lg font-bold text-content">{Labels.orders}</Text>
         <If
           condition={orders.length > 0}

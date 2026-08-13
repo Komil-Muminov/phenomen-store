@@ -36,6 +36,8 @@ export const ShopActions = {
   promotionDelete: 'shop.promotion.delete',
   orderStatus: 'shop.order.status',
   configUpdate: 'shop.config.update',
+  supportReply: 'shop.support.reply',
+  supportClose: 'shop.support.close',
 } as const;
 
 const PAYLOAD_FIELDS = ['id', 'name', 'title', 'slug', 'status', 'quantity', 'sku'];

@@ -9,6 +9,7 @@ export const AppRoutes = {
   shopStock: '/shop/stock',
   shopBanners: '/shop/banners',
   shopPromotions: '/shop/promotions',
+  shopSupport: '/shop/support',
   shopSettings: '/shop/settings',
   root: '/',
 } as const;
@@ -58,6 +59,10 @@ export const ApiRoutes = {
   shopBannerDeactivate: '/banners/deactivate',
   shopBannerDelete: '/banners/delete',
   shopBannerReorder: '/banners/reorder',
+  shopSupportSearch: '/support/manage/search',
+  shopSupportGet: '/support/manage/get',
+  shopSupportReply: '/support/manage/reply',
+  shopSupportClose: '/support/manage/close',
   shopConfig: '/tenants/config',
   shopPasswordUpdate: '/auth/password/update',
   shopAttributeDelete: '/attributes/delete',
@@ -77,6 +82,7 @@ export const QueryKeys = {
   shopAttributes: 'shop-attributes',
   shopStock: 'shop-stock',
   shopConfig: 'shop-config',
+  shopSupport: 'shop-support',
 } as const;
 
 export const ProductUnits = [
@@ -232,6 +238,8 @@ export const AuditActionLabels: Record<string, string> = {
   'shop.promotion.delete': 'удалена акция',
   'shop.order.status': 'изменён статус заказа',
   'shop.config.update': 'изменены настройки магазина',
+  'shop.support.reply': 'ответ на обращение',
+  'shop.support.close': 'обращение закрыто',
 };
 
 export const StaffRoles = {

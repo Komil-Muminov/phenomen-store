@@ -35,6 +35,7 @@ const RootLayout = () => (
                 <Stack.Screen name="profile" options={{ animation: 'none' }} />
                 <Stack.Screen name="checkout" />
                 <Stack.Screen name="notifications" />
+                <Stack.Screen name="support" />
                 <Stack.Screen name="order-success" />
                 <Stack.Screen name="product/[id]" />
                 <Stack.Screen name="admin" />

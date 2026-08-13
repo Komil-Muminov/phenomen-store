@@ -86,6 +86,20 @@ export const clearNotifications = async (tenant: ITenantContext, userId: string)
   removed: await deleteAllNotifications(tenant.id, userId),
 });
 
+export const notifySupportReply = async (
+  tenant: ITenantContext,
+  userId: string,
+  subject: string,
+): Promise<void> => {
+  await insertNotification(tenant.id, {
+    userId,
+    kind: NotificationKinds.system as TNotificationKind,
+    title: NotificationTexts.supportReplyTitle,
+    text: NotificationTexts.supportReplyBody(subject),
+    actionUrl: NotificationTexts.supportActionUrl,
+  });
+};
+
 export const notifyOrderStatus = async (
   tenant: ITenantContext,
   userId: string | null,

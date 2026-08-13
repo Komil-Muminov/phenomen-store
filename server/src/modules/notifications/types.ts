@@ -37,6 +37,9 @@ export const NotificationPaths = {
 } as const;
 
 export const NotificationTexts = {
+  supportReplyTitle: 'Магазин ответил на обращение',
+  supportReplyBody: (subject: string): string => `По обращению «${subject}» есть ответ.`,
+  supportActionUrl: '/profile',
   orderStatusTitle: (number: string): string => `Заказ ${number}: статус обновлён`,
   orderStatusBody: (status: string): string => `Новый статус заказа — ${status}.`,
   orderActionUrl: '/profile',

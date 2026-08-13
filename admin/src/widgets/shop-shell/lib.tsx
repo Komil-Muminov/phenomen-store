@@ -3,6 +3,7 @@ import {
   BarChartOutlined,
   DatabaseOutlined,
   GiftOutlined,
+  MessageOutlined,
   PictureOutlined,
   SettingOutlined,
   ShoppingOutlined,
@@ -40,6 +41,7 @@ export const ShopNavItems: INavItem[] = [
     icon: <TagsOutlined aria-hidden="true" />,
     match: CatalogRoutes,
   },
+  { to: AppRoutes.shopSupport, label: 'Обращения', icon: <MessageOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopSettings, label: 'Настройки', icon: <SettingOutlined aria-hidden="true" /> },
 ];
 

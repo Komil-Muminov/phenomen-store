@@ -14,6 +14,7 @@ export const ApiRoutes = {
   wishlist: '/wishlist',
   notifications: '/notifications',
   promotions: '/promotions',
+  support: '/support',
   stats: '/stats',
   health: '/health',
 } as const;

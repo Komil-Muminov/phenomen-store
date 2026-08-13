@@ -25,6 +25,7 @@ export type TIconName =
   | 'eye-off'
   | 'eyeoff'
   | 'phone'
+  | 'chat'
   | 'zap'
   | 'gift'
   | 'clock'
@@ -330,6 +331,20 @@ export const Icon = ({ name, size = 20, color = '#171717' }: IProps) => {
           d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"
           stroke={color}
           strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </SvgComponent>
+    );
+  }
+
+  if (normName === 'chat') {
+    return (
+      <SvgComponent width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <SvgPath
+          d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"
+          stroke={color}
+          strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
