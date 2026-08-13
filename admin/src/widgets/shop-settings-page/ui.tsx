@@ -7,6 +7,8 @@ import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { If } from '@/shared/ui/If';
 import { SettingsForm } from '@/features/settings-form';
 import { IPasswordValues, PasswordForm } from '@/features/password-form';
+import { PlanCard } from '@/features/plan-card';
+import type { IPlanState } from '@/entities/plan';
 import type { ITenantConfig, ITenantConfigPatch } from '@/entities/tenant-config';
 
 export const ShopSettingsPage = () => {
@@ -15,6 +17,12 @@ export const ShopSettingsPage = () => {
   const configQuery = useGetQuery<ITenantConfig>(
     [QueryKeys.shopConfig],
     ApiRoutes.shopConfig,
+    { scope: 'shop', staleTime: StaleTimeMs.short },
+  );
+
+  const planQuery = useGetQuery<IPlanState>(
+    [QueryKeys.shopPlan],
+    ApiRoutes.shopPlanCurrent,
     { scope: 'shop', staleTime: StaleTimeMs.short },
   );
 
@@ -80,6 +88,8 @@ export const ShopSettingsPage = () => {
           isSaving={saveMutation.isPending}
           onSubmit={handleSubmit}
         />
+
+        <PlanCard state={planQuery.data ?? null} isLoading={planQuery.isLoading} />
 
         <PasswordForm isSaving={passwordMutation.isPending} onSubmit={handlePasswordSubmit} />
       </If>

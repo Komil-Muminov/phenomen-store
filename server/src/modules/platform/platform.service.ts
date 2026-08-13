@@ -47,6 +47,7 @@ import {
   SALT_ROUNDS,
   TENANT_UPDATABLE_FIELDS,
 } from '@/modules/platform/types';
+import { pickPlanCode } from '@/modules/plans';
 
 const KEY_PATTERN = /^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/;
 
@@ -229,7 +230,7 @@ export const signIn = async (
   }
 
   const session = await loginStaffWithPassword(
-    { id: tenant.id, key: tenant.key, name: tenant.name, status: tenant.status },
+    { id: tenant.id, key: tenant.key, name: tenant.name, status: tenant.status, plan: tenant.plan },
     entry.user_id,
     password,
   );
@@ -340,7 +341,7 @@ export const createTenant = async (
     key,
     name,
     pickString(payload.vertical, 'universal'),
-    pickString(payload.plan, 'start'),
+    pickPlanCode(payload.plan),
     pickString(payload.bundleId) || null,
   );
 
@@ -383,7 +384,7 @@ export const updateTenant = async (
     const value = payload[field];
 
     if (typeof value === 'string' && value.trim().length > 0) {
-      patch[field] = value.trim();
+      patch[field] = field === 'plan' ? pickPlanCode(value) : value.trim();
     }
   });
 

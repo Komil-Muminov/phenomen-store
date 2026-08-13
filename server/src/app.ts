@@ -19,6 +19,7 @@ import { reviewsRouter } from '@/modules/reviews';
 import { notificationsRouter } from '@/modules/notifications';
 import { platformRouter } from '@/modules/platform';
 import { platformTicketRouter, ticketRouter } from '@/modules/tickets';
+import { planRouter } from '@/modules/plans';
 
 export const app = express();
 
@@ -48,6 +49,7 @@ app.use(ApiRoutes.stats, statsRouter);
 app.use(ApiRoutes.promotions, promotionRouter);
 app.use(ApiRoutes.support, supportRouter);
 app.use(ApiRoutes.tickets, ticketRouter);
+app.use(ApiRoutes.plans, planRouter);
 app.use(ApiRoutes.auth, authRouter);
 app.use(ApiRoutes.wishlist, wishlistRouter);
 app.use(ApiRoutes.reviews, reviewsRouter);

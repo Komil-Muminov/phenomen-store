@@ -3,16 +3,11 @@ import type { ColumnsType } from 'antd/es/table';
 import { SettingOutlined } from '@ant-design/icons';
 import { EntityStatuses } from '@/shared/config';
 import type { ITenant } from '@/entities/tenant';
+import { PlanColors, PlanLabels } from '@/entities/plan';
 
 interface IHandlers {
   onOpen: (tenant: ITenant) => void;
 }
-
-const PLAN_COLORS: Record<string, string> = {
-  start: 'default',
-  pro: 'purple',
-  enterprise: 'gold',
-};
 
 const formatDate = (value: string): string => new Date(value).toLocaleDateString('ru-RU');
 
@@ -38,7 +33,9 @@ export const buildTenantColumns = ({ onOpen }: IHandlers): ColumnsType<ITenant> 
     title: 'План',
     dataIndex: 'plan',
     key: 'plan',
-    render: (value: string) => <Tag color={PLAN_COLORS[value] ?? 'default'}>{value}</Tag>,
+    render: (value: string) => (
+      <Tag color={PlanColors[value] ?? 'default'}>{PlanLabels[value] ?? value}</Tag>
+    ),
   },
   {
     title: 'Статус',

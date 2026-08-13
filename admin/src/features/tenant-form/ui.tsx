@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Alert, Divider, Form, Input, Modal, Select } from 'antd';
-import { TenantPlans, TenantVerticals, UiMessages } from '@/shared/config';
+import { TenantVerticals, UiMessages } from '@/shared/config';
+import { PlanOptions } from '@/entities/plan';
 
 export interface ITenantFormValues {
   key: string;
@@ -33,7 +34,7 @@ export const TenantForm = ({ open, isSaving, onSubmit, onCancel }: IProps) => {
         key: '',
         name: '',
         vertical: TenantVerticals[0],
-        plan: TenantPlans[0],
+        plan: PlanOptions[0].value,
         bundleId: '',
         ownerName: '',
         ownerLogin: '',
@@ -80,7 +81,7 @@ export const TenantForm = ({ open, isSaving, onSubmit, onCancel }: IProps) => {
           </Form.Item>
 
           <Form.Item name="plan" label="Тарифный план" className="min-w-40 flex-1">
-            <Select options={TenantPlans.map((item) => ({ value: item, label: item }))} />
+            <Select options={PlanOptions} />
           </Form.Item>
         </div>
 

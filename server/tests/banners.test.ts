@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
 import type { TestContext } from 'node:test';
 import { HttpStatus, UserRoles } from '@/shared/config';
+import { PlanCodes } from '@/modules/plans';
 import { BannerActionTypes } from '@/modules/banner/types';
 import {
   ITestContext,
@@ -10,6 +11,7 @@ import {
   callApi,
   createStaffToken,
   seedProduct,
+  setTenantPlan,
   startContext,
   stopContext,
 } from './helpers';
@@ -85,6 +87,7 @@ before(async () => {
   }
 
   staffToken = await createStaffToken(context, UserRoles.owner);
+  await setTenantPlan(context, PlanCodes.max);
   product = await seedProduct(context, context.tenant.id);
 });
 

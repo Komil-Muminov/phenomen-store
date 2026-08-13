@@ -2,6 +2,7 @@ import { ErrorMessages, HttpStatus, Pagination } from '@/shared/config';
 import { ITenantContext, IListResult } from '@/shared/types';
 import { AppError, isPlainObject, pickString, requireUuid } from '@/shared/utils';
 import { rememberValue } from '@/modules/attributes';
+import { PlanResources, ensurePlanLimit } from '@/modules/plans';
 import {
   existsProductSlug,
   insertProduct,
@@ -298,6 +299,8 @@ export const createProduct = async (tenant: ITenantContext, payload: Record<stri
     throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
   }
 
+  await ensurePlanLimit(tenant, PlanResources.products);
+
   const requested = pickString(payload.slug).toLowerCase();
   const slug = SLUG_PATTERN.test(requested)
     ? requested
@@ -487,6 +490,8 @@ export const changeStock = async (
 };
 
 export const duplicateProduct = async (tenant: ITenantContext, id: string) => {
+  await ensurePlanLimit(tenant, PlanResources.products);
+
   const source = await requireProduct(tenant, id);
   const name = `${source.name} (копия)`;
   const slug = await buildUniqueSlug(tenant.id, name);
@@ -592,6 +597,8 @@ export const createCategory = async (
   if (!name) {
     throw new AppError(ErrorMessages.invalidPayload, HttpStatus.badRequest);
   }
+
+  await ensurePlanLimit(tenant, PlanResources.categories);
 
   const requested = pickString(payload.slug).toLowerCase();
   let slug = SLUG_PATTERN.test(requested) ? requested : buildSlug(name);

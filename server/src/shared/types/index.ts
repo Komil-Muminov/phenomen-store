@@ -17,6 +17,7 @@ export interface ITenantContext {
   key: string;
   name: string;
   status: string;
+  plan: string;
 }
 
 export interface IUserContext {

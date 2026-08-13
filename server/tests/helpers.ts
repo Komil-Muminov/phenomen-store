@@ -5,6 +5,7 @@ import { app } from '@/app';
 import { EntityStatus, TenantHeader, UserRoles } from '@/shared/config';
 import { createAdminPool } from '@/shared/db';
 import { issueToken } from '@/modules/auth';
+import { invalidateTenantCache } from '@/modules/tenant';
 
 export const SKIP_REASON = 'PostgreSQL недоступен — интеграционный тест пропущен';
 
@@ -97,6 +98,15 @@ export const createStaffToken = async (
     status: EntityStatus.active,
     created_at: new Date().toISOString(),
   });
+};
+
+export const setTenantPlan = async (
+  context: ITestContext,
+  plan: string,
+  tenant: ITestTenant = context.tenant,
+): Promise<void> => {
+  await context.admin.query('UPDATE tenants SET plan = $2 WHERE id = $1', [tenant.id, plan]);
+  invalidateTenantCache(tenant.key);
 };
 
 export const callApi = async (

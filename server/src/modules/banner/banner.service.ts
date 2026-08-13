@@ -29,6 +29,7 @@ import {
   TBannerActionType,
   UrlPattern,
 } from '@/modules/banner/types';
+import { PlanResources, ensurePlanLimit } from '@/modules/plans';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -213,6 +214,8 @@ const normalizePositions = async (tenant: ITenantContext, orderedIds: string[]):
 
 export const createBanner = async (tenant: ITenantContext, payload: Record<string, unknown>) => {
   const input = await buildInput(tenant, payload, null);
+
+  await ensurePlanLimit(tenant, PlanResources.banners);
   const pinFirst = payload.position === undefined;
 
   await ensureCarouselSection(tenant.id, SectionTypes.bannerCarousel, BannerDefaults.sectionPosition);

@@ -141,3 +141,29 @@ export interface ITicketThread {
 }
 
 export type TTicketList = IListEnvelope<ITicket>;
+
+export interface IPlanLimits {
+  products: number | null;
+  banners: number | null;
+  promotions: number | null;
+  categories: number | null;
+}
+
+export interface IPlan {
+  code: string;
+  name: string;
+  description: string;
+  price: number;
+  limits: IPlanLimits;
+}
+
+export interface IPlanUsageItem {
+  resource: string;
+  used: number;
+  limit: number | null;
+}
+
+export interface IPlanState {
+  plan: IPlan;
+  usage: IPlanUsageItem[];
+}

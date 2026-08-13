@@ -67,6 +67,7 @@ export const ApiRoutes = {
   shopSupportClose: '/support/manage/close',
   shopConfig: '/tenants/config',
   shopPasswordUpdate: '/auth/password/update',
+  shopPlanCurrent: '/plans/current',
   shopAttributeDelete: '/attributes/delete',
   shopMediaUpload: '/media/upload',
   shopTicketsSearch: '/tickets/search',
@@ -92,6 +93,7 @@ export const QueryKeys = {
   shopAttributes: 'shop-attributes',
   shopStock: 'shop-stock',
   shopConfig: 'shop-config',
+  shopPlan: 'shop-plan',
   shopSupport: 'shop-support',
   shopTickets: 'shop-tickets',
   platformTickets: 'platform-tickets',
@@ -271,7 +273,7 @@ export const EntityStatuses = {
   disabled: 'disabled',
 } as const;
 
-export const TenantPlans = ['start', 'pro', 'enterprise'] as const;
+export const TenantPlans = ['start', 'pro', 'max'] as const;
 
 export const TenantVerticals = ['fashion', 'grocery', 'electronics', 'universal'] as const;
 

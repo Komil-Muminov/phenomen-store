@@ -47,7 +47,13 @@ export const resolveTenantByKey = async (key: string): Promise<ITenantContext> =
 
   tenantCache.set(key, { tenant, expiresAt: Date.now() + TENANT_CACHE_TTL_MS });
 
-  return { id: tenant.id, key: tenant.key, name: tenant.name, status: tenant.status };
+  return {
+    id: tenant.id,
+    key: tenant.key,
+    name: tenant.name,
+    status: tenant.status,
+    plan: tenant.plan,
+  };
 };
 
 export const invalidateTenantCache = (key: string): void => {

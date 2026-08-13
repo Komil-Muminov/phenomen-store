@@ -18,6 +18,7 @@ import {
   PromotionErrors,
   PromotionKinds,
 } from '@/modules/promotion/types';
+import { PlanResources, ensurePlanLimit } from '@/modules/plans';
 
 const KINDS: string[] = Object.values(PromotionKinds);
 
@@ -144,6 +145,7 @@ export const createPromotion = async (
   const input = buildInput(payload);
 
   await assertCodeFree(tenant, input.code, null);
+  await ensurePlanLimit(tenant, PlanResources.promotions);
 
   return mapPromotion(await insertPromotion(tenant.id, input));
 };

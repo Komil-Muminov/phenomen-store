@@ -16,6 +16,7 @@ export const ApiRoutes = {
   promotions: '/promotions',
   support: '/support',
   tickets: '/tickets',
+  plans: '/plans',
   platformTickets: '/platform/tickets',
   stats: '/stats',
   health: '/health',
