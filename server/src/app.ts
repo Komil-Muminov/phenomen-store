@@ -18,6 +18,7 @@ import { wishlistRouter } from '@/modules/wishlist';
 import { reviewsRouter } from '@/modules/reviews';
 import { notificationsRouter } from '@/modules/notifications';
 import { platformRouter } from '@/modules/platform';
+import { platformTicketRouter, ticketRouter } from '@/modules/tickets';
 
 export const app = express();
 
@@ -30,6 +31,7 @@ app.get(ApiRoutes.health, (_req, res) => {
   res.json({ success: true, data: { status: 'ok', env: Env.nodeEnv } });
 });
 
+app.use(ApiRoutes.platformTickets, platformTicketRouter);
 app.use(ApiRoutes.platform, platformRouter);
 
 app.use(tenantMiddleware);
@@ -45,6 +47,7 @@ app.use(ApiRoutes.orders, orderRouter);
 app.use(ApiRoutes.stats, statsRouter);
 app.use(ApiRoutes.promotions, promotionRouter);
 app.use(ApiRoutes.support, supportRouter);
+app.use(ApiRoutes.tickets, ticketRouter);
 app.use(ApiRoutes.auth, authRouter);
 app.use(ApiRoutes.wishlist, wishlistRouter);
 app.use(ApiRoutes.reviews, reviewsRouter);

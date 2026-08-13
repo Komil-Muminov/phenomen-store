@@ -2,6 +2,7 @@ export const AppRoutes = {
   login: '/login',
   tenants: '/tenants',
   audit: '/audit',
+  tickets: '/tickets',
   shopLogin: '/shop/login',
   shopStats: '/shop/stats',
   shopOrders: '/shop/orders',
@@ -10,6 +11,7 @@ export const AppRoutes = {
   shopBanners: '/shop/banners',
   shopPromotions: '/shop/promotions',
   shopSupport: '/shop/support',
+  shopTickets: '/shop/tickets',
   shopSettings: '/shop/settings',
   root: '/',
 } as const;
@@ -67,6 +69,14 @@ export const ApiRoutes = {
   shopPasswordUpdate: '/auth/password/update',
   shopAttributeDelete: '/attributes/delete',
   shopMediaUpload: '/media/upload',
+  shopTicketsSearch: '/tickets/search',
+  shopTicketCreate: '/tickets/create',
+  shopTicketGet: '/tickets/get',
+  shopTicketReply: '/tickets/reply',
+  platformTicketsSearch: '/platform/tickets/search',
+  platformTicketGet: '/platform/tickets/get',
+  platformTicketReply: '/platform/tickets/reply',
+  platformTicketClose: '/platform/tickets/close',
 } as const;
 
 export const QueryKeys = {
@@ -83,6 +93,8 @@ export const QueryKeys = {
   shopStock: 'shop-stock',
   shopConfig: 'shop-config',
   shopSupport: 'shop-support',
+  shopTickets: 'shop-tickets',
+  platformTickets: 'platform-tickets',
 } as const;
 
 export const ProductUnits = [

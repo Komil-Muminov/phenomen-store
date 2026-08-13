@@ -33,4 +33,33 @@ CREATE TABLE IF NOT EXISTS platform_audit_log (
 
 CREATE INDEX IF NOT EXISTS platform_audit_actor_idx ON platform_audit_log(actor_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS platform_audit_tenant_idx ON platform_audit_log(tenant_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS platform_tickets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  subject TEXT NOT NULL,
+  topic TEXT NOT NULL DEFAULT 'other',
+  status TEXT NOT NULL DEFAULT 'open',
+  author_login TEXT NOT NULL,
+  last_message_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS platform_tickets_tenant_idx
+  ON platform_tickets(tenant_id, last_message_at DESC);
+CREATE INDEX IF NOT EXISTS platform_tickets_status_idx
+  ON platform_tickets(status, last_message_at DESC);
+
+CREATE TABLE IF NOT EXISTS platform_ticket_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  ticket_id UUID NOT NULL REFERENCES platform_tickets(id) ON DELETE CASCADE,
+  author TEXT NOT NULL,
+  author_name TEXT,
+  text TEXT NOT NULL,
+  read_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS platform_ticket_messages_ticket_idx
+  ON platform_ticket_messages(ticket_id, created_at);
 `;

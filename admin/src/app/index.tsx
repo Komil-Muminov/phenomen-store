@@ -16,6 +16,7 @@ import { antTheme } from '@/app/theme';
 const Login = lazy(() => import('@/pages/login'));
 const Tenants = lazy(() => import('@/pages/tenants'));
 const PlatformAudit = lazy(() => import('@/pages/platform-audit'));
+const PlatformTickets = lazy(() => import('@/pages/platform-tickets'));
 const ShopStats = lazy(() => import('@/pages/shop-stats'));
 const ShopOrders = lazy(() => import('@/pages/shop-orders'));
 const ShopProducts = lazy(() => import('@/pages/shop-products'));
@@ -23,6 +24,7 @@ const ShopStock = lazy(() => import('@/pages/shop-stock'));
 const ShopBanners = lazy(() => import('@/pages/shop-banners'));
 const ShopPromotions = lazy(() => import('@/pages/shop-promotions'));
 const ShopSupport = lazy(() => import('@/pages/shop-support'));
+const ShopTickets = lazy(() => import('@/pages/shop-tickets'));
 const ShopSettings = lazy(() => import('@/pages/shop-settings'));
 
 const queryClient = new QueryClient({
@@ -53,12 +55,14 @@ const preloadShopPages = (): void => {
   void import('@/pages/shop-banners');
   void import('@/pages/shop-promotions');
   void import('@/pages/shop-support');
+  void import('@/pages/shop-tickets');
   void import('@/pages/shop-settings');
 };
 
 const preloadPlatformPages = (): void => {
   void import('@/pages/tenants');
   void import('@/pages/platform-audit');
+  void import('@/pages/platform-tickets');
 };
 
 const PlatformLayout = () => {
@@ -104,6 +108,7 @@ const Router = () => (
 
     <Route element={<PlatformLayout />}>
       <Route path={AppRoutes.tenants} element={<Tenants />} />
+      <Route path={AppRoutes.tickets} element={<PlatformTickets />} />
       <Route path={AppRoutes.audit} element={<PlatformAudit />} />
     </Route>
 
@@ -115,6 +120,7 @@ const Router = () => (
       <Route path={AppRoutes.shopBanners} element={<ShopBanners />} />
       <Route path={AppRoutes.shopPromotions} element={<ShopPromotions />} />
       <Route path={AppRoutes.shopSupport} element={<ShopSupport />} />
+      <Route path={AppRoutes.shopTickets} element={<ShopTickets />} />
       <Route path={AppRoutes.shopSettings} element={<ShopSettings />} />
     </Route>
 

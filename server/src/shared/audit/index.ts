@@ -38,6 +38,8 @@ export const ShopActions = {
   configUpdate: 'shop.config.update',
   supportReply: 'shop.support.reply',
   supportClose: 'shop.support.close',
+  ticketCreate: 'shop.ticket.create',
+  ticketReply: 'shop.ticket.reply',
 } as const;
 
 const PAYLOAD_FIELDS = ['id', 'name', 'title', 'slug', 'status', 'quantity', 'sku'];

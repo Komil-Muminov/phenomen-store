@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import {
   BarChartOutlined,
+  CustomerServiceOutlined,
   DatabaseOutlined,
   GiftOutlined,
   MessageOutlined,
@@ -42,6 +43,11 @@ export const ShopNavItems: INavItem[] = [
     match: CatalogRoutes,
   },
   { to: AppRoutes.shopSupport, label: 'Обращения', icon: <MessageOutlined aria-hidden="true" /> },
+  {
+    to: AppRoutes.shopTickets,
+    label: 'Поддержка',
+    icon: <CustomerServiceOutlined aria-hidden="true" />,
+  },
   { to: AppRoutes.shopSettings, label: 'Настройки', icon: <SettingOutlined aria-hidden="true" /> },
 ];
 

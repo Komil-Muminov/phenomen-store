@@ -109,3 +109,35 @@ export type TBannerList = IListEnvelope<IBanner>;
 export type TStockList = IListEnvelope<IStockItem>;
 
 export type TOrderList = IListEnvelope<IOrder>;
+
+export interface ITicket {
+  id: string;
+  tenantId: string;
+  tenantKey: string;
+  tenantName: string;
+  subject: string;
+  topic: string;
+  status: string;
+  authorLogin: string;
+  unreadForPlatform: number;
+  unreadForShop: number;
+  lastText: string | null;
+  lastMessageAt: string;
+  createdAt: string;
+}
+
+export interface ITicketMessage {
+  id: string;
+  author: string;
+  authorName: string | null;
+  text: string;
+  unread: boolean;
+  createdAt: string;
+}
+
+export interface ITicketThread {
+  ticket: ITicket;
+  messages: ITicketMessage[];
+}
+
+export type TTicketList = IListEnvelope<ITicket>;
