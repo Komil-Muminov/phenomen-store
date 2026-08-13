@@ -85,6 +85,12 @@ CREATE TABLE IF NOT EXISTS payments (
   currency TEXT NOT NULL DEFAULT 'TJS',
   status TEXT NOT NULL DEFAULT 'pending',
   payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+  receipt_url TEXT,
+  receipt_note TEXT,
+  submitted_at TIMESTAMPTZ,
+  reviewed_at TIMESTAMPTZ,
+  reviewed_by TEXT,
+  review_note TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

@@ -3,10 +3,13 @@ import { formatPrice } from '@/shared/lib';
 import { Button, ButtonSizes, ButtonVariants, If } from '@/shared/ui';
 import {
   CancellableStatuses,
+  DeliveryStatusLabels,
   IOrder,
   OrderStatusLabels,
-  PaymentStatusLabels,
+  PaymentStateLabels,
   formatOrderDate,
+  needsReceipt,
+  readTracking,
 } from '@/entities/order/model';
 
 interface IProps {
@@ -15,9 +18,10 @@ interface IProps {
   repeating: boolean;
   onCancel: (order: IOrder) => void;
   onRepeat: (order: IOrder) => void;
+  onPay: (order: IOrder) => void;
 }
 
-export const OrderCard = ({ order, busy, repeating, onCancel, onRepeat }: IProps) => (
+export const OrderCard = ({ order, busy, repeating, onCancel, onRepeat, onPay }: IProps) => (
   <View className="gap-3.5 rounded-2xl border border-line bg-surface/50 p-4">
     <View className="flex-row items-center justify-between">
       <Text className="text-base font-bold text-content">{`Заказ № ${order.number}`}</Text>
@@ -32,10 +36,23 @@ export const OrderCard = ({ order, busy, repeating, onCancel, onRepeat }: IProps
       </View>
       <View className="rounded-lg bg-background border border-line px-2.5 py-1">
         <Text className="text-xs font-medium text-muted">
-          {PaymentStatusLabels[order.paymentStatus] ?? order.paymentStatus}
+          {PaymentStateLabels[order.paymentStatus] ?? order.paymentStatus}
+        </Text>
+      </View>
+      <View className="rounded-lg bg-background border border-line px-2.5 py-1">
+        <Text className="text-xs font-medium text-muted">
+          {`Доставка: ${DeliveryStatusLabels[order.deliveryStatus] ?? order.deliveryStatus}`}
         </Text>
       </View>
     </View>
+
+    <If condition={readTracking(order).length > 0}>
+      <View className="gap-0.5 rounded-xl border border-line bg-background p-3">
+        {readTracking(order).map((line) => (
+          <Text key={line} className="text-xs text-muted">{line}</Text>
+        ))}
+      </View>
+    </If>
 
     <View className="gap-1.5 pt-0.5">
       {order.items.map((item) => (
@@ -54,6 +71,15 @@ export const OrderCard = ({ order, busy, repeating, onCancel, onRepeat }: IProps
         {formatPrice(order.totals.grandTotal, order.totals.currency)}
       </Text>
     </View>
+
+    <If condition={needsReceipt(order)}>
+      <Button
+        title="Оплата переводом"
+        variant={ButtonVariants.primary}
+        size={ButtonSizes.medium}
+        onPress={() => onPay(order)}
+      />
+    </If>
 
     <Button
       title="Повторить заказ"

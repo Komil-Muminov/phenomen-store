@@ -29,8 +29,41 @@ export const PaymentStatus = {
 
 export const PaymentMethods = {
   cardOnline: 'card_online',
+  cardTransfer: 'card_transfer',
   cashOnDelivery: 'cash_on_delivery',
 } as const;
+
+export const DeliveryStatus = {
+  pending: 'pending',
+  assigned: 'assigned',
+  inTransit: 'in_transit',
+  delivered: 'delivered',
+  returned: 'returned',
+} as const;
+
+export type TDeliveryStatus = (typeof DeliveryStatus)[keyof typeof DeliveryStatus];
+
+export const DeliveryStatusLabels: Record<string, string> = {
+  pending: 'ожидает отправки',
+  assigned: 'назначен курьер',
+  in_transit: 'в пути',
+  delivered: 'доставлен',
+  returned: 'возвращён',
+};
+
+export const DeliveryLimits = {
+  courierMax: 80,
+  phoneMax: 30,
+  trackingMax: 60,
+  etaMax: 60,
+} as const;
+
+export interface IDeliveryTracking {
+  courierName: string | null;
+  courierPhone: string | null;
+  trackingNumber: string | null;
+  eta: string | null;
+}
 
 export interface IOrderRow {
   id: string;
@@ -84,6 +117,7 @@ export const OrderErrors = {
   transitionDenied: 'Недопустимая смена статуса заказа',
   notFound: 'Заказ не найден',
   itemGone: 'Товара из заказа больше нет в каталоге',
+  deliveryStatusInvalid: 'Неизвестный статус доставки',
 } as const;
 
 export const ORDER_NUMBER_PAD = 4;

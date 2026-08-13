@@ -3,7 +3,10 @@ import type {
   IBanner,
   ICategory,
   IOrder,
+  IOrderDetail,
+  IOrderHistoryEntry,
   IOrderItem,
+  IOrderPayment,
   IProduct,
   IProductVariant,
   IStockItem,
@@ -15,7 +18,15 @@ import type {
   TStockList,
 } from '@contracts';
 
-export type { IOrder, IOrderItem, IProductVariant, IStockItem };
+export type {
+  IOrder,
+  IOrderDetail,
+  IOrderHistoryEntry,
+  IOrderItem,
+  IOrderPayment,
+  IProductVariant,
+  IStockItem,
+};
 
 export type IShopProduct = IProduct;
 

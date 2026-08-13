@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { Platform, ScrollView, StatusBar, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { IOrder } from '@/entities/order';
+import { IOrder, IPaymentCard } from '@/entities/order';
+import { OrderPayment } from '@/features/order-payment';
 import { AuthSteps, RESEND_DELAY_SEC, TAuthStep } from '@/features/auth-email';
 import {
   EMPTY_CREDENTIALS,
@@ -15,7 +16,7 @@ import { ApiRoutes, AppRoutes, QueryKeys, StaffScopes, StaleTimeMs } from '@/sha
 import { useStaffAuth } from '@/shared/staff-auth';
 import { RenderAuth } from '@/widgets/profile-page/ui/renderAuth';
 import { useAuth } from '@/shared/auth';
-import { useGetQuery, useMutationQuery } from '@/shared/hooks';
+import { useGetQuery, useImageUpload, useMutationQuery } from '@/shared/hooks';
 import { toHref } from '@/shared/lib';
 import { BottomBar, If, Toast } from '@/shared/ui';
 import {
@@ -44,6 +45,10 @@ interface IOrderList {
   items: IOrder[];
   total: number;
 }
+
+const ReceiptTexts = {
+  sent: 'Чек отправлен, магазин проверит оплату',
+} as const;
 
 const RepeatTexts = {
   done: 'Товары из заказа добавлены в корзину',
@@ -87,6 +92,10 @@ export const ProfilePage = () => {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [repeatingId, setRepeatingId] = useState<string | null>(null);
   const [repeatNotice, setRepeatNotice] = useState<string | null>(null);
+  const [payOrder, setPayOrder] = useState<IOrder | null>(null);
+  const [receiptUrl, setReceiptUrl] = useState('');
+  const [receiptNote, setReceiptNote] = useState('');
+  const [receiptError, setReceiptError] = useState<string | null>(null);
 
   const [resendSeconds, setResendSeconds] = useState(0);
 
@@ -150,6 +159,47 @@ export const ProfilePage = () => {
     (body) => `${ApiRoutes.ordersRepeat}/${body.id}`,
     { invalidate: [[QueryKeys.cart]] },
   );
+
+  const { data: paymentCard } = useGetQuery<{ card: IPaymentCard }>(
+    [QueryKeys.paymentCard],
+    ApiRoutes.paymentCard,
+    { staleTime: StaleTimeMs.medium },
+  );
+
+  const submitReceipt = useMutationQuery<
+    { id: string; imageUrl: string; note: string },
+    unknown
+  >(
+    (body) => `${ApiRoutes.paymentReceipt}/${body.id}`,
+    { invalidate: [[QueryKeys.orders]] },
+  );
+
+  const receiptUpload = useImageUpload(setReceiptUrl, ApiRoutes.mediaReceipt);
+
+  const handleOpenPayment = useCallback((order: IOrder) => {
+    setPayOrder(order);
+    setReceiptUrl('');
+    setReceiptNote('');
+    setReceiptError(null);
+  }, []);
+
+  const handleSubmitReceipt = useCallback(() => {
+    if (!payOrder) {
+      return;
+    }
+
+    setReceiptError(null);
+    submitReceipt.mutate(
+      { id: payOrder.id, imageUrl: receiptUrl, note: receiptNote.trim() },
+      {
+        onSuccess: () => {
+          setPayOrder(null);
+          setRepeatNotice(ReceiptTexts.sent);
+        },
+        onError: (error) => setReceiptError(error.message),
+      },
+    );
+  }, [payOrder, receiptUrl, receiptNote, submitReceipt]);
 
   useEffect(() => {
     setValues({
@@ -368,6 +418,7 @@ export const ProfilePage = () => {
                   onOpenSupport={() => router.push(toHref(AppRoutes.support))}
                   onCancelOrder={handleCancelOrder}
                   onRepeatOrder={handleRepeatOrder}
+                  onPayOrder={handleOpenPayment}
                   onOpenAddresses={() => router.push(toHref(AppRoutes.addresses))}
                   onLogout={logout}
                 />
@@ -377,6 +428,22 @@ export const ProfilePage = () => {
         </ScrollView>
       </If>
       <BottomBar />
+
+      <OrderPayment
+        order={payOrder}
+        card={paymentCard?.card ?? null}
+        receiptUrl={receiptUrl}
+        note={receiptNote}
+        uploading={receiptUpload.uploading}
+        submitting={submitReceipt.isPending}
+        errorMessage={receiptError ?? receiptUpload.error}
+        onNote={setReceiptNote}
+        onPick={() => {
+          receiptUpload.pick();
+        }}
+        onSubmit={handleSubmitReceipt}
+        onClose={() => setPayOrder(null)}
+      />
 
       <Toast
         visible={Boolean(repeatNotice)}

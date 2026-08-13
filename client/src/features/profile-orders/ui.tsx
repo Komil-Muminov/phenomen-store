@@ -18,6 +18,7 @@ interface IProps {
   onChangeEmail: () => void;
   onCancelOrder: (order: IOrder) => void;
   onRepeatOrder: (order: IOrder) => void;
+  onPayOrder: (order: IOrder) => void;
   onOpenAddresses: () => void;
   onLogout: () => void;
 }
@@ -78,6 +79,7 @@ export const ProfileOrders = ({
   onChangeEmail,
   onCancelOrder,
   onRepeatOrder,
+  onPayOrder,
   onOpenAddresses,
   onLogout,
 }: IProps) => {
@@ -216,6 +218,7 @@ export const ProfileOrders = ({
               repeating={repeatingId === order.id}
               onCancel={onCancelOrder}
               onRepeat={onRepeatOrder}
+              onPay={onPayOrder}
             />
           ))}
         </If>

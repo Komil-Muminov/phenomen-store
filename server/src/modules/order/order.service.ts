@@ -5,18 +5,24 @@ import { getPublicConfig } from '@/modules/tenant';
 import { assertOrderAllowed, buildRules, calculateTotals, DeliveryMethods } from '@/modules/pricing';
 import { getCartPricing, getCartState, ICartOwner, updateCartItem } from '@/modules/cart';
 import { resolveAddressLine } from '@/modules/address';
-import { notifyOrderStatus } from '@/modules/notifications';
+import { notifyDeliveryStatus, notifyOrderStatus } from '@/modules/notifications';
+import { getOrderPayment } from '@/modules/payment';
 import {
+  applyDeliveryUpdate,
   applyOrderStatus,
   insertOrder,
   selectOrderById,
   selectOrderByIdempotencyKey,
+  selectOrderHistory,
   selectOrderItems,
   selectOrderOwner,
   selectOrders,
   selectTenantOrders,
 } from '@/modules/order/order.db';
 import {
+  DeliveryLimits,
+  DeliveryStatus,
+  DeliveryStatusLabels,
   ICustomerPayload,
   IDeliveryPayload,
   IOrderItemRow,
@@ -209,7 +215,61 @@ export const getOrder = async (
 ) => {
   const row = await requireOwnOrder(tenant, orderId, userId);
 
-  return mapOrder(row, await selectOrderItems(tenant.id, orderId));
+  return {
+    ...mapOrder(row, await selectOrderItems(tenant.id, orderId)),
+    payment: await getOrderPayment(tenant, orderId),
+    history: (await selectOrderHistory(tenant.id, orderId)).map((entry) => ({
+      status: entry.status,
+      comment: entry.comment,
+      createdAt: entry.created_at,
+    })),
+  };
+};
+
+const DELIVERY_STATUSES: string[] = Object.values(DeliveryStatus);
+
+const trimmed = (value: unknown, max: number): string | null => (
+  pickString(value).slice(0, max) || null
+);
+
+export const changeDeliveryStatus = async (
+  tenant: ITenantContext,
+  orderId: string,
+  payload: Record<string, unknown>,
+  userId: string | null,
+) => {
+  const status = pickString(payload.status);
+
+  if (!DELIVERY_STATUSES.includes(status)) {
+    throw new AppError(OrderErrors.deliveryStatusInvalid, HttpStatus.badRequest);
+  }
+
+  const updated = await applyDeliveryUpdate(
+    tenant.id,
+    orderId,
+    status,
+    {
+      courierName: trimmed(payload.courierName, DeliveryLimits.courierMax),
+      courierPhone: trimmed(payload.courierPhone, DeliveryLimits.phoneMax),
+      trackingNumber: trimmed(payload.trackingNumber, DeliveryLimits.trackingMax),
+      eta: trimmed(payload.eta, DeliveryLimits.etaMax),
+    },
+    userId,
+    trimmed(payload.comment, DeliveryLimits.courierMax),
+  );
+
+  if (!updated) {
+    throw new AppError(OrderErrors.notFound, HttpStatus.notFound);
+  }
+
+  await notifyDeliveryStatus(
+    tenant,
+    updated.user_id,
+    updated.number,
+    DeliveryStatusLabels[status] ?? status,
+  );
+
+  return getOrder(tenant, orderId, null);
 };
 
 export const repeatOrder = async (

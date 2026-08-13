@@ -23,9 +23,17 @@ export interface ITenantDelivery {
   basePrice: number;
 }
 
+export interface IPaymentCard {
+  number: string;
+  holder: string;
+  bank: string;
+  note: string;
+}
+
 export interface ITenantPayment {
   methods: string[];
   provider: string;
+  card?: IPaymentCard;
 }
 
 export interface ITenantContacts {

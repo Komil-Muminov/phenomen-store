@@ -10,6 +10,7 @@ export const ApiRoutes = {
   cart: '/cart',
   orders: '/orders',
   addresses: '/addresses',
+  payments: '/payments',
   auth: '/auth',
   reviews: '/reviews',
   wishlist: '/wishlist',

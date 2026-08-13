@@ -1,6 +1,9 @@
 export type {
   IOrder,
+  IOrderDetail,
+  IOrderHistoryEntry,
   IOrderItem,
+  IOrderPayment,
   IOrderList,
   IShopProduct,
   IProductVariant,

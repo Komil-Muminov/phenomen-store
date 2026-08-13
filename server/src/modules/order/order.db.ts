@@ -210,6 +210,49 @@ export const selectOrderOwner = async (
   return rows[0]?.user_id ?? null;
 };
 
+export const applyDeliveryUpdate = async (
+  tenantId: string,
+  orderId: string,
+  status: string,
+  tracking: Record<string, string | null>,
+  userId: string | null,
+  comment: string | null,
+): Promise<IOrderRow | null> => withTenant(tenantId, async (client) => {
+  const updated = await client.query<IOrderRow>(
+    `UPDATE orders
+     SET delivery_status = $3,
+         delivery = delivery || $4::jsonb,
+         updated_at = now()
+     WHERE tenant_id = $1 AND id = $2
+     RETURNING ${ORDER_COLUMNS}`,
+    [tenantId, orderId, status, JSON.stringify(tracking)],
+  );
+
+  if (updated.rowCount === 0) {
+    return null;
+  }
+
+  await client.query(
+    `INSERT INTO order_status_history (tenant_id, order_id, status, comment, created_by)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [tenantId, orderId, `delivery:${status}`, comment, userId],
+  );
+
+  return updated.rows[0];
+});
+
+export const selectOrderHistory = async (
+  tenantId: string,
+  orderId: string,
+): Promise<{ status: string; comment: string | null; created_at: string }[]> => tenantQuery(
+  tenantId,
+  `SELECT status, comment, created_at::text AS created_at
+   FROM order_status_history
+   WHERE tenant_id = $1 AND order_id = $2
+   ORDER BY created_at`,
+  [tenantId, orderId],
+);
+
 export const selectOrderById = async (tenantId: string, orderId: string): Promise<IOrderRow | null> => {
   const rows = await tenantQuery<IOrderRow>(
     tenantId,

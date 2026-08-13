@@ -41,6 +41,8 @@ export const ShopActions = {
   ticketCreate: 'shop.ticket.create',
   ticketReply: 'shop.ticket.reply',
   reviewReply: 'shop.review.reply',
+  paymentReview: 'shop.payment.review',
+  deliveryUpdate: 'shop.delivery.update',
 } as const;
 
 const PAYLOAD_FIELDS = ['id', 'name', 'title', 'slug', 'status', 'quantity', 'sku'];

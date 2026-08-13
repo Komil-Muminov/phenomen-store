@@ -71,6 +71,10 @@ export const ApiRoutes = {
   shopPlanCurrent: '/plans/current',
   shopAttributeDelete: '/attributes/delete',
   shopMediaUpload: '/media/upload',
+  shopPaymentsSearch: '/payments/manage/search',
+  shopPaymentReview: '/payments/review',
+  shopOrderDelivery: '/orders/delivery',
+  shopOrderGet: '/orders/get',
   shopReviewsSearch: '/reviews/manage/search',
   shopReviewReply: '/reviews/reply',
   shopTicketsSearch: '/tickets/search',
@@ -99,6 +103,8 @@ export const QueryKeys = {
   shopPlan: 'shop-plan',
   shopSupport: 'shop-support',
   shopReviews: 'shop-reviews',
+  shopPayments: 'shop-payments',
+  shopOrder: 'shop-order',
   shopTickets: 'shop-tickets',
   platformTickets: 'platform-tickets',
 } as const;
@@ -129,8 +135,9 @@ export const DeliveryMethods = [
 ] as const;
 
 export const PaymentMethods = [
-  { value: 'card_online', label: 'Картой онлайн' },
+  { value: 'card_transfer', label: 'Переводом на карту' },
   { value: 'cash_on_delivery', label: 'Наличными при получении' },
+  { value: 'card_online', label: 'Картой онлайн' },
 ] as const;
 
 export const BannerActionTypes = {

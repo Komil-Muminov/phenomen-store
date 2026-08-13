@@ -1,3 +1,21 @@
 export { OrderCard } from './ui';
-export { OrderStatusLabels, PaymentStatusLabels, CancellableStatuses, formatOrderDate } from './model';
-export type { IOrder, IOrderItem } from './model';
+export {
+  CARD_TRANSFER,
+  CancellableStatuses,
+  DeliveryStatusLabels,
+  OrderStatusLabels,
+  PaymentStateLabels,
+  PaymentStates,
+  PaymentStatusLabels,
+  formatOrderDate,
+  needsReceipt,
+  readTracking,
+} from './model';
+export type {
+  IOrder,
+  IOrderDetail,
+  IOrderHistoryEntry,
+  IOrderItem,
+  IOrderPayment,
+  IPaymentCard,
+} from './model';

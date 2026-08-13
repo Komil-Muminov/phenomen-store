@@ -65,6 +65,25 @@ export const RenderCommerce = () => (
           className="w-full!"
         />
       </Form.Item>
+
+      <div className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+        <Form.Item
+          name={['payment', 'card', 'number']}
+          label="Номер карты для перевода"
+          extra="Покупатель увидит его после оформления заказа"
+        >
+          <Input placeholder="0000 0000 0000 0000" />
+        </Form.Item>
+        <Form.Item name={['payment', 'card', 'holder']} label="Владелец карты">
+          <Input placeholder="IVAN PETROV" />
+        </Form.Item>
+        <Form.Item name={['payment', 'card', 'bank']} label="Банк">
+          <Input placeholder="Алиф Банк" />
+        </Form.Item>
+        <Form.Item name={['payment', 'card', 'note']} label="Примечание к переводу">
+          <Input placeholder="В комментарии укажите номер заказа" />
+        </Form.Item>
+      </div>
     </Card>
 
     <Card

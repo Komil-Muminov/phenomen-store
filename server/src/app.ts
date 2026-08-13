@@ -21,6 +21,7 @@ import { platformRouter } from '@/modules/platform';
 import { platformTicketRouter, ticketRouter } from '@/modules/tickets';
 import { planRouter } from '@/modules/plans';
 import { addressRouter } from '@/modules/address';
+import { paymentRouter } from '@/modules/payment';
 
 export const app = express();
 
@@ -47,6 +48,7 @@ app.use(ApiRoutes.media, mediaRouter);
 app.use(ApiRoutes.cart, cartRouter);
 app.use(ApiRoutes.orders, orderRouter);
 app.use(ApiRoutes.addresses, addressRouter);
+app.use(ApiRoutes.payments, paymentRouter);
 app.use(ApiRoutes.stats, statsRouter);
 app.use(ApiRoutes.promotions, promotionRouter);
 app.use(ApiRoutes.support, supportRouter);

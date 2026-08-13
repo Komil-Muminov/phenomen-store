@@ -46,6 +46,17 @@ export const NotificationTexts = {
   reviewReplyTitle: 'Магазин ответил на ваш отзыв',
   reviewReplyBody: (product: string): string => `На отзыв о товаре «${product}» есть ответ.`,
   reviewActionUrl: '/profile',
+  paymentPaidTitle: 'Оплата подтверждена',
+  paymentPaidBody: (number: string): string => `Магазин принял оплату по заказу ${number}.`,
+  paymentFailedTitle: 'Оплата не принята',
+  paymentFailedBody: (number: string, reason: string): string => (
+    reason
+      ? `Оплата по заказу ${number} не принята: ${reason}`
+      : `Оплата по заказу ${number} не принята — свяжитесь с магазином.`
+  ),
+  paymentActionUrl: '/profile',
+  deliveryTitle: (number: string): string => `Доставка заказа ${number}`,
+  deliveryBody: (status: string): string => `Статус доставки — ${status}.`,
 } as const;
 
 export const OrderStatusLabels: Record<string, string> = {

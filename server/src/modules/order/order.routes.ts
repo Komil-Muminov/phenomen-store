@@ -17,6 +17,7 @@ import { parseDeliveryMethod, requireOwner } from '@/modules/cart';
 import {
   changeOrderStatus,
   createOrder,
+  changeDeliveryStatus,
   getOrder,
   repeatOrder,
   getOrders,
@@ -26,6 +27,7 @@ import { OrderStatus, TOrderStatus } from '@/modules/order/types';
 
 const OrderActions = {
   cancel: '/cancel/:id',
+  delivery: '/delivery/:id',
   repeat: '/repeat/:id',
   status: '/status/:id',
   manageSearch: '/manage/search',
@@ -152,6 +154,28 @@ orderRouter.post(
       const orderId = requireUuid(req.params.id, 'id');
 
       sendOk(res, await changeOrderStatus(tenant, orderId, OrderStatus.cancelled, req.user?.id ?? null));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+orderRouter.patch(
+  OrderActions.delivery,
+  authMiddleware,
+  rbacMiddleware(STAFF_ROLES),
+  auditMiddleware(ShopActions.deliveryUpdate),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const tenant = requireTenant(req);
+      const orderId = requireUuid(req.params.id, 'id');
+
+      sendOk(res, await changeDeliveryStatus(
+        tenant,
+        orderId,
+        req.body ?? {},
+        req.user?.id ?? null,
+      ));
     } catch (error) {
       next(error);
     }

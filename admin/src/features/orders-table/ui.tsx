@@ -8,12 +8,13 @@ interface IProps {
   isLoading: boolean;
   savingId: string;
   onStatusChange: (order: IOrder, status: string) => void;
+  onOpen: (order: IOrder) => void;
 }
 
-export const OrdersTable = ({ items, isLoading, savingId, onStatusChange }: IProps) => {
+export const OrdersTable = ({ items, isLoading, savingId, onStatusChange, onOpen }: IProps) => {
   const columns = useMemo(
-    () => buildOrderColumns({ onStatusChange, savingId }),
-    [onStatusChange, savingId],
+    () => buildOrderColumns({ onStatusChange, onOpen, savingId }),
+    [onStatusChange, onOpen, savingId],
   );
 
   return (

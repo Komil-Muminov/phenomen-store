@@ -84,14 +84,22 @@ export interface IOrderItem {
   total: number;
 }
 
+export interface IOrderTotals {
+  itemsTotal: number;
+  discountTotal: number;
+  deliveryTotal: number;
+  taxTotal: number;
+  grandTotal: number;
+  currency: string;
+}
+
 export interface IOrder {
   id: string;
   number: string;
   status: string;
   paymentStatus: string;
   deliveryStatus: string;
-  grandTotal: number;
-  currency: string;
+  totals: IOrderTotals;
   customer: Record<string, unknown> | null;
   comment: string | null;
   createdAt: string;
@@ -167,3 +175,35 @@ export interface IPlanState {
   plan: IPlan;
   usage: IPlanUsageItem[];
 }
+
+export interface IOrderPayment {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  customerName: string | null;
+  method: string;
+  amount: number;
+  currency: string;
+  status: string;
+  receiptUrl: string | null;
+  receiptNote: string | null;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+  reviewNote: string | null;
+  createdAt: string;
+}
+
+export interface IOrderHistoryEntry {
+  status: string;
+  comment: string | null;
+  createdAt: string;
+}
+
+export interface IOrderDetail extends IOrder {
+  delivery: Record<string, unknown> | null;
+  payment: IOrderPayment | null;
+  history: IOrderHistoryEntry[];
+}
+
+export type TPaymentList = IListEnvelope<IOrderPayment>;

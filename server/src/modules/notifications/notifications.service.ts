@@ -118,6 +118,47 @@ export const notifyReviewReply = async (
   });
 };
 
+export const notifyPaymentReview = async (
+  tenant: ITenantContext,
+  userId: string | null,
+  orderNumber: string,
+  accepted: boolean,
+  reason: string,
+): Promise<void> => {
+  if (!userId) {
+    return;
+  }
+
+  await insertNotification(tenant.id, {
+    userId,
+    kind: NotificationKinds.order as TNotificationKind,
+    title: accepted ? NotificationTexts.paymentPaidTitle : NotificationTexts.paymentFailedTitle,
+    text: accepted
+      ? NotificationTexts.paymentPaidBody(orderNumber)
+      : NotificationTexts.paymentFailedBody(orderNumber, reason),
+    actionUrl: NotificationTexts.paymentActionUrl,
+  });
+};
+
+export const notifyDeliveryStatus = async (
+  tenant: ITenantContext,
+  userId: string | null,
+  orderNumber: string,
+  statusLabel: string,
+): Promise<void> => {
+  if (!userId) {
+    return;
+  }
+
+  await insertNotification(tenant.id, {
+    userId,
+    kind: NotificationKinds.order as TNotificationKind,
+    title: NotificationTexts.deliveryTitle(orderNumber),
+    text: NotificationTexts.deliveryBody(statusLabel),
+    actionUrl: NotificationTexts.orderActionUrl,
+  });
+};
+
 export const notifyOrderStatus = async (
   tenant: ITenantContext,
   userId: string | null,

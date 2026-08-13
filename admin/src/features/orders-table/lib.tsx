@@ -1,12 +1,31 @@
-import { Select, Tag, Typography } from 'antd';
+import { Button, Select, Tag, Typography } from 'antd';
+import { EyeOutlined } from '@ant-design/icons';
+import { Tooltip } from '@/shared/ui/Tooltip';
 import type { ColumnsType } from 'antd/es/table';
 import { OrderStatusLabels, OrderStatuses } from '@/shared/config';
 import type { IOrder } from '@/entities/shop';
 
 interface IHandlers {
   onStatusChange: (order: IOrder, status: string) => void;
+  onOpen: (order: IOrder) => void;
   savingId: string;
 }
+
+const PAYMENT_COLORS: Record<string, string> = {
+  pending: 'default',
+  review: 'gold',
+  paid: 'green',
+  failed: 'red',
+  refunded: 'purple',
+};
+
+const PAYMENT_LABELS: Record<string, string> = {
+  pending: 'ожидает',
+  review: 'чек на проверке',
+  paid: 'оплачен',
+  failed: 'не принята',
+  refunded: 'возврат',
+};
 
 const STATUS_COLORS: Record<string, string> = {
   created: 'default',
@@ -28,7 +47,7 @@ const readCustomerName = (customer: Record<string, unknown> | null): string => {
   return parts.length > 0 ? parts.join(' ') : '—';
 };
 
-export const buildOrderColumns = ({ onStatusChange, savingId }: IHandlers): ColumnsType<IOrder> => [
+export const buildOrderColumns = ({ onStatusChange, onOpen, savingId }: IHandlers): ColumnsType<IOrder> => [
   {
     title: 'Номер',
     dataIndex: 'number',
@@ -51,7 +70,7 @@ export const buildOrderColumns = ({ onStatusChange, savingId }: IHandlers): Colu
     title: 'Сумма',
     key: 'grandTotal',
     render: (_value: unknown, order: IOrder) => (
-      <span className="font-medium">{formatMoney(order.grandTotal, order.currency)}</span>
+      <span className="font-medium">{formatMoney(order.totals.grandTotal, order.totals.currency)}</span>
     ),
   },
   {
@@ -84,6 +103,15 @@ export const buildOrderColumns = ({ onStatusChange, savingId }: IHandlers): Colu
     ),
   },
   {
+    title: 'Оплата',
+    key: 'paymentStatus',
+    render: (_value: unknown, order: IOrder) => (
+      <Tag color={PAYMENT_COLORS[order.paymentStatus] ?? 'default'}>
+        {PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}
+      </Tag>
+    ),
+  },
+  {
     title: 'Комментарий',
     dataIndex: 'comment',
     key: 'comment',
@@ -91,6 +119,20 @@ export const buildOrderColumns = ({ onStatusChange, savingId }: IHandlers): Colu
       <Typography.Text type="secondary" ellipsis className="max-w-48!">
         {value || '—'}
       </Typography.Text>
+    ),
+  },
+  {
+    title: '',
+    key: 'actions',
+    render: (_value: unknown, order: IOrder) => (
+      <Tooltip title="Оплата и доставка">
+        <Button
+          type="text"
+          icon={<EyeOutlined />}
+          onClick={() => onOpen(order)}
+          className="cursor-pointer!"
+        />
+      </Tooltip>
     ),
   },
 ];

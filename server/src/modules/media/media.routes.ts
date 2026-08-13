@@ -27,6 +27,19 @@ const requireTenant = (req: IAppRequest) => {
 export const mediaRouter = Router();
 
 mediaRouter.post(
+  MediaPaths.receipt,
+  authMiddleware,
+  upload.single(FILE_FIELD),
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      sendCreated(res, storeUpload(requireTenant(req), req.file));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+mediaRouter.post(
   MediaPaths.upload,
   authMiddleware,
   rbacMiddleware(STAFF_ROLES),

@@ -78,7 +78,10 @@ export interface IImageUpload {
   pick: () => Promise<void>;
 }
 
-export const useImageUpload = (onUploaded: (url: string) => void): IImageUpload => {
+export const useImageUpload = (
+  onUploaded: (url: string) => void,
+  endpoint: string = ApiRoutes.manageMediaUpload,
+): IImageUpload => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -105,7 +108,7 @@ export const useImageUpload = (onUploaded: (url: string) => void): IImageUpload 
     setUploading(true);
     setError(null);
 
-    await uploadImage<{ url: string }>(ApiRoutes.manageMediaUpload, {
+    await uploadImage<{ url: string }>(endpoint, {
       uri: asset.uri,
       name: asset.fileName ?? `image-${Date.now()}.jpg`,
       type: asset.mimeType ?? 'image/jpeg',
@@ -113,7 +116,7 @@ export const useImageUpload = (onUploaded: (url: string) => void): IImageUpload 
       .then((result) => onUploaded(result.url))
       .catch((uploadError: unknown) => setError(extractErrorMessage(uploadError)))
       .finally(() => setUploading(false));
-  }, [onUploaded]);
+  }, [onUploaded, endpoint]);
 
   return { uploading, error, pick };
 };

@@ -1,5 +1,6 @@
 export const MediaPaths = {
   upload: '/upload',
+  receipt: '/receipt',
 } as const;
 
 export const MediaErrors = {

@@ -58,6 +58,7 @@ export const DeliveryLabels: Record<string, string> = {
 };
 
 export const PaymentLabels: Record<string, string> = {
+  card_transfer: 'Перевод на карту',
   card_online: 'Картой онлайн',
   cash_on_delivery: 'При получении',
 };
