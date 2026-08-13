@@ -6,6 +6,7 @@ export interface ICheckoutForm {
   phone: string;
   email: string;
   address: string;
+  addressId: string;
   slot: string;
   comment: string;
   deliveryMethod: string;
@@ -20,6 +21,7 @@ export const EMPTY_FORM: ICheckoutForm = {
   phone: '',
   email: '',
   address: '',
+  addressId: '',
   slot: '',
   comment: '',
   deliveryMethod: DeliveryMethods.courier,
@@ -59,7 +61,9 @@ export const validateForm = (form: ICheckoutForm): Partial<Record<TCheckoutField
     errors.phone = 'Укажите корректный телефон';
   }
 
-  if (form.deliveryMethod === DeliveryMethods.courier && form.address.trim().length < 5) {
+  const needsAddress = form.deliveryMethod === DeliveryMethods.courier && !form.addressId;
+
+  if (needsAddress && form.address.trim().length < 5) {
     errors.address = 'Укажите адрес доставки';
   }
 
@@ -79,6 +83,7 @@ export const buildOrderPayload = (form: ICheckoutForm) => ({
   },
   delivery: {
     method: form.deliveryMethod,
+    addressId: form.addressId || null,
     address: form.address.trim() || null,
     slot: form.slot.trim() || null,
     comment: form.comment.trim() || null,

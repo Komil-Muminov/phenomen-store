@@ -14,7 +14,7 @@ import {
   PaymentStatus,
 } from '@/modules/order/types';
 
-const ORDER_COLUMNS = `id, number, status, payment_status, delivery_status, items_total::text, discount_total::text,
+const ORDER_COLUMNS = `id, user_id, number, status, payment_status, delivery_status, items_total::text, discount_total::text,
   delivery_total::text, tax_total::text, grand_total::text, currency, customer, delivery, comment,
   created_at::text AS created_at`;
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StatusBar, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { IAddressList } from '@/entities/address';
 import { DEFAULT_CART_TOTALS, ICart } from '@/entities/cart';
 import { ITenantConfig } from '@/entities/tenant';
 import {
@@ -12,6 +13,7 @@ import {
   buildOrderPayload,
   validateForm,
 } from '@/features/checkout-form';
+import { AddressPicker } from '@/features/address-picker';
 import { ApiRoutes, AppRoutes, IdempotencyHeader, QueryKeys, StaleTimeMs } from '@/shared/config';
 import { useAuth } from '@/shared/auth';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
@@ -50,6 +52,12 @@ export const CheckoutPage = () => {
     { params: { deliveryMethod: form.deliveryMethod }, staleTime: StaleTimeMs.short },
   );
 
+  const { data: addresses } = useGetQuery<IAddressList>(
+    [QueryKeys.addresses],
+    ApiRoutes.addressesSearch,
+    { enabled: isAuthorized, staleTime: StaleTimeMs.short },
+  );
+
   const { data: profile } = useGetQuery<IProfile>(
     [QueryKeys.profile],
     ApiRoutes.authProfile,
@@ -65,6 +73,16 @@ export const CheckoutPage = () => {
       email: current.email || (profile?.email ?? ''),
     }));
   }, [profile?.name, profile?.lastName, profile?.phone, profile?.email]);
+
+  const saved = useMemo(() => addresses?.items ?? [], [addresses?.items]);
+
+  useEffect(() => {
+    const preferred = saved.find((item) => item.isDefault) ?? saved[0];
+
+    setForm((current) => (
+      current.addressId || !preferred ? current : { ...current, addressId: preferred.id }
+    ));
+  }, [saved]);
 
   const createOrder = useMutationQuery<ReturnType<typeof buildOrderPayload>, IOrderResponse>(
     ApiRoutes.ordersCreate,
@@ -138,6 +156,16 @@ export const CheckoutPage = () => {
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <CheckoutForm
             form={form}
+            addressPicker={isAuthorized ? (
+              <AddressPicker
+                items={saved}
+                selectedId={form.addressId || null}
+                manual={!form.addressId}
+                onSelect={(id) => handleChange('addressId', id)}
+                onManual={() => handleChange('addressId', '')}
+                onManage={() => router.push(AppRoutes.addresses)}
+              />
+            ) : null}
             errors={errors}
             totals={cart?.totals ?? DEFAULT_CART_TOTALS}
             currencySymbol={config?.locale.currencySymbol ?? ''}

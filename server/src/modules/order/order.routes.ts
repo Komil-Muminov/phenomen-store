@@ -13,11 +13,12 @@ import {
   sendList,
   sendOk,
 } from '@/shared/utils';
-import { requireOwner } from '@/modules/cart';
+import { parseDeliveryMethod, requireOwner } from '@/modules/cart';
 import {
   changeOrderStatus,
   createOrder,
   getOrder,
+  repeatOrder,
   getOrders,
   getTenantOrders,
 } from '@/modules/order/order.service';
@@ -25,11 +26,18 @@ import { OrderStatus, TOrderStatus } from '@/modules/order/types';
 
 const OrderActions = {
   cancel: '/cancel/:id',
+  repeat: '/repeat/:id',
   status: '/status/:id',
   manageSearch: '/manage/search',
 } as const;
 
 const STAFF_ROLES = [UserRoles.manager, UserRoles.admin, UserRoles.owner, UserRoles.platform];
+
+const isStaff = (role: string): boolean => STAFF_ROLES.some((staff) => staff === role);
+
+const readScopeUserId = (req: IAppRequest): string | null => (
+  isStaff(req.user?.role ?? '') ? null : req.user?.id ?? ''
+);
 
 const ORDER_STATUSES: string[] = Object.values(OrderStatus);
 
@@ -107,7 +115,28 @@ orderRouter.get(
   authMiddleware,
   async (req: IAppRequest, res: Response, next: NextFunction) => {
     try {
-      sendOk(res, await getOrder(requireTenant(req), requireUuid(req.params.id, 'id')));
+      sendOk(res, await getOrder(
+        requireTenant(req),
+        requireUuid(req.params.id, 'id'),
+        readScopeUserId(req),
+      ));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+orderRouter.post(
+  OrderActions.repeat,
+  authMiddleware,
+  async (req: IAppRequest, res: Response, next: NextFunction) => {
+    try {
+      const tenant = requireTenant(req);
+      const owner = requireOwner(req.user?.id ?? null, null);
+      const orderId = requireUuid(req.params.id, 'id');
+      const deliveryMethod = parseDeliveryMethod(req.query.deliveryMethod);
+
+      sendOk(res, await repeatOrder(tenant, owner, orderId, deliveryMethod));
     } catch (error) {
       next(error);
     }

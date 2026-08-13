@@ -12,10 +12,13 @@ interface IProps {
   savingProfile: boolean;
   profileError: string | null;
   cancellingId: string | null;
+  repeatingId: string | null;
   onChange: (values: IProfileValues) => void;
   onSave: () => void;
   onChangeEmail: () => void;
   onCancelOrder: (order: IOrder) => void;
+  onRepeatOrder: (order: IOrder) => void;
+  onOpenAddresses: () => void;
   onLogout: () => void;
 }
 
@@ -28,6 +31,8 @@ const Labels = {
   orders: 'Мои заказы',
   support: 'Написать в магазин',
   supportHint: 'Вопрос по заказу, возврат, доставка',
+  addresses: 'Адреса доставки',
+  addressesHint: 'Сохраните адрес, чтобы не вводить его каждый раз',
   empty: 'У вас пока нет оформленных заказов',
   statusBadge: 'Покупатель PHENOMEN',
   logoutConfirmTitle: 'Выход из профиля',
@@ -67,10 +72,13 @@ export const ProfileOrders = ({
   savingProfile,
   profileError,
   cancellingId,
+  repeatingId,
   onChange,
   onSave,
   onChangeEmail,
   onCancelOrder,
+  onRepeatOrder,
+  onOpenAddresses,
   onLogout,
 }: IProps) => {
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -175,6 +183,21 @@ export const ProfileOrders = ({
           <Icon name="chevron-right" size={16} />
         </Pressable>
 
+        <Pressable
+          accessibilityRole="button"
+          onPress={onOpenAddresses}
+          className="mb-2 flex-row items-center gap-3 rounded-2xl border border-line bg-surface/50 p-4 active:opacity-80"
+        >
+          <View className="h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+            <Icon name="store" size={18} />
+          </View>
+          <View className="flex-1">
+            <Text className="text-sm font-bold text-content">{Labels.addresses}</Text>
+            <Text className="text-xs text-muted">{Labels.addressesHint}</Text>
+          </View>
+          <Icon name="chevron-right" size={16} />
+        </Pressable>
+
         <Text className="text-lg font-bold text-content">{Labels.orders}</Text>
         <If
           condition={orders.length > 0}
@@ -190,7 +213,9 @@ export const ProfileOrders = ({
               key={order.id}
               order={order}
               busy={cancellingId === order.id}
+              repeating={repeatingId === order.id}
               onCancel={onCancelOrder}
+              onRepeat={onRepeatOrder}
             />
           ))}
         </If>

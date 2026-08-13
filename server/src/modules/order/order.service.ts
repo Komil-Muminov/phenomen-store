@@ -1,9 +1,10 @@
 import { HttpStatus } from '@/shared/config';
 import { ITenantContext, IListResult } from '@/shared/types';
-import { AppError, isPlainObject, pickString } from '@/shared/utils';
+import { AppError, isPlainObject, pickString, requireUuid } from '@/shared/utils';
 import { getPublicConfig } from '@/modules/tenant';
 import { assertOrderAllowed, buildRules, calculateTotals, DeliveryMethods } from '@/modules/pricing';
-import { getCartPricing, ICartOwner } from '@/modules/cart';
+import { getCartPricing, getCartState, ICartOwner, updateCartItem } from '@/modules/cart';
+import { resolveAddressLine } from '@/modules/address';
 import { notifyOrderStatus } from '@/modules/notifications';
 import {
   applyOrderStatus,
@@ -73,7 +74,12 @@ const parseCustomer = (payload: unknown): ICustomerPayload => {
   };
 };
 
-const parseDelivery = (payload: unknown, allowedMethods: string[]): IDeliveryPayload => {
+const parseDelivery = async (
+  tenant: ITenantContext,
+  owner: ICartOwner,
+  payload: unknown,
+  allowedMethods: string[],
+): Promise<IDeliveryPayload> => {
   const source = isPlainObject(payload) ? payload : {};
   const method = pickString(source.method, DeliveryMethods.courier);
 
@@ -81,7 +87,11 @@ const parseDelivery = (payload: unknown, allowedMethods: string[]): IDeliveryPay
     throw new AppError(OrderErrors.deliveryNotAllowed, HttpStatus.badRequest);
   }
 
-  const address = pickString(source.address) || null;
+  const savedId = pickString(source.addressId);
+  const saved = savedId && owner.userId
+    ? await resolveAddressLine(tenant, owner.userId, requireUuid(savedId, 'addressId'))
+    : '';
+  const address = saved || pickString(source.address) || null;
 
   if (method === DeliveryMethods.courier && !address) {
     throw new AppError(OrderErrors.addressRequired, HttpStatus.badRequest);
@@ -113,7 +123,7 @@ export const createOrder = async (
   const allowedDelivery = Array.isArray(config.delivery.methods) ? config.delivery.methods as string[] : [];
   const allowedPayment = Array.isArray(config.payment.methods) ? config.payment.methods as string[] : [];
   const customer = parseCustomer(payload.customer);
-  const delivery = parseDelivery(payload.delivery, allowedDelivery);
+  const delivery = await parseDelivery(tenant, owner, payload.delivery, allowedDelivery);
   const paymentMethod = pickString(payload.paymentMethod);
 
   if (!allowedPayment.includes(paymentMethod)) {
@@ -178,14 +188,62 @@ export const getOrders = async (
   return { items: mapped, total, page, limit };
 };
 
-export const getOrder = async (tenant: ITenantContext, orderId: string) => {
+const requireOwnOrder = async (
+  tenant: ITenantContext,
+  orderId: string,
+  userId: string | null,
+): Promise<IOrderRow> => {
   const row = await selectOrderById(tenant.id, orderId);
 
-  if (!row) {
+  if (!row || (userId !== null && row.user_id !== userId)) {
     throw new AppError(OrderErrors.notFound, HttpStatus.notFound);
   }
 
+  return row;
+};
+
+export const getOrder = async (
+  tenant: ITenantContext,
+  orderId: string,
+  userId: string | null,
+) => {
+  const row = await requireOwnOrder(tenant, orderId, userId);
+
   return mapOrder(row, await selectOrderItems(tenant.id, orderId));
+};
+
+export const repeatOrder = async (
+  tenant: ITenantContext,
+  owner: ICartOwner,
+  orderId: string,
+  deliveryMethod: string,
+) => {
+  await requireOwnOrder(tenant, orderId, owner.userId);
+
+  const items = await selectOrderItems(tenant.id, orderId);
+  const skipped: string[] = [];
+  let added = 0;
+
+  for (const item of items) {
+    try {
+      if (!item.variant_id) {
+        throw new AppError(OrderErrors.itemGone, HttpStatus.notFound);
+      }
+
+      await updateCartItem(
+        tenant,
+        owner,
+        item.variant_id,
+        Number(item.quantity),
+        deliveryMethod,
+      );
+      added += 1;
+    } catch {
+      skipped.push(item.product_name);
+    }
+  }
+
+  return { added, skipped, cart: await getCartState(tenant, owner, deliveryMethod) };
 };
 
 export const changeOrderStatus = async (

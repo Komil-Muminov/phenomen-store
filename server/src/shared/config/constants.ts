@@ -9,6 +9,7 @@ export const ApiRoutes = {
   media: '/media',
   cart: '/cart',
   orders: '/orders',
+  addresses: '/addresses',
   auth: '/auth',
   reviews: '/reviews',
   wishlist: '/wishlist',

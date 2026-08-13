@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { Text, View } from 'react-native';
 import { DEFAULT_CART_TOTALS, DeliveryLabels, DeliveryMethods, ICartTotals, PaymentLabels } from '@/entities/cart';
 import { formatPrice } from '@/shared/lib';
@@ -11,6 +12,7 @@ import { FormField, OptionSelector } from '@/features/checkout-form/ui/renderFie
 
 interface IProps {
   form: ICheckoutForm;
+  addressPicker?: ReactNode;
   errors: Partial<Record<TCheckoutField, string>>;
   totals?: ICartTotals;
   currencySymbol: string;
@@ -24,6 +26,7 @@ interface IProps {
 
 export const CheckoutForm = ({
   form,
+  addressPicker = null,
   errors,
   totals = DEFAULT_CART_TOTALS,
   currencySymbol,
@@ -55,7 +58,12 @@ export const CheckoutForm = ({
           onSelect={(value) => onChange('deliveryMethod', value)}
         />
         <If condition={form.deliveryMethod === DeliveryMethods.courier}>
-          <FormField field="address" form={form} error={errors.address} onChange={onChange} />
+          <View className="gap-3">
+            {addressPicker}
+            <If condition={!form.addressId}>
+              <FormField field="address" form={form} error={errors.address} onChange={onChange} />
+            </If>
+          </View>
         </If>
         <FormField field="comment" form={form} multiline onChange={onChange} />
       </View>

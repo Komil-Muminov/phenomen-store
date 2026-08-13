@@ -34,6 +34,7 @@ export const PaymentMethods = {
 
 export interface IOrderRow {
   id: string;
+  user_id: string | null;
   number: string;
   status: string;
   payment_status: string;
@@ -82,6 +83,7 @@ export const OrderErrors = {
   deliveryNotAllowed: 'Способ доставки недоступен для этого магазина',
   transitionDenied: 'Недопустимая смена статуса заказа',
   notFound: 'Заказ не найден',
+  itemGone: 'Товара из заказа больше нет в каталоге',
 } as const;
 
 export const ORDER_NUMBER_PAD = 4;

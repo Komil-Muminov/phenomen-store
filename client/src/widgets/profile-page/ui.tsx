@@ -17,7 +17,7 @@ import { RenderAuth } from '@/widgets/profile-page/ui/renderAuth';
 import { useAuth } from '@/shared/auth';
 import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { toHref } from '@/shared/lib';
-import { BottomBar, If } from '@/shared/ui';
+import { BottomBar, If, Toast } from '@/shared/ui';
 import {
   EMPTY_PROFILE,
   IProfileValues,
@@ -45,6 +45,22 @@ interface IOrderList {
   total: number;
 }
 
+const RepeatTexts = {
+  done: 'Товары из заказа добавлены в корзину',
+  empty: 'Товаров из этого заказа больше нет в продаже',
+  partial: 'Добавили не всё, сейчас нет в продаже: ',
+} as const;
+
+const buildRepeatNotice = (added: number, skipped: string[]): string => {
+  if (added === 0) {
+    return RepeatTexts.empty;
+  }
+
+  return skipped.length > 0
+    ? `${RepeatTexts.partial}${skipped.join(', ')}`
+    : RepeatTexts.done;
+};
+
 export const ProfilePage = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -69,6 +85,8 @@ export const ProfilePage = () => {
   const [emailDelivered, setEmailDelivered] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [repeatingId, setRepeatingId] = useState<string | null>(null);
+  const [repeatNotice, setRepeatNotice] = useState<string | null>(null);
 
   const [resendSeconds, setResendSeconds] = useState(0);
 
@@ -126,6 +144,11 @@ export const ProfilePage = () => {
   const cancelOrder = useMutationQuery<{ id: string }, IOrder>(
     (body) => `${ApiRoutes.ordersCancel}/${body.id}`,
     { invalidate: [[QueryKeys.orders]] },
+  );
+
+  const repeatOrder = useMutationQuery<{ id: string }, { added: number; skipped: string[] }>(
+    (body) => `${ApiRoutes.ordersRepeat}/${body.id}`,
+    { invalidate: [[QueryKeys.cart]] },
   );
 
   useEffect(() => {
@@ -250,6 +273,21 @@ export const ProfilePage = () => {
     cancelOrder.mutate({ id: order.id }, { onSettled: () => setCancellingId(null) });
   }, [cancelOrder]);
 
+  const handleRepeatOrder = useCallback((order: IOrder) => {
+    setRepeatingId(order.id);
+    repeatOrder.mutate({ id: order.id }, {
+      onSuccess: (result) => {
+        setRepeatNotice(buildRepeatNotice(result.added, result.skipped));
+
+        if (result.added > 0) {
+          router.push(toHref(AppRoutes.cart));
+        }
+      },
+      onError: (error) => setRepeatNotice(error.message),
+      onSettled: () => setRepeatingId(null),
+    });
+  }, [repeatOrder, router]);
+
   return (
     <View className="flex-1 bg-background" style={{ paddingTop: safeTop }}>
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-line">
@@ -323,11 +361,14 @@ export const ProfilePage = () => {
                   savingProfile={saveProfile.isPending}
                   profileError={profileError}
                   cancellingId={cancellingId}
+                  repeatingId={repeatingId}
                   onChange={setValues}
                   onSave={handleSaveProfile}
                   onChangeEmail={handleOpenEmailForm}
                   onOpenSupport={() => router.push(toHref(AppRoutes.support))}
                   onCancelOrder={handleCancelOrder}
+                  onRepeatOrder={handleRepeatOrder}
+                  onOpenAddresses={() => router.push(toHref(AppRoutes.addresses))}
                   onLogout={logout}
                 />
               </If>
@@ -336,6 +377,12 @@ export const ProfilePage = () => {
         </ScrollView>
       </If>
       <BottomBar />
+
+      <Toast
+        visible={Boolean(repeatNotice)}
+        message={repeatNotice ?? ''}
+        onClose={() => setRepeatNotice(null)}
+      />
 
       <EmailChange
         open={emailFormOpen}

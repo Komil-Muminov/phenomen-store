@@ -20,6 +20,7 @@ import { notificationsRouter } from '@/modules/notifications';
 import { platformRouter } from '@/modules/platform';
 import { platformTicketRouter, ticketRouter } from '@/modules/tickets';
 import { planRouter } from '@/modules/plans';
+import { addressRouter } from '@/modules/address';
 
 export const app = express();
 
@@ -45,6 +46,7 @@ app.use(ApiRoutes.attributes, attributeRouter);
 app.use(ApiRoutes.media, mediaRouter);
 app.use(ApiRoutes.cart, cartRouter);
 app.use(ApiRoutes.orders, orderRouter);
+app.use(ApiRoutes.addresses, addressRouter);
 app.use(ApiRoutes.stats, statsRouter);
 app.use(ApiRoutes.promotions, promotionRouter);
 app.use(ApiRoutes.support, supportRouter);

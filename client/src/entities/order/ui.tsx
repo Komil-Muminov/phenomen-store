@@ -12,10 +12,12 @@ import {
 interface IProps {
   order: IOrder;
   busy: boolean;
+  repeating: boolean;
   onCancel: (order: IOrder) => void;
+  onRepeat: (order: IOrder) => void;
 }
 
-export const OrderCard = ({ order, busy, onCancel }: IProps) => (
+export const OrderCard = ({ order, busy, repeating, onCancel, onRepeat }: IProps) => (
   <View className="gap-3.5 rounded-2xl border border-line bg-surface/50 p-4">
     <View className="flex-row items-center justify-between">
       <Text className="text-base font-bold text-content">{`Заказ № ${order.number}`}</Text>
@@ -53,10 +55,18 @@ export const OrderCard = ({ order, busy, onCancel }: IProps) => (
       </Text>
     </View>
 
+    <Button
+      title="Повторить заказ"
+      variant={ButtonVariants.secondary}
+      size={ButtonSizes.medium}
+      loading={repeating}
+      onPress={() => onRepeat(order)}
+    />
+
     <If condition={CancellableStatuses.includes(order.status)}>
       <Button
         title="Отменить заказ"
-        variant={ButtonVariants.secondary}
+        variant={ButtonVariants.ghost}
         size={ButtonSizes.medium}
         loading={busy}
         onPress={() => onCancel(order)}
