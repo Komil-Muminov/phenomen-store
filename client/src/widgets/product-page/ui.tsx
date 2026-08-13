@@ -5,7 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IProduct } from '@/entities/product';
 import { ITenantConfig } from '@/entities/tenant';
 import { ICart } from '@/entities/cart';
+import { IReviewsSummary } from '@/entities/review';
 import { ISelectedOptions, ProductDetails, findVariant } from '@/features/product-details';
+import { ProductReviews } from '@/features/product-reviews';
 import { addRecentlyViewed } from '@/features/search-history';
 import { ProductRail } from '@/features/storefront-sections/ui/sections';
 import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
@@ -34,6 +36,12 @@ export const ProductPage = () => {
     [QueryKeys.product, id],
     `${ApiRoutes.productGet}/${id}`,
     { enabled: Boolean(id), staleTime: StaleTimeMs.medium },
+  );
+
+  const { data: reviews } = useGetQuery<IReviewsSummary>(
+    [QueryKeys.reviews, id],
+    ApiRoutes.reviewsGet,
+    { params: { productId: id }, enabled: Boolean(id), staleTime: StaleTimeMs.short },
   );
 
   const { data: catalog } = useGetQuery<IProductList>(
@@ -153,6 +161,7 @@ export const ProductPage = () => {
       >
         <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
           <ProductDetails
+            reviews={<ProductReviews summary={reviews ?? null} />}
             product={product as IProduct}
             currencySymbol={currencySymbol}
             selected={selected}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { FlatList, Image, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { IProduct, ProductPlaceholderImage } from '@/entities/product';
 import {
@@ -21,29 +21,20 @@ import { SizeGuideModal } from '@/features/product-details/ui/SizeGuideModal';
 
 interface IProps {
   product: IProduct;
+  reviews?: ReactNode;
   currencySymbol: string;
   selected: ISelectedOptions;
   onSelect: (code: keyof ISelectedOptions, value: string) => void;
 }
 
-const MOCK_REVIEWS = [
-  {
-    id: 'r1',
-    author: 'Алишер К.',
-    rating: 5,
-    date: 'Вчера',
-    text: 'Качество бомба! Плотная ткань, оверсайз сидит идеально. Покупкой очень доволен.',
-  },
-  {
-    id: 'r2',
-    author: 'Мадина С.',
-    rating: 5,
-    date: '3 дня назад',
-    text: 'Очень приятная к телу ткань, после стирки цвет не потеряла. Доставка быстрая!',
-  },
-];
 
-export const ProductDetails = ({ product, currencySymbol, selected, onSelect }: IProps) => {
+export const ProductDetails = ({
+  product,
+  reviews = null,
+  currencySymbol,
+  selected,
+  onSelect,
+}: IProps) => {
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -217,24 +208,7 @@ export const ProductDetails = ({ product, currencySymbol, selected, onSelect }: 
         </View>
       </If>
 
-      {/* Отзывы покупателей */}
-      <View className="gap-3 px-4 pt-4 border-t border-line mt-2">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-sm font-bold text-content">Отзывы покупателей</Text>
-          <Text className="text-xs font-bold text-primary">Все 24 отзыва ›</Text>
-        </View>
-
-        {MOCK_REVIEWS.map((rev) => (
-          <View key={rev.id} className="gap-1.5 rounded-2xl bg-surface p-3.5 border border-line">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-xs font-bold text-content">{rev.author}</Text>
-              <Text className="text-[10px] text-muted">{rev.date}</Text>
-            </View>
-            <Text className="text-xs text-amber-500 font-bold">★ ★ ★ ★ ★</Text>
-            <Text className="text-xs text-muted leading-4">{rev.text}</Text>
-          </View>
-        ))}
-      </View>
+      {reviews}
 
       {/* Полноэкранный Lightbox Просмотр Фотографии */}
       <Modal

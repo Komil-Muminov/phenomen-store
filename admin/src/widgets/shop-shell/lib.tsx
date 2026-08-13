@@ -8,6 +8,7 @@ import {
   PictureOutlined,
   SettingOutlined,
   ShoppingOutlined,
+  StarOutlined,
   TagsOutlined,
 } from '@ant-design/icons';
 import { AppRoutes } from '@/shared/config';
@@ -29,6 +30,7 @@ export const CatalogNavItems: INavItem[] = [
   { to: AppRoutes.shopStock, label: 'Остатки', icon: <DatabaseOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopBanners, label: 'Баннеры', icon: <PictureOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopPromotions, label: 'Акции', icon: <GiftOutlined aria-hidden="true" /> },
+  { to: AppRoutes.shopReviews, label: 'Отзывы', icon: <StarOutlined aria-hidden="true" /> },
 ];
 
 const CatalogRoutes = CatalogNavItems.map((item) => item.to);

@@ -120,6 +120,7 @@ export const QueryKeys = {
   profile: 'profile',
   notifications: 'notifications',
   support: 'support',
+  reviews: 'reviews',
   addresses: 'addresses',
   adminTenants: 'admin-tenants',
   adminStaff: 'admin-staff',

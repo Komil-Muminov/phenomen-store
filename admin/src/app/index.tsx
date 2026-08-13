@@ -23,6 +23,7 @@ const ShopProducts = lazy(() => import('@/pages/shop-products'));
 const ShopStock = lazy(() => import('@/pages/shop-stock'));
 const ShopBanners = lazy(() => import('@/pages/shop-banners'));
 const ShopPromotions = lazy(() => import('@/pages/shop-promotions'));
+const ShopReviews = lazy(() => import('@/pages/shop-reviews'));
 const ShopSupport = lazy(() => import('@/pages/shop-support'));
 const ShopTickets = lazy(() => import('@/pages/shop-tickets'));
 const ShopSettings = lazy(() => import('@/pages/shop-settings'));
@@ -54,6 +55,7 @@ const preloadShopPages = (): void => {
   void import('@/pages/shop-stock');
   void import('@/pages/shop-banners');
   void import('@/pages/shop-promotions');
+  void import('@/pages/shop-reviews');
   void import('@/pages/shop-support');
   void import('@/pages/shop-tickets');
   void import('@/pages/shop-settings');
@@ -119,6 +121,7 @@ const Router = () => (
       <Route path={AppRoutes.shopStock} element={<ShopStock />} />
       <Route path={AppRoutes.shopBanners} element={<ShopBanners />} />
       <Route path={AppRoutes.shopPromotions} element={<ShopPromotions />} />
+      <Route path={AppRoutes.shopReviews} element={<ShopReviews />} />
       <Route path={AppRoutes.shopSupport} element={<ShopSupport />} />
       <Route path={AppRoutes.shopTickets} element={<ShopTickets />} />
       <Route path={AppRoutes.shopSettings} element={<ShopSettings />} />

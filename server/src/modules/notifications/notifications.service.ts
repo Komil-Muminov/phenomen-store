@@ -100,6 +100,24 @@ export const notifySupportReply = async (
   });
 };
 
+export const notifyReviewReply = async (
+  tenant: ITenantContext,
+  userId: string | null,
+  productName: string,
+): Promise<void> => {
+  if (!userId) {
+    return;
+  }
+
+  await insertNotification(tenant.id, {
+    userId,
+    kind: NotificationKinds.system as TNotificationKind,
+    title: NotificationTexts.reviewReplyTitle,
+    text: NotificationTexts.reviewReplyBody(productName),
+    actionUrl: NotificationTexts.reviewActionUrl,
+  });
+};
+
 export const notifyOrderStatus = async (
   tenant: ITenantContext,
   userId: string | null,

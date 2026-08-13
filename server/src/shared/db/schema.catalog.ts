@@ -103,10 +103,14 @@ CREATE TABLE IF NOT EXISTS reviews (
   rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
   text TEXT,
   status TEXT NOT NULL DEFAULT 'published',
+  reply_text TEXT,
+  reply_author TEXT,
+  reply_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS reviews_product_idx ON reviews(tenant_id, product_id);
+CREATE INDEX IF NOT EXISTS reviews_tenant_created_idx ON reviews(tenant_id, created_at DESC);
 `;
 
 export const TRIGRAM_SCHEMA_SQL = `

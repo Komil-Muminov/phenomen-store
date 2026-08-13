@@ -2,6 +2,7 @@ export { notificationsRouter } from '@/modules/notifications/notifications.route
 export {
   createNotification,
   notifyOrderStatus,
+  notifyReviewReply,
   notifySupportReply,
 } from '@/modules/notifications/notifications.service';
 export { NotificationKinds } from '@/modules/notifications/types';

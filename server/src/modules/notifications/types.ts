@@ -43,6 +43,9 @@ export const NotificationTexts = {
   orderStatusTitle: (number: string): string => `Заказ ${number}: статус обновлён`,
   orderStatusBody: (status: string): string => `Новый статус заказа — ${status}.`,
   orderActionUrl: '/profile',
+  reviewReplyTitle: 'Магазин ответил на ваш отзыв',
+  reviewReplyBody: (product: string): string => `На отзыв о товаре «${product}» есть ответ.`,
+  reviewActionUrl: '/profile',
 } as const;
 
 export const OrderStatusLabels: Record<string, string> = {
