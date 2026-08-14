@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS platform_settings (
   id BOOLEAN PRIMARY KEY DEFAULT true CHECK (id),
   card JSONB NOT NULL DEFAULT '{}'::jsonb,
   grace_days INTEGER NOT NULL DEFAULT 3,
+  remind_days INTEGER NOT NULL DEFAULT 3,
   auto_block BOOLEAN NOT NULL DEFAULT true,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -89,6 +90,7 @@ CREATE TABLE IF NOT EXISTS platform_invoices (
   review_note TEXT,
   issued_by TEXT NOT NULL,
   due_date DATE,
+  reminded_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

@@ -25,6 +25,7 @@ interface IBlockedList {
 interface IRunResult {
   blocked: string[];
   unblocked: string[];
+  reminded: string[];
 }
 
 const RECEIPT = '/uploads/demo/invoice.png';
@@ -85,7 +86,7 @@ before(async () => {
   await callApi(context, '/platform/billing/settings', {
     method: 'PATCH',
     token: platformToken,
-    body: { graceDays: 3, autoBlock: true },
+    body: { graceDays: 3, autoBlock: true, remindDays: 3 },
   });
 
   const invoice = await issueInvoice(context);
@@ -112,6 +113,89 @@ after(async () => {
   }
 
   await stopContext(context);
+});
+
+describe('напоминание о сроке оплаты', () => {
+  it('счёт с далёким сроком напоминание не вызывает', async (t: TestContext) => {
+    if (!context) {
+      return t.skip(SKIP_REASON);
+    }
+
+    const invoice = await issueInvoice(context);
+
+    await setDue(context, invoice.id, -20);
+
+    const result = await runCheck(context);
+
+    assert.equal(result.reminded.includes(invoice.id), false);
+
+    await callApi(context, `/platform/invoices/cancel/${invoice.id}`, {
+      method: 'PATCH',
+      token: platformToken,
+    });
+  });
+
+  it('за три дня до срока владелец получает напоминание один раз', async (t: TestContext) => {
+    if (!context) {
+      return t.skip(SKIP_REASON);
+    }
+
+    const invoice = await issueInvoice(context);
+
+    await setDue(context, invoice.id, -2);
+
+    const first = await runCheck(context);
+
+    assert.ok(first.reminded.includes(invoice.id));
+
+    const list = await callApi(context, '/notifications/search', { token: ownerToken });
+    const found = (list.body.data as { items: { title: string; text: string }[] }).items
+      .filter((item) => item.title === 'Скоро срок оплаты тарифа');
+
+    assert.equal(found.length, 1);
+    assert.match(found[0].text, new RegExp(invoice.number));
+
+    const second = await runCheck(context);
+
+    assert.equal(second.reminded.includes(invoice.id), false);
+
+    await callApi(context, `/platform/invoices/cancel/${invoice.id}`, {
+      method: 'PATCH',
+      token: platformToken,
+    });
+  });
+
+  it('срок напоминания настраивается', async (t: TestContext) => {
+    if (!context) {
+      return t.skip(SKIP_REASON);
+    }
+
+    const saved = await callApi(context, '/platform/billing/settings', {
+      method: 'PATCH',
+      token: platformToken,
+      body: { graceDays: 3, autoBlock: true, remindDays: 7 },
+    });
+
+    assert.equal((saved.body.data as { remindDays: number }).remindDays, 7);
+
+    const invoice = await issueInvoice(context);
+
+    await setDue(context, invoice.id, -6);
+
+    const result = await runCheck(context);
+
+    assert.ok(result.reminded.includes(invoice.id));
+
+    await callApi(context, '/platform/billing/settings', {
+      method: 'PATCH',
+      token: platformToken,
+      body: { graceDays: 3, autoBlock: true, remindDays: 3 },
+    });
+    await callApi(context, `/platform/invoices/cancel/${invoice.id}`, {
+      method: 'PATCH',
+      token: platformToken,
+    });
+  });
 });
 
 describe('автоблокировка за неоплату', () => {
@@ -255,7 +339,7 @@ describe('автоблокировка за неоплату', () => {
     const off = await callApi(context, '/platform/billing/settings', {
       method: 'PATCH',
       token: platformToken,
-      body: { graceDays: 3, autoBlock: false },
+      body: { graceDays: 3, autoBlock: false, remindDays: 3 },
     });
 
     assert.equal((off.body.data as { autoBlock: boolean }).autoBlock, false);

@@ -6,6 +6,7 @@ export interface IPlatformSettings {
 export interface IBillingSettings {
   graceDays: number;
   autoBlock: boolean;
+  remindDays: number;
 }
 
 export interface IBlockedTenant {
@@ -26,6 +27,8 @@ export const PlatformInvoicesTexts = {
   billingTitle: 'Автоблокировка за неоплату',
   graceDays: 'Отсрочка после срока оплаты',
   graceHint: 'Столько дней магазин работает после просрочки',
+  remindDays: 'Напомнить об оплате за',
+  remindHint: 'Владельцу магазина придёт уведомление и письмо',
   autoBlock: 'Блокировать автоматически',
   saveBilling: 'Сохранить правило',
   runCheck: 'Проверить сейчас',

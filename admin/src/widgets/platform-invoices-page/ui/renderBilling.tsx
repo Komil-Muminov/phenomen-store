@@ -57,6 +57,13 @@ export const RenderBilling = ({
           >
             <InputNumber min={0} max={60} addonAfter="дн." />
           </Form.Item>
+          <Form.Item
+            name="remindDays"
+            label={PlatformInvoicesTexts.remindDays}
+            extra={PlatformInvoicesTexts.remindHint}
+          >
+            <InputNumber min={0} max={30} addonAfter="дн." />
+          </Form.Item>
           <Form.Item name="autoBlock" label={PlatformInvoicesTexts.autoBlock} valuePropName="checked">
             <Switch />
           </Form.Item>
