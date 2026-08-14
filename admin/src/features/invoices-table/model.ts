@@ -1,0 +1,15 @@
+export const InvoicesTableTexts = {
+  empty: 'Счетов пока нет',
+  period: 'Период',
+  plan: 'Тариф',
+  issued: 'Выставил',
+  due: 'Оплатить до',
+  receipt: 'Чек от магазина',
+  receiptNote: 'Комментарий магазина',
+  reviewed: 'Проверил',
+  accept: 'Подтвердить оплату',
+  reject: 'Отклонить',
+  cancel: 'Отменить счёт',
+  rejectPlaceholder: 'Причина отказа — магазин её увидит',
+  noReceipt: 'Магазин ещё не прикрепил чек',
+} as const;

@@ -17,6 +17,7 @@ const Login = lazy(() => import('@/pages/login'));
 const Tenants = lazy(() => import('@/pages/tenants'));
 const PlatformAudit = lazy(() => import('@/pages/platform-audit'));
 const PlatformTickets = lazy(() => import('@/pages/platform-tickets'));
+const PlatformInvoices = lazy(() => import('@/pages/platform-invoices'));
 const ShopStats = lazy(() => import('@/pages/shop-stats'));
 const ShopOrders = lazy(() => import('@/pages/shop-orders'));
 const ShopProducts = lazy(() => import('@/pages/shop-products'));
@@ -26,6 +27,7 @@ const ShopPromotions = lazy(() => import('@/pages/shop-promotions'));
 const ShopReviews = lazy(() => import('@/pages/shop-reviews'));
 const ShopSupport = lazy(() => import('@/pages/shop-support'));
 const ShopTickets = lazy(() => import('@/pages/shop-tickets'));
+const ShopInvoices = lazy(() => import('@/pages/shop-invoices'));
 const ShopSettings = lazy(() => import('@/pages/shop-settings'));
 
 const queryClient = new QueryClient({
@@ -58,6 +60,7 @@ const preloadShopPages = (): void => {
   void import('@/pages/shop-reviews');
   void import('@/pages/shop-support');
   void import('@/pages/shop-tickets');
+  void import('@/pages/shop-invoices');
   void import('@/pages/shop-settings');
 };
 
@@ -65,6 +68,7 @@ const preloadPlatformPages = (): void => {
   void import('@/pages/tenants');
   void import('@/pages/platform-audit');
   void import('@/pages/platform-tickets');
+  void import('@/pages/platform-invoices');
 };
 
 const PlatformLayout = () => {
@@ -111,6 +115,7 @@ const Router = () => (
     <Route element={<PlatformLayout />}>
       <Route path={AppRoutes.tenants} element={<Tenants />} />
       <Route path={AppRoutes.tickets} element={<PlatformTickets />} />
+      <Route path={AppRoutes.invoices} element={<PlatformInvoices />} />
       <Route path={AppRoutes.audit} element={<PlatformAudit />} />
     </Route>
 
@@ -124,6 +129,7 @@ const Router = () => (
       <Route path={AppRoutes.shopReviews} element={<ShopReviews />} />
       <Route path={AppRoutes.shopSupport} element={<ShopSupport />} />
       <Route path={AppRoutes.shopTickets} element={<ShopTickets />} />
+      <Route path={AppRoutes.shopInvoices} element={<ShopInvoices />} />
       <Route path={AppRoutes.shopSettings} element={<ShopSettings />} />
     </Route>
 

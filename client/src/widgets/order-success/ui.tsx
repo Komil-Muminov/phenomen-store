@@ -57,7 +57,7 @@ export const OrderSuccess = () => {
                 Заказ успешно принят!
               </Text>
               <Text className="text-center text-xs font-semibold text-muted px-2 leading-5">
-                Мы уже готовим ваш заказ к отправке. Уведомление о статусе придет по SMS.
+                Мы уже готовим ваш заказ к отправке. Уведомления о статусе придут на почту и в приложение.
               </Text>
             </View>
           </View>

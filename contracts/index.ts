@@ -207,3 +207,29 @@ export interface IOrderDetail extends IOrder {
 }
 
 export type TPaymentList = IListEnvelope<IOrderPayment>;
+
+export interface IInvoice {
+  id: string;
+  tenantId: string;
+  tenantKey: string;
+  tenantName: string;
+  number: string;
+  plan: string;
+  period: string;
+  amount: number;
+  currency: string;
+  status: string;
+  comment: string | null;
+  receiptUrl: string | null;
+  receiptNote: string | null;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+  reviewNote: string | null;
+  issuedBy: string;
+  dueDate: string | null;
+  createdAt: string;
+}
+
+export type TInvoiceList = IListEnvelope<IInvoice>;
+

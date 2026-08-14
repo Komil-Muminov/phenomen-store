@@ -57,6 +57,19 @@ export const NotificationTexts = {
   paymentActionUrl: '/profile',
   deliveryTitle: (number: string): string => `Доставка заказа ${number}`,
   deliveryBody: (status: string): string => `Статус доставки — ${status}.`,
+  invoiceIssuedTitle: 'Счёт за тариф',
+  invoiceIssuedBody: (number: string, period: string): string => (
+    `Выставлен счёт ${number} за ${period}. Оплатите переводом и прикрепите чек.`
+  ),
+  invoicePaidTitle: 'Оплата тарифа подтверждена',
+  invoicePaidBody: (number: string): string => `Платформа приняла оплату по счёту ${number}.`,
+  invoiceFailedTitle: 'Оплата тарифа не принята',
+  invoiceFailedBody: (number: string, reason: string): string => (
+    reason
+      ? `Оплата по счёту ${number} не принята: ${reason}`
+      : `Оплата по счёту ${number} не принята — свяжитесь с платформой.`
+  ),
+  invoiceActionUrl: '/shop/invoices',
 } as const;
 
 export const OrderStatusLabels: Record<string, string> = {

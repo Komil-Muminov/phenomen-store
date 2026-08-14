@@ -20,6 +20,8 @@ export const ApiRoutes = {
   tickets: '/tickets',
   plans: '/plans',
   platformTickets: '/platform/tickets',
+  platformInvoices: '/platform/invoices',
+  invoices: '/invoices',
   stats: '/stats',
   health: '/health',
 } as const;

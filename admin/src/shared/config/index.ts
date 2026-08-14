@@ -3,6 +3,7 @@ export const AppRoutes = {
   tenants: '/tenants',
   audit: '/audit',
   tickets: '/tickets',
+  invoices: '/invoices',
   shopLogin: '/shop/login',
   shopStats: '/shop/stats',
   shopOrders: '/shop/orders',
@@ -13,6 +14,7 @@ export const AppRoutes = {
   shopReviews: '/shop/reviews',
   shopSupport: '/shop/support',
   shopTickets: '/shop/tickets',
+  shopInvoices: '/shop/invoices',
   shopSettings: '/shop/settings',
   root: '/',
 } as const;
@@ -81,6 +83,14 @@ export const ApiRoutes = {
   shopTicketCreate: '/tickets/create',
   shopTicketGet: '/tickets/get',
   shopTicketReply: '/tickets/reply',
+  platformInvoicesSearch: '/platform/invoices/search',
+  platformInvoiceCreate: '/platform/invoices/create',
+  platformInvoiceReview: '/platform/invoices/review',
+  platformInvoiceCancel: '/platform/invoices/cancel',
+  platformInvoiceSettings: '/platform/invoices/settings',
+  shopInvoicesSearch: '/invoices/search',
+  shopInvoiceReceipt: '/invoices/receipt',
+  shopInvoiceCard: '/invoices/card',
   platformTicketsSearch: '/platform/tickets/search',
   platformTicketGet: '/platform/tickets/get',
   platformTicketReply: '/platform/tickets/reply',
@@ -107,6 +117,9 @@ export const QueryKeys = {
   shopOrder: 'shop-order',
   shopTickets: 'shop-tickets',
   platformTickets: 'platform-tickets',
+  platformInvoices: 'platform-invoices',
+  shopInvoices: 'shop-invoices',
+  platformCard: 'platform-card',
 } as const;
 
 export const ProductUnits = [

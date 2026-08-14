@@ -7,5 +7,6 @@ export {
   notifyReviewReply,
   notifySupportReply,
 } from '@/modules/notifications/notifications.service';
-export { NotificationKinds } from '@/modules/notifications/types';
+export { insertNotification } from '@/modules/notifications/notifications.db';
+export { NotificationKinds, NotificationTexts } from '@/modules/notifications/types';
 export type { INotificationInput, TNotificationKind } from '@/modules/notifications/types';

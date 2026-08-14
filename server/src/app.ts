@@ -22,6 +22,7 @@ import { platformTicketRouter, ticketRouter } from '@/modules/tickets';
 import { planRouter } from '@/modules/plans';
 import { addressRouter } from '@/modules/address';
 import { paymentRouter } from '@/modules/payment';
+import { invoiceRouter, platformInvoiceRouter } from '@/modules/invoice';
 
 export const app = express();
 
@@ -35,6 +36,7 @@ app.get(ApiRoutes.health, (_req, res) => {
 });
 
 app.use(ApiRoutes.platformTickets, platformTicketRouter);
+app.use(ApiRoutes.platformInvoices, platformInvoiceRouter);
 app.use(ApiRoutes.platform, platformRouter);
 
 app.use(tenantMiddleware);
@@ -49,6 +51,7 @@ app.use(ApiRoutes.cart, cartRouter);
 app.use(ApiRoutes.orders, orderRouter);
 app.use(ApiRoutes.addresses, addressRouter);
 app.use(ApiRoutes.payments, paymentRouter);
+app.use(ApiRoutes.invoices, invoiceRouter);
 app.use(ApiRoutes.stats, statsRouter);
 app.use(ApiRoutes.promotions, promotionRouter);
 app.use(ApiRoutes.support, supportRouter);

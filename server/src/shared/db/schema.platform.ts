@@ -62,4 +62,37 @@ CREATE TABLE IF NOT EXISTS platform_ticket_messages (
 
 CREATE INDEX IF NOT EXISTS platform_ticket_messages_ticket_idx
   ON platform_ticket_messages(ticket_id, created_at);
+
+CREATE TABLE IF NOT EXISTS platform_settings (
+  id BOOLEAN PRIMARY KEY DEFAULT true CHECK (id),
+  card JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS platform_invoices (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  number TEXT NOT NULL,
+  plan TEXT NOT NULL,
+  period TEXT NOT NULL,
+  amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  currency TEXT NOT NULL DEFAULT 'TJS',
+  status TEXT NOT NULL DEFAULT 'pending',
+  comment TEXT,
+  receipt_url TEXT,
+  receipt_note TEXT,
+  submitted_at TIMESTAMPTZ,
+  reviewed_at TIMESTAMPTZ,
+  reviewed_by TEXT,
+  review_note TEXT,
+  issued_by TEXT NOT NULL,
+  due_date DATE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS platform_invoices_number_uniq ON platform_invoices(number);
+CREATE INDEX IF NOT EXISTS platform_invoices_tenant_idx
+  ON platform_invoices(tenant_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS platform_invoices_status_idx
+  ON platform_invoices(status, created_at DESC);
 `;

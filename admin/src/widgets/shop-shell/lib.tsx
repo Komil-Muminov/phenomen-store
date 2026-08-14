@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import {
   BarChartOutlined,
+  CreditCardOutlined,
   CustomerServiceOutlined,
   DatabaseOutlined,
   GiftOutlined,
@@ -50,6 +51,7 @@ export const ShopNavItems: INavItem[] = [
     label: 'Поддержка',
     icon: <CustomerServiceOutlined aria-hidden="true" />,
   },
+  { to: AppRoutes.shopInvoices, label: 'Счета', icon: <CreditCardOutlined aria-hidden="true" /> },
   { to: AppRoutes.shopSettings, label: 'Настройки', icon: <SettingOutlined aria-hidden="true" /> },
 ];
 
