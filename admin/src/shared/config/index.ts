@@ -88,6 +88,9 @@ export const ApiRoutes = {
   platformInvoiceReview: '/platform/invoices/review',
   platformInvoiceCancel: '/platform/invoices/cancel',
   platformInvoiceSettings: '/platform/invoices/settings',
+  platformBillingSettings: '/platform/billing/settings',
+  platformBillingRun: '/platform/billing/run',
+  platformBillingBlocked: '/platform/billing/blocked',
   shopInvoicesSearch: '/invoices/search',
   shopInvoiceReceipt: '/invoices/receipt',
   shopInvoiceCard: '/invoices/card',
@@ -120,6 +123,8 @@ export const QueryKeys = {
   platformInvoices: 'platform-invoices',
   shopInvoices: 'shop-invoices',
   platformCard: 'platform-card',
+  platformBilling: 'platform-billing',
+  platformBlocked: 'platform-blocked',
 } as const;
 
 export const ProductUnits = [

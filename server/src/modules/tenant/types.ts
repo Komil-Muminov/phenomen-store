@@ -6,6 +6,8 @@ export interface ITenantRow {
   plan: string;
   status: string;
   bundle_id: string | null;
+  blocked_at: string | null;
+  block_reason: string | null;
 }
 
 export interface ITenantConfigRow {
@@ -33,6 +35,7 @@ export interface ITenantPublicConfig {
   delivery: Record<string, unknown>;
   features: Record<string, unknown>;
   contacts: Record<string, unknown>;
+  blocked: boolean;
 }
 
 export const CONFIG_UPDATABLE_FIELDS = [

@@ -53,6 +53,8 @@ export const resolveTenantByKey = async (key: string): Promise<ITenantContext> =
     name: tenant.name,
     status: tenant.status,
     plan: tenant.plan,
+    blocked: tenant.blocked_at !== null,
+    blockReason: tenant.block_reason,
   };
 };
 
@@ -77,6 +79,7 @@ export const getPublicConfig = async (tenant: ITenantContext): Promise<ITenantPu
     delivery: mergeDeep({ methods: ['pickup'], freeFrom: null, basePrice: 0 }, row.delivery),
     features: mergeDeep({ favorites: true, reviews: true, promoCodes: false, sizeGuide: false }, row.features),
     contacts: mergeDeep({ phone: '', email: '' }, row.contacts),
+    blocked: stored?.blocked_at != null,
   };
 };
 

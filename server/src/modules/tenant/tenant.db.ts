@@ -4,7 +4,8 @@ import { CONFIG_UPDATABLE_FIELDS, ITenantConfigRow, ITenantRow } from '@/modules
 
 export const selectTenantByKey = async (key: string): Promise<ITenantRow | null> => {
   const rows = await query<ITenantRow>(
-    `SELECT id, key, name, vertical, plan, status, bundle_id
+    `SELECT id, key, name, vertical, plan, status, bundle_id,
+            blocked_at::text AS blocked_at, block_reason
      FROM tenants
      WHERE key = $1 AND status = $2
      LIMIT 1`,

@@ -3,7 +3,38 @@ export interface IPlatformSettings {
   plans: { code: string; name: string; price: number }[];
 }
 
+export interface IBillingSettings {
+  graceDays: number;
+  autoBlock: boolean;
+}
+
+export interface IBlockedTenant {
+  id: string;
+  key: string;
+  name: string;
+  blockedAt: string;
+  reason: string | null;
+  overdueCount: number;
+  overdueAmount: number;
+}
+
+export interface IBlockedList {
+  items: IBlockedTenant[];
+}
+
 export const PlatformInvoicesTexts = {
+  billingTitle: 'Автоблокировка за неоплату',
+  graceDays: 'Отсрочка после срока оплаты',
+  graceHint: 'Столько дней магазин работает после просрочки',
+  autoBlock: 'Блокировать автоматически',
+  saveBilling: 'Сохранить правило',
+  runCheck: 'Проверить сейчас',
+  billingSaved: 'Правило сохранено',
+  checked: 'Проверка выполнена',
+  blockedTitle: 'Заблокированные магазины',
+  blockedEmpty: 'Заблокированных магазинов нет',
+  release: 'Разблокировать',
+  released: 'Магазин разблокирован',
   title: 'Счета магазинам',
   subtitle: 'Оплата тарифа переводом на карту платформы',
   searchPlaceholder: 'Номер счёта, название или ключ магазина',

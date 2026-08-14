@@ -5,6 +5,7 @@ import { resolveTenantByKey } from '@/modules/tenant';
 import { seedDemoCatalog } from '@/modules/catalog';
 import { applyVerticalPreset } from '@/modules/attributes';
 import { ensureDemoOwner, ensurePlatformAdmin } from '@/modules/platform';
+import { startBillingScheduler } from '@/modules/billing';
 import { app } from '@/app';
 
 const DEMO_VERTICAL = 'fashion';
@@ -37,6 +38,7 @@ const bootstrap = async (): Promise<void> => {
   await initDb();
   await ensurePlatformAdmin();
   await seedDemoContent();
+  startBillingScheduler();
 
   app.listen(Env.port, LISTEN_HOST, () => {
     console.log(`[server] http://localhost:${Env.port} (${Env.nodeEnv}), слушает ${LISTEN_HOST}`);

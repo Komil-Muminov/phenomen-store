@@ -61,6 +61,7 @@ export interface ITenantConfig {
   delivery: ITenantDelivery;
   features: Record<string, boolean>;
   contacts: ITenantContacts;
+  blocked: boolean;
 }
 
 export interface ITenantConfigPatch {

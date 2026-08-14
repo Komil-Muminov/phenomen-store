@@ -20,7 +20,14 @@ import type { ITenantList } from '@/entities/tenant';
 import { InvoiceForm, type IInvoiceValues } from '@/features/invoice-form';
 import { InvoicesTable } from '@/features/invoices-table';
 import { useInvoiceMutations } from '@/widgets/platform-invoices-page/lib';
-import { IPlatformSettings, PlatformInvoicesTexts } from '@/widgets/platform-invoices-page/model';
+import {
+  IBillingSettings,
+  IBlockedList,
+  IBlockedTenant,
+  IPlatformSettings,
+  PlatformInvoicesTexts,
+} from '@/widgets/platform-invoices-page/model';
+import { RenderBilling } from '@/widgets/platform-invoices-page/ui/renderBilling';
 import { RenderCard } from '@/widgets/platform-invoices-page/ui/renderCard';
 
 export const PlatformInvoicesPage = () => {
@@ -28,6 +35,7 @@ export const PlatformInvoicesPage = () => {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const [isFormOpen, setFormOpen] = useState(false);
+  const [releasingKey, setReleasingKey] = useState<string | null>(null);
 
   const { draft: filters, applied, setFilter, setSearch, setPage } = useListQuery({
     status: undefined as string | undefined,
@@ -48,6 +56,16 @@ export const PlatformInvoicesPage = () => {
     [QueryKeys.tenants, 'invoice-options'],
     ApiRoutes.tenantsSearch,
     { params: { page: 1, limit: 100 } },
+  );
+
+  const billingQuery = useGetQuery<IBillingSettings>(
+    [QueryKeys.platformBilling],
+    ApiRoutes.platformBillingSettings,
+  );
+
+  const blockedQuery = useGetQuery<IBlockedList>(
+    [QueryKeys.platformBlocked],
+    ApiRoutes.platformBillingBlocked,
   );
 
   const mutations = useInvoiceMutations();
@@ -107,6 +125,32 @@ export const PlatformInvoicesPage = () => {
     });
   }, [mutations.cancel, message, showError]);
 
+  const handleSaveBilling = useCallback((values: IBillingSettings) => {
+    mutations.saveBilling.mutate(values, {
+      onSuccess: () => {
+        message.success(PlatformInvoicesTexts.billingSaved);
+        blockedQuery.refetch();
+      },
+      onError: showError,
+    });
+  }, [mutations.saveBilling, message, showError, blockedQuery]);
+
+  const handleRunCheck = useCallback(() => {
+    mutations.runCheck.mutate({}, {
+      onSuccess: () => message.success(PlatformInvoicesTexts.checked),
+      onError: showError,
+    });
+  }, [mutations.runCheck, message, showError]);
+
+  const handleRelease = useCallback((tenant: IBlockedTenant) => {
+    setReleasingKey(tenant.id);
+    mutations.release.mutate({ tenantId: tenant.id }, {
+      onSuccess: () => message.success(PlatformInvoicesTexts.released),
+      onError: showError,
+      onSettled: () => setReleasingKey(null),
+    });
+  }, [mutations.release, message, showError]);
+
   const handleSaveCard = useCallback((card: IPlatformSettings['card']) => {
     mutations.saveCard.mutate(card, {
       onSuccess: () => message.success(PlatformInvoicesTexts.cardSaved),
@@ -122,6 +166,17 @@ export const PlatformInvoicesPage = () => {
         settings={settingsQuery.data ?? null}
         isSaving={mutations.saveCard.isPending}
         onSubmit={handleSaveCard}
+      />
+
+      <RenderBilling
+        settings={billingQuery.data ?? null}
+        blocked={blockedQuery.data?.items ?? []}
+        isSaving={mutations.saveBilling.isPending}
+        isRunning={mutations.runCheck.isPending}
+        releasingKey={releasingKey}
+        onSubmit={handleSaveBilling}
+        onRun={handleRunCheck}
+        onRelease={handleRelease}
       />
 
       <ListToolbar

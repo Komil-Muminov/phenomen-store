@@ -66,6 +66,8 @@ CREATE INDEX IF NOT EXISTS platform_ticket_messages_ticket_idx
 CREATE TABLE IF NOT EXISTS platform_settings (
   id BOOLEAN PRIMARY KEY DEFAULT true CHECK (id),
   card JSONB NOT NULL DEFAULT '{}'::jsonb,
+  grace_days INTEGER NOT NULL DEFAULT 3,
+  auto_block BOOLEAN NOT NULL DEFAULT true,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

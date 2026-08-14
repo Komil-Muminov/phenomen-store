@@ -2,7 +2,11 @@ import { ApiRoutes, QueryKeys } from '@/shared/config';
 import { useMutationQuery } from '@/shared/hooks';
 import type { IInvoice } from '@/entities/invoice';
 import type { IInvoiceValues } from '@/features/invoice-form';
-import type { IPlatformSettings } from '@/widgets/platform-invoices-page/model';
+import type {
+  IBillingSettings,
+  IBlockedList,
+  IPlatformSettings,
+} from '@/widgets/platform-invoices-page/model';
 
 const INVALIDATE = [[QueryKeys.platformInvoices]];
 
@@ -22,5 +26,17 @@ export const useInvoiceMutations = () => ({
   saveCard: useMutationQuery<IPlatformSettings['card'], IPlatformSettings>(
     () => ApiRoutes.platformInvoiceSettings,
     { method: 'patch', invalidate: [[QueryKeys.platformCard]] },
+  ),
+  saveBilling: useMutationQuery<IBillingSettings, IBillingSettings>(
+    () => ApiRoutes.platformBillingSettings,
+    { method: 'patch', invalidate: [[QueryKeys.platformBilling]] },
+  ),
+  runCheck: useMutationQuery<Record<string, never>, { blocked: string[]; unblocked: string[] }>(
+    () => ApiRoutes.platformBillingRun,
+    { invalidate: [[QueryKeys.platformBlocked], [QueryKeys.platformInvoices]] },
+  ),
+  release: useMutationQuery<{ tenantId: string }, IBlockedList>(
+    () => ApiRoutes.platformBillingBlocked,
+    { method: 'patch', invalidate: [[QueryKeys.platformBlocked]] },
   ),
 });

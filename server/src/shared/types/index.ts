@@ -18,6 +18,8 @@ export interface ITenantContext {
   name: string;
   status: string;
   plan: string;
+  blocked: boolean;
+  blockReason: string | null;
 }
 
 export interface IUserContext {

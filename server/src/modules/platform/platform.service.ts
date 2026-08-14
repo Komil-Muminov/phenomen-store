@@ -230,7 +230,15 @@ export const signIn = async (
   }
 
   const session = await loginStaffWithPassword(
-    { id: tenant.id, key: tenant.key, name: tenant.name, status: tenant.status, plan: tenant.plan },
+    {
+      id: tenant.id,
+      key: tenant.key,
+      name: tenant.name,
+      status: tenant.status,
+      plan: tenant.plan,
+      blocked: false,
+      blockReason: null,
+    },
     entry.user_id,
     password,
   );

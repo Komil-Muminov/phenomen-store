@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS tenants (
   vertical TEXT NOT NULL DEFAULT 'fashion',
   plan TEXT NOT NULL DEFAULT 'start',
   status TEXT NOT NULL DEFAULT 'active',
+  blocked_at TIMESTAMPTZ,
+  block_reason TEXT,
   bundle_id TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()

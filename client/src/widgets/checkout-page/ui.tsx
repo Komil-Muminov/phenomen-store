@@ -20,6 +20,8 @@ import { useGetQuery, useMutationQuery } from '@/shared/hooks';
 import { createIdempotencyKey } from '@/shared/session';
 import { Icon, If, StateView } from '@/shared/ui';
 
+const BLOCKED_NOTICE = 'Магазин временно не принимает заказы — попробуйте позже';
+
 interface IOrderResponse {
   id: string;
   number: string;
@@ -154,6 +156,12 @@ export const CheckoutPage = () => {
         )}
       >
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <If condition={Boolean(config?.blocked)}>
+            <View className="mx-4 mt-2 rounded-2xl border border-danger/30 bg-danger/10 p-3">
+              <Text className="text-sm font-semibold text-danger">{BLOCKED_NOTICE}</Text>
+            </View>
+          </If>
+
           <CheckoutForm
             form={form}
             addressPicker={isAuthorized ? (

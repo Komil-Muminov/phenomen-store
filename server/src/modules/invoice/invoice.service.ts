@@ -2,6 +2,7 @@ import { HttpStatus } from '@/shared/config';
 import { ITenantContext } from '@/shared/types';
 import { AppError, pickString, requireUuid } from '@/shared/utils';
 import { invalidateTenantCache } from '@/modules/tenant';
+import { runBillingCheck } from '@/modules/billing';
 import {
   NotificationKinds,
   NotificationTexts,
@@ -236,6 +237,8 @@ export const reviewInvoice = async (
     invalidateTenantCache(invoice.tenant_key);
   }
 
+  await runBillingCheck();
+
   await notifyOwners(
     invoice.tenant_id,
     accepted ? NotificationTexts.invoicePaidTitle : NotificationTexts.invoiceFailedTitle,
@@ -255,6 +258,7 @@ export const cancelInvoice = async (id: string) => {
   }
 
   await setInvoiceStatus(id, InvoiceStatus.cancelled);
+  await runBillingCheck();
 
   return getInvoice(id, null);
 };

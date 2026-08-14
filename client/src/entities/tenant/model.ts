@@ -57,6 +57,7 @@ export interface ITenantConfig {
   delivery: Record<string, unknown>;
   features: ITenantFeatures;
   contacts: Record<string, string>;
+  blocked?: boolean;
 }
 
 export const DEFAULT_TENANT_CONFIG: ITenantConfig = {

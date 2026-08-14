@@ -22,6 +22,7 @@ export const ApiRoutes = {
   platformTickets: '/platform/tickets',
   platformInvoices: '/platform/invoices',
   invoices: '/invoices',
+  billing: '/platform/billing',
   stats: '/stats',
   health: '/health',
 } as const;

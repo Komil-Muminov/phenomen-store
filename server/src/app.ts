@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { ApiRoutes, Env } from '@/shared/config';
-import { errorMiddleware, notFoundMiddleware } from '@/shared/middlewares';
+import { blockGuardMiddleware, errorMiddleware, notFoundMiddleware } from '@/shared/middlewares';
 import { tenantMiddleware, tenantRouter } from '@/modules/tenant';
 import { categoryRouter, productRouter } from '@/modules/catalog';
 import { attributeRouter } from '@/modules/attributes';
@@ -23,6 +23,7 @@ import { planRouter } from '@/modules/plans';
 import { addressRouter } from '@/modules/address';
 import { paymentRouter } from '@/modules/payment';
 import { invoiceRouter, platformInvoiceRouter } from '@/modules/invoice';
+import { BillingErrors, billingRouter } from '@/modules/billing';
 
 export const app = express();
 
@@ -37,9 +38,11 @@ app.get(ApiRoutes.health, (_req, res) => {
 
 app.use(ApiRoutes.platformTickets, platformTicketRouter);
 app.use(ApiRoutes.platformInvoices, platformInvoiceRouter);
+app.use(ApiRoutes.billing, billingRouter);
 app.use(ApiRoutes.platform, platformRouter);
 
 app.use(tenantMiddleware);
+app.use(blockGuardMiddleware(BillingErrors.blocked));
 app.use(ApiRoutes.tenants, tenantRouter);
 app.use(ApiRoutes.storefront, storefrontRouter);
 app.use(ApiRoutes.catalog, productRouter);

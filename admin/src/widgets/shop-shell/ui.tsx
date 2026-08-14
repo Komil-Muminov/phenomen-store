@@ -1,7 +1,10 @@
 import { ReactNode, useCallback, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { Avatar, Button, Drawer, Typography } from 'antd';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Alert, Avatar, Button, Drawer, Typography } from 'antd';
 import { LogoutOutlined, MenuOutlined, ShopOutlined, UserOutlined } from '@ant-design/icons';
+import { ApiRoutes, AppRoutes, QueryKeys, StaleTimeMs } from '@/shared/config';
+import { useGetQuery } from '@/shared/hooks';
+import type { ITenantConfig } from '@/entities/tenant-config';
 import { If } from '@/shared/ui/If';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { useShopAuth } from '@/shared/shop-auth';
@@ -21,10 +24,22 @@ interface IProps {
 
 const DRAWER_WIDTH = 272;
 
+const ShellTexts = {
+  blockedTitle: 'Магазин заблокирован за неоплату тарифа',
+  blockedHint: 'Оплатите счёт, и работа магазина возобновится автоматически',
+  blockedAction: 'Перейти к счетам',
+} as const;
+
 export const ShopShell = ({ children }: IProps) => {
   const { user, tenantKey, signOut } = useShopAuth();
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const { data: config } = useGetQuery<ITenantConfig>(
+    [QueryKeys.shopConfig],
+    ApiRoutes.shopConfig,
+    { scope: 'shop', staleTime: StaleTimeMs.short },
+  );
 
   const openMenu = useCallback(() => setMenuOpen(true), []);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
@@ -36,7 +51,7 @@ export const ShopShell = ({ children }: IProps) => {
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-2.5 sm:px-6 lg:px-8">
-          <div className="flex min-w-0 items-center gap-3 lg:gap-6">
+          <div className="flex min-w-0 flex-1 items-center gap-3 lg:gap-5">
             <span className="lg:hidden">
               <Tooltip title="Меню">
                 <Button
@@ -48,19 +63,19 @@ export const ShopShell = ({ children }: IProps) => {
               </Tooltip>
             </span>
 
-            <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex shrink-0 items-center gap-2.5">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
                 <ShopOutlined className="text-lg" />
               </div>
-              <div className="min-w-0">
-                <Typography.Text strong className="block leading-tight text-slate-900!">
+              <div className="hidden min-w-0 xl:block">
+                <Typography.Text strong className="block whitespace-nowrap leading-tight text-slate-900!">
                   Кабинет магазина
                 </Typography.Text>
                 <div className="truncate font-mono text-xs text-indigo-600 font-medium">{tenantKey || 'demo-fashion'}</div>
               </div>
             </div>
 
-            <nav className="hidden items-center gap-1.5 lg:flex ml-2">
+            <nav className="ml-2 hidden min-w-0 flex-wrap items-center gap-1.5 lg:flex">
               {ShopNavItems.map((item) => (
                 <NavLink
                   key={item.to}
@@ -83,7 +98,7 @@ export const ShopShell = ({ children }: IProps) => {
               >
                 {userInitial}
               </Avatar>
-              <Typography.Text className="text-xs! font-medium! text-slate-700!">
+              <Typography.Text className="hidden text-xs! font-medium! text-slate-700! 2xl:inline">
                 {userName}
               </Typography.Text>
             </div>
@@ -159,6 +174,24 @@ export const ShopShell = ({ children }: IProps) => {
       </Drawer>
 
       <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <If condition={Boolean(config?.blocked)}>
+          <Alert
+            type="error"
+            showIcon
+            className="mb-6! rounded-xl!"
+            message={ShellTexts.blockedTitle}
+            description={ShellTexts.blockedHint}
+            action={(
+              <Link
+                to={AppRoutes.shopInvoices}
+                className="rounded-lg bg-rose-600 px-3 py-1.5 text-sm text-white transition-colors duration-200 hover:bg-rose-500"
+              >
+                {ShellTexts.blockedAction}
+              </Link>
+            )}
+          />
+        </If>
+
         <If condition={isCatalogRoute(pathname)}>
           <RenderSubNav />
         </If>
