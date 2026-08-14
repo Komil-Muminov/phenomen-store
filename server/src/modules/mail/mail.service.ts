@@ -1,7 +1,15 @@
 import nodemailer, { Transporter } from 'nodemailer';
 import { Env, HttpStatus } from '@/shared/config';
 import { AppError } from '@/shared/utils';
-import { IMailMessage, IOtpLetter, MailErrors, MailTexts, SECONDS_IN_MINUTE } from '@/modules/mail/types';
+import {
+  IMailMessage,
+  IMailStatus,
+  IOtpLetter,
+  MailErrors,
+  MailStatusTexts,
+  MailTexts,
+  SECONDS_IN_MINUTE,
+} from '@/modules/mail/types';
 
 let transporter: Transporter | null = null;
 
@@ -47,6 +55,60 @@ export const sendOtpLetter = async (letter: IOtpLetter): Promise<void> => {
     subject: MailTexts.otpSubject,
     text: MailTexts.otpBody(letter.shopName, letter.code, letter.ttlMinutes),
   });
+};
+
+export const checkMail = async (): Promise<IMailStatus> => {
+  if (!isMailConfigured()) {
+    return {
+      configured: false,
+      ready: false,
+      reason: null,
+      message: MailStatusTexts.offline,
+    };
+  }
+
+  try {
+    await getTransporter().verify();
+
+    return { configured: true, ready: true, reason: null, message: MailStatusTexts.ready };
+  } catch (error) {
+    return {
+      configured: true,
+      ready: false,
+      reason: error instanceof Error ? error.message : String(error),
+      message: MailStatusTexts.broken,
+    };
+  }
+};
+
+export const sendTestLetter = async (to: string, login: string): Promise<void> => {
+  if (!isMailConfigured()) {
+    throw new AppError(MailErrors.notConfigured, HttpStatus.conflict);
+  }
+
+  await sendMail({
+    to,
+    subject: MailStatusTexts.testSubject,
+    text: MailStatusTexts.testBody(login),
+  });
+};
+
+export const reportMailStatus = async (): Promise<void> => {
+  const status = await checkMail();
+
+  if (!status.configured) {
+    console.warn(MailStatusTexts.bootOffline);
+
+    return;
+  }
+
+  if (status.ready) {
+    console.log(MailStatusTexts.bootReady);
+
+    return;
+  }
+
+  console.error(`${MailStatusTexts.bootWarning}: ${status.reason ?? ''}`);
 };
 
 export const minutesFromSeconds = (seconds: number): number => (

@@ -23,7 +23,20 @@ export interface IBlockedList {
   items: IBlockedTenant[];
 }
 
+export interface IMailStatus {
+  configured: boolean;
+  ready: boolean;
+  reason: string | null;
+  message: string;
+}
+
 export const PlatformInvoicesTexts = {
+  mailTitle: 'Почта платформы',
+  mailHint: 'На неё завязаны коды входа и напоминания об оплате',
+  mailPlaceholder: 'Куда отправить проверочное письмо',
+  mailSend: 'Отправить проверку',
+  mailSent: 'Письмо отправлено — проверьте ящик',
+  mailReasonLabel: 'Ответ сервера',
   billingTitle: 'Автоблокировка за неоплату',
   graceDays: 'Отсрочка после срока оплаты',
   graceHint: 'Столько дней магазин работает после просрочки',

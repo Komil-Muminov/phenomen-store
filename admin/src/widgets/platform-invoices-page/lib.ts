@@ -35,6 +35,10 @@ export const useInvoiceMutations = () => ({
     () => ApiRoutes.platformBillingRun,
     { invalidate: [[QueryKeys.platformBlocked], [QueryKeys.platformInvoices]] },
   ),
+  testMail: useMutationQuery<{ email: string }, { sent: boolean }>(
+    () => ApiRoutes.platformMailTest,
+    { invalidate: [[QueryKeys.platformMail]] },
+  ),
   release: useMutationQuery<{ tenantId: string }, IBlockedList>(
     () => ApiRoutes.platformBillingBlocked,
     { method: 'patch', invalidate: [[QueryKeys.platformBlocked]] },

@@ -23,6 +23,7 @@ export const ApiRoutes = {
   platformInvoices: '/platform/invoices',
   invoices: '/invoices',
   billing: '/platform/billing',
+  platformMail: '/platform/mail',
   stats: '/stats',
   health: '/health',
 } as const;

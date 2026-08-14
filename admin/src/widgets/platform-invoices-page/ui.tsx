@@ -22,6 +22,7 @@ import { InvoicesTable } from '@/features/invoices-table';
 import { useInvoiceMutations } from '@/widgets/platform-invoices-page/lib';
 import {
   IBillingSettings,
+  IMailStatus,
   IBlockedList,
   IBlockedTenant,
   IPlatformSettings,
@@ -29,6 +30,7 @@ import {
 } from '@/widgets/platform-invoices-page/model';
 import { RenderBilling } from '@/widgets/platform-invoices-page/ui/renderBilling';
 import { RenderCard } from '@/widgets/platform-invoices-page/ui/renderCard';
+import { RenderMail } from '@/widgets/platform-invoices-page/ui/renderMail';
 
 export const PlatformInvoicesPage = () => {
   const { message } = AntApp.useApp();
@@ -66,6 +68,11 @@ export const PlatformInvoicesPage = () => {
   const blockedQuery = useGetQuery<IBlockedList>(
     [QueryKeys.platformBlocked],
     ApiRoutes.platformBillingBlocked,
+  );
+
+  const mailQuery = useGetQuery<IMailStatus>(
+    [QueryKeys.platformMail],
+    ApiRoutes.platformMailStatus,
   );
 
   const mutations = useInvoiceMutations();
@@ -125,6 +132,13 @@ export const PlatformInvoicesPage = () => {
     });
   }, [mutations.cancel, message, showError]);
 
+  const handleTestMail = useCallback((email: string) => {
+    mutations.testMail.mutate({ email }, {
+      onSuccess: () => message.success(PlatformInvoicesTexts.mailSent),
+      onError: showError,
+    });
+  }, [mutations.testMail, message, showError]);
+
   const handleSaveBilling = useCallback((values: IBillingSettings) => {
     mutations.saveBilling.mutate(values, {
       onSuccess: () => {
@@ -166,6 +180,12 @@ export const PlatformInvoicesPage = () => {
         settings={settingsQuery.data ?? null}
         isSaving={mutations.saveCard.isPending}
         onSubmit={handleSaveCard}
+      />
+
+      <RenderMail
+        status={mailQuery.data ?? null}
+        isSending={mutations.testMail.isPending}
+        onSend={handleTestMail}
       />
 
       <RenderBilling

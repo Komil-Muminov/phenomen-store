@@ -24,6 +24,7 @@ import { addressRouter } from '@/modules/address';
 import { paymentRouter } from '@/modules/payment';
 import { invoiceRouter, platformInvoiceRouter } from '@/modules/invoice';
 import { BillingErrors, billingRouter } from '@/modules/billing';
+import { mailRouter } from '@/modules/mail';
 
 export const app = express();
 
@@ -39,6 +40,7 @@ app.get(ApiRoutes.health, (_req, res) => {
 app.use(ApiRoutes.platformTickets, platformTicketRouter);
 app.use(ApiRoutes.platformInvoices, platformInvoiceRouter);
 app.use(ApiRoutes.billing, billingRouter);
+app.use(ApiRoutes.platformMail, mailRouter);
 app.use(ApiRoutes.platform, platformRouter);
 
 app.use(tenantMiddleware);

@@ -6,6 +6,7 @@ import { seedDemoCatalog } from '@/modules/catalog';
 import { applyVerticalPreset } from '@/modules/attributes';
 import { ensureDemoOwner, ensurePlatformAdmin } from '@/modules/platform';
 import { startBillingScheduler } from '@/modules/billing';
+import { reportMailStatus } from '@/modules/mail';
 import { app } from '@/app';
 
 const DEMO_VERTICAL = 'fashion';
@@ -38,6 +39,7 @@ const bootstrap = async (): Promise<void> => {
   await initDb();
   await ensurePlatformAdmin();
   await seedDemoContent();
+  await reportMailStatus();
   startBillingScheduler();
 
   app.listen(Env.port, LISTEN_HOST, () => {

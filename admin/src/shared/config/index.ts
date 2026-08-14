@@ -91,6 +91,8 @@ export const ApiRoutes = {
   platformBillingSettings: '/platform/billing/settings',
   platformBillingRun: '/platform/billing/run',
   platformBillingBlocked: '/platform/billing/blocked',
+  platformMailStatus: '/platform/mail/status',
+  platformMailTest: '/platform/mail/test',
   shopInvoicesSearch: '/invoices/search',
   shopInvoiceReceipt: '/invoices/receipt',
   shopInvoiceCard: '/invoices/card',
@@ -125,6 +127,7 @@ export const QueryKeys = {
   platformCard: 'platform-card',
   platformBilling: 'platform-billing',
   platformBlocked: 'platform-blocked',
+  platformMail: 'platform-mail',
 } as const;
 
 export const ProductUnits = [
